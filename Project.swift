@@ -1,31 +1,22 @@
 import ProjectDescription
 
 let project = Project(
-    name: "IOSAvatarMail",
+    name: "AvatarMail",
     targets: [
         .target(
-            name: "IOSAvatarMail",
+            name: "AvatarMail",
             destinations: .iOS,
             product: .app,
-            bundleId: "io.tuist.IOSAvatarMail",
+            bundleId: "com.AvatarMail",
+            deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
                 ]
             ),
-            sources: ["IOSAvatarMail/Sources/**"],
-            resources: ["IOSAvatarMail/Resources/**"],
+            sources: ["AvatarMail/Sources/**"],
+            resources: ["AvatarMail/Resources/**"],
             dependencies: []
-        ),
-        .target(
-            name: "IOSAvatarMailTests",
-            destinations: .iOS,
-            product: .unitTests,
-            bundleId: "io.tuist.IOSAvatarMailTests",
-            infoPlist: .default,
-            sources: ["IOSAvatarMail/Tests/**"],
-            resources: [],
-            dependencies: [.target(name: "IOSAvatarMail")]
         ),
     ]
 )
