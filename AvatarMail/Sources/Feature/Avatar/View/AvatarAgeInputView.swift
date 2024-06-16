@@ -122,7 +122,6 @@ final class AvatarAgeInputView: UIView {
         
         // Chip 생성
         for index in chipData.indices {
-            print(index)
             
             let chip = AvatarAgeChip()
             

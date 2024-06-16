@@ -103,7 +103,7 @@ class MailHomeController: UIViewController, View {
         }
         
         // mailbox image
-        mailboxImageView.image = UIImage(named: "mailbox")
+        mailboxImageView.image = UIImage(named: "mailbox_img")
         mailboxImageView.snp.makeConstraints {
             $0.top.equalTo(pageTitleLabel.snp.bottom).offset(30)
             $0.centerX.equalToSuperview()

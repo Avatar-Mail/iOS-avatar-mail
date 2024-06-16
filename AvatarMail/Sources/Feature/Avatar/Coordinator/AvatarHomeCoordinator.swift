@@ -32,7 +32,7 @@ class AvatarHomeCoordinator: AvatarHomeCoordinatorProtocol {
     
     
     func showAvatarSettingController(with avatar: AvatarInfo?) {
-        print(avatar?.name ?? "None")
+        print("Avatar: ", avatar?.name ?? "None")
         let viewParameter = AvatarSettingCoordinator.ViewParameter(avatarInfo: avatar)
         let avatarSettingCoordinator = AvatarSettingCoordinator(navigationController: navigationController,
                                                                 viewParameter: viewParameter)

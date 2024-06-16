@@ -1,5 +1,15 @@
 import ProjectDescription
 
+let projectSettings: Settings = .settings(
+    base: [
+        "PROJECT_BASE": "PROJECT_BASE",
+    ],
+    configurations: [
+        .debug(name: "Debug", xcconfig: "./XCConfig/DEV.xcconfig"),
+        .release(name: "Release", xcconfig: "./XCConfig/PROD.xcconfig"),
+    ]
+)
+
 let project = Project(
     name: "AvatarMail",
     targets: [
@@ -12,6 +22,7 @@ let project = Project(
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
+                    "APIKey": "$(OPEN_API_KEY)"
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],
@@ -37,7 +48,8 @@ let project = Project(
                 .external(name: "SnapKit", condition: .none),
                 .external(name: "Then", condition: .none),
                 .external(name: "Toast", condition: .none),
-            ]
+            ],
+            settings: projectSettings
         ),
     ]
 )
