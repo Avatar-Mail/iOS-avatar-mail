@@ -17,20 +17,30 @@ final class CustomTabBar: UIView {
     
     private let disposeBag = DisposeBag()
     
-    private let containerStackView = UIStackView().then {
-        $0.distribution = .fillEqually
-        $0.alignment = .center
-        $0.backgroundColor = .systemIndigo
-        $0.setupCornerRadius(30)
-    }
-    
     private let tappedItemSubject = PublishSubject<Int>()
     
     var tappedItem: Observable<Int> { tappedItemSubject.asObservable() }
     
-    private let mailItemView = CustomItemView(with: .mail, index: 0)
-    private let avatarItemView = CustomItemView(with: .avatar, index: 1)
-    private let settingItemView = CustomItemView(with: .setting, index: 2)
+    private let containerView = UIView().then {
+        $0.layer.masksToBounds = true
+        $0.layer.cornerRadius = 30
+        $0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+    }
+
+    private let tabStackView = UIStackView().then {
+        $0.distribution = .fillEqually
+        $0.alignment = .center
+        $0.backgroundColor = .clear
+    }
+    
+    private let mailItemView = CustomItemView(with: .mail,
+                                              index: CustomTabItem.mail.tabIndex())
+    
+    private let avatarItemView = CustomItemView(with: .avatar, 
+                                                index: CustomTabItem.avatar.tabIndex())
+    
+    private let settingItemView = CustomItemView(with: .setting, 
+                                                 index: CustomTabItem.setting.tabIndex())
     
     private lazy var customItemViews: [CustomItemView] = [mailItemView, avatarItemView, settingItemView]
     
@@ -41,25 +51,41 @@ final class CustomTabBar: UIView {
         makeUI()
         bindUI()
         
-        selectItem(index: 0)
+        selectItem(index: CustomTabItem.mail.tabIndex())
     }
     
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func makeUI() {
+    override func layoutSubviews() {
+        super.layoutSubviews()
         
+        // 탭바 배경 그레디언트 색상 적용
+        setupBackgroundGradient()
+    }
+    
+    
+    private func makeUI() {
         addSubViews(
-            containerStackView.addArrangedSubViews(
-                mailItemView,
-                avatarItemView,
-                settingItemView
+            containerView.addSubViews(
+                tabStackView.addArrangedSubViews(
+                    mailItemView,
+                    avatarItemView,
+                    settingItemView
+                )
             )
         )
         
-        containerStackView.snp.makeConstraints {
+        containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
+        }
+        
+        tabStackView.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.centerX.equalToSuperview()
+            $0.width.equalTo(300)
+            $0.height.equalTo(AppConst.shared.tabHeight)
         }
         
         customItemViews.forEach {
@@ -99,6 +125,17 @@ final class CustomTabBar: UIView {
                 }
             }
             .disposed(by: disposeBag)
+    }
+    
+    
+    private func setupBackgroundGradient() {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [UIColor(hex: 0x538EFE).cgColor, UIColor(hex: 0x4C5BDF).cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        containerView.layer.insertSublayer(gradientLayer, at: 0)
+        
+        containerView.layer.sublayers?.first?.frame = containerView.bounds
     }
     
     
