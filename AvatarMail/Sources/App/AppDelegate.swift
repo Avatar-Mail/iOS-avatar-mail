@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContainer.shared.registerDepedencies()
 
         window = UIWindow(frame: UIScreen.main.bounds) // 변경된 부분
-        window?.rootViewController = TabBarController()
+        window?.rootViewController = CustomTabBarController()
         window?.makeKeyAndVisible()
         
         return true

@@ -7,6 +7,7 @@
 
 import UIKit
 
+@available(*, deprecated, renamed: "CustomTabBarController", message: "CustomTabBarController로 탭바 컴포넌트 변경")
 class TabBarController: UITabBarController {
     
     deinit {

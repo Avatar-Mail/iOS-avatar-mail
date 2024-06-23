@@ -7,6 +7,7 @@
 
 import Foundation
 
+@available(*, deprecated, renamed: "CustomTabItem", message: "CustomTabItem로 탭바 내 아이템 변경")
 enum TabBarPage: String, CaseIterable {
     case mail, avatar
     
