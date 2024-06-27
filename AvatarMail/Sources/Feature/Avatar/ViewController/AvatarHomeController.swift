@@ -21,9 +21,13 @@ class AvatarHomeController: UIViewController, View {
     var disposeBag = DisposeBag()
     
     
-    private let pageTitleLabel = UILabel().then {
-        $0.text = "나의 아바타"
-        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    private let topNavigation = TopNavigation().then {
+        $0.setLeftLogoIcon(logoName: "white_logo_img", logoSize: CGSize(width: 25, height: 25))
+        $0.setRightSidePrimaryIcon(iconName: "bell.fill", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setTitle(titleText: "아바타 찾기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
+        $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
     private let searchBar = AvatarSearchBar()
@@ -81,25 +85,32 @@ class AvatarHomeController: UIViewController, View {
     }
     
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+    }
+    
+    
     private func makeUI() {
         view.backgroundColor = .white
         
         view.addSubViews(
-            pageTitleLabel,
+            topNavigation,
             searchBar,
             placeholderView,
             collectionView
         )
         
-        // title label
-        pageTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(35)
-            $0.left.equalToSuperview().inset(20)
+        // topNavigation
+        topNavigation.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
         }
         
         // searchBar
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(30)
+            $0.top.equalTo(topNavigation.snp.bottom).offset(30)
             $0.height.equalTo(45)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
@@ -146,7 +157,7 @@ class AvatarHomeController: UIViewController, View {
 extension AvatarHomeController: AvatarSearchBarDelegate {
     func searchTextFieldDidTap() {
         showAvatarSearchView(true)
-        self.pageTitleLabel.text = "아바타 찾기"
+        topNavigation.setTitle(titleText: "아바타 찾기", titleColor: .white, fontSize: 20, fontWeight: .semibold)
     }
     
     func searchTextDidChange(text: String) {
@@ -155,14 +166,14 @@ extension AvatarHomeController: AvatarSearchBarDelegate {
     
     func cancelButtonDidTap() {
         showAvatarSearchView(false)
-        self.pageTitleLabel.text = "나의 아바타"
+        topNavigation.setTitle(titleText: "나의 아바타", titleColor: .white, fontSize: 20, fontWeight: .semibold)
     }
     
     func clearButtonDidTap() {
         reactor?.action.onNext(.syncQueryToSearchTextFieldInput(text: ""))
         showAvatarSearchView(true)
         searchBar.showKeyboard(true)
-        self.pageTitleLabel.text = "아바타 찾기"
+        topNavigation.setTitle(titleText: "아바타 찾기", titleColor: .white, fontSize: 20, fontWeight: .semibold)
     }
 }
 

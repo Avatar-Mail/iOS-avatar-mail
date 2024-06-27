@@ -13,8 +13,11 @@ public struct AppConst {
     
     private init() {}
     
+    // 탭바
     let tabHeight: CGFloat = 80
     let safeAreaInset: UIEdgeInsets? = (UIApplication.shared.connectedScenes.first
         .flatMap { ($0 as? UIWindowScene)?.windows.first }?
         .flatMap { $0.safeAreaInsets })
+    // 상단 탑 내비게이션
+    let topNavigationHeight: CGFloat = 54
 }
