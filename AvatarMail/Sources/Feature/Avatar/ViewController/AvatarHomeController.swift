@@ -22,10 +22,12 @@ class AvatarHomeController: UIViewController, View {
     
     
     private let topNavigation = TopNavigation().then {
+        $0.setLeftLogoIcon(logoName: "white_logo_img", logoSize: CGSize(width: 25, height: 25))
         $0.setRightSidePrimaryIcon(iconName: "bell.fill", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTitle(titleText: "아바타 찾기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
+        $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
     private let searchBar = AvatarSearchBar()
@@ -80,6 +82,14 @@ class AvatarHomeController: UIViewController, View {
         reactor?.action.onNext(.getAllAvatarInfos)
         
         showAvatarSearchView(false)
+    }
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
     }
     
     

@@ -177,14 +177,20 @@ public final class TopNavigation: UIView {
             .disposed(by: disposeBag)
     }
     
-    /// TopNavigation 중앙 타이틀 세팅 (topSafetyArea 포함)
+    /// TopNavigation 배경 색상 세팅 (topSafetyArea 포함)
     /// - Parameters:
     ///   - color: 탑 네비게이션 배경색
-    public func setTopNavigationBackgroundColor(
-        color: UIColor
-    ) {
+    public func setTopNavigationBackgroundColor(color: UIColor) {
         topSafetyAreaView.backgroundColor = color
         containerView.backgroundColor = color
+    }
+    
+    /// TopNavigation 그라디언트 배경 색상 세팅 (topSafetyArea 포함)
+    /// - Parameters:
+    ///   - colors: 배경 그라디언트 적용할 탑 네비게이션 색상 리스트
+    public func setTopNavigationBackgroundGradientColor(colors: [UIColor]) {
+        topSafetyAreaView.applyGradientBackground(colors: colors)
+        containerView.applyGradientBackground(colors: colors)
     }
     
     /// TopNavigation 중앙 타이틀 세팅 (topSafetyArea 포함)
@@ -217,7 +223,7 @@ public final class TopNavigation: UIView {
     /// TopNavigation 좌측 아이콘 세팅
     /// - Parameters:
     ///   - iconName: 아이콘 이름
-    ///   - iconColor: 아이콘 색상
+    ///   - iconColor: 아c        이콘 색상
     ///   - iconSize: 아이콘 크기
     public func setLeftIcon(iconName: String?,
                             iconColor: UIColor,
@@ -225,9 +231,39 @@ public final class TopNavigation: UIView {
         if let iconName, let iconImage = UIImage(systemName: iconName) {
             let coloredImage = iconImage.withColor(iconColor)
             let resizedImage = coloredImage?.resized(to: iconSize)
+            
+            leftSideIconButton.snp.remakeConstraints {
+                $0.width.equalTo(iconSize.width)
+                $0.height.equalTo(iconSize.height)
+            }
+            
             leftSideIconButton.setImage(resizedImage, for: .normal)
             leftSideIconButton.isHidden = false
         } else {
+            leftSideIconButton.isHidden = true
+        }
+    }
+    
+    
+    /// TopNavigation 좌측 로고 아이콘 세팅
+    /// - Parameters:
+    ///   - logoName: 로고 아이콘 이름
+    ///   - logoSize: 로고 아이콘 크기
+    public func setLeftLogoIcon(logoName: String?,
+                                logoSize: CGSize) {
+        if let logoName, let logoImage = UIImage(named: logoName) {
+            let resizedImage = logoImage.resized(to: logoSize)
+            
+            leftSideIconButton.snp.remakeConstraints {
+                $0.width.equalTo(logoSize.width)
+                $0.height.equalTo(logoSize.height)
+            }
+            
+            leftSideIconButton.setImage(resizedImage, for: .normal)
+            leftSideIconButton.isUserInteractionEnabled = false
+            leftSideIconButton.isHidden = false
+        } else {
+            leftSideIconButton.isUserInteractionEnabled = true
             leftSideIconButton.isHidden = true
         }
     }
@@ -244,6 +280,12 @@ public final class TopNavigation: UIView {
         if let iconName, let iconImage = UIImage(systemName: iconName) {
             let coloredImage = iconImage.withColor(iconColor)
             let resizedImage = coloredImage?.resized(to: iconSize)
+            
+            rightSidePrimaryIconButton.snp.remakeConstraints {
+                $0.width.equalTo(iconSize.width)
+                $0.height.equalTo(iconSize.height)
+            }
+            
             rightSidePrimaryIconButton.setImage(resizedImage, for: .normal)
             rightSidePrimaryIconButton.isHidden = false
         } else {
@@ -263,6 +305,12 @@ public final class TopNavigation: UIView {
         if let iconName, let iconImage = UIImage(systemName: iconName) {
             let coloredImage = iconImage.withColor(iconColor)
             let resizedImage = coloredImage?.resized(to: iconSize)
+            
+            rightSideSecondaryIconButton.snp.remakeConstraints {
+                $0.width.equalTo(iconSize.width)
+                $0.height.equalTo(iconSize.height)
+            }
+            
             rightSideSecondaryIconButton.setImage(resizedImage, for: .normal)
             rightSideSecondaryIconButton.isHidden = false
         } else {
@@ -306,7 +354,7 @@ public final class TopNavigation: UIView {
                 layer.shadowOpacity = 0
             } else {
                 layer.masksToBounds = false
-                layer.shadowColor = UIColor.darkGray.cgColor
+                layer.shadowColor = UIColor.gray.cgColor
                 layer.shadowOffset = CGSize(width: 0, height: shadowHeight)
                 layer.shadowOpacity = 1
             }
@@ -320,7 +368,7 @@ public final class TopNavigation: UIView {
     /// - Parameter shadowHeight: 그림자의 높이
     public func setTopNavigationShadow(shadowHeight: CGFloat) {
         layer.masksToBounds = false
-        layer.shadowColor = UIColor.darkGray.cgColor
+        layer.shadowColor = UIColor.gray.cgColor
         layer.shadowOffset = CGSize(width: 0, height: shadowHeight)
         layer.shadowOpacity = 1
     }
