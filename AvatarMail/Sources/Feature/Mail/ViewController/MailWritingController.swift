@@ -135,6 +135,8 @@ class MailWritingController: UIViewController, View {
         
         makeUI()
         
+        topNavigation.delegate = self
+        
         self.hideKeyboardWhenTappedAround()
     }
     
@@ -313,3 +315,14 @@ extension MailWritingController: UITextViewDelegate {
 
 
 
+extension MailWritingController: TopNavigationDelegate {
+    func topNavigationLeftSideIconDidTap() {
+        reactor?.action.onNext(.closeMailWritingController)
+    }
+    
+    func topNavigationRightSidePrimaryIconDidTap() {}
+    
+    func topNavigationRightSideSecondaryIconDidTap() {}
+    
+    func topNavigationRightSideTextButtonDidTap() {}
+}

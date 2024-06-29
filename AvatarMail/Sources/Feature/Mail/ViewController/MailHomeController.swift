@@ -87,20 +87,11 @@ class MailHomeController: UIViewController, View {
             $0.top.leading.trailing.equalToSuperview()
         }
         
-        var collectionViewBottomInset: CGFloat
-        let tabHeight = AppConst.shared.tabHeight
-        
-        if let safeAreaBottomInset = AppConst.shared.safeAreaInset?.bottom {
-            collectionViewBottomInset = safeAreaBottomInset + tabHeight - 20 - 16
-        } else {
-            collectionViewBottomInset = tabHeight - 16
-        }
-        
         // collection-view
         contentsCollectionView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalToSuperview().inset(collectionViewBottomInset)
+            $0.bottom.equalToSuperview()
         }
     }
     
@@ -200,12 +191,22 @@ extension MailHomeController {
                                                heightDimension: .estimated(1))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
+        // collection-view last cell bottom inset
+        var collectionViewBottomInset: CGFloat
+        let tabHeight = AppConst.shared.tabHeight
+        
+        if let safeAreaBottomInset = AppConst.shared.safeAreaInset?.bottom {
+            collectionViewBottomInset = (safeAreaBottomInset + tabHeight - 20) - 16
+        } else {
+            collectionViewBottomInset = tabHeight - 16
+        }
+        
         // Section
         let section = NSCollectionLayoutSection(group: group)
         // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
         section.contentInsets = NSDirectionalEdgeInsets(top: 16,
                                                         leading: 0,
-                                                        bottom: 32,
+                                                        bottom: collectionViewBottomInset,
                                                         trailing: 0)
         
         return section
