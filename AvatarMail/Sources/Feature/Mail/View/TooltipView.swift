@@ -77,9 +77,9 @@ class TooltipView: UIView {
     
     private func drawTooltipCorner() {
         let cornerPath = UIBezierPath()
-        cornerPath.move(to: CGPoint(x: 12, y: bounds.height - 2))
-        cornerPath.addLine(to: CGPoint(x: 34, y: bounds.height + 14))
-        cornerPath.addLine(to: CGPoint(x: 56, y: bounds.height - 2))
+        cornerPath.move(to: CGPoint(x: 10, y: bounds.height - 3))
+        cornerPath.addLine(to: CGPoint(x: 32, y: bounds.height + 14))
+        cornerPath.addLine(to: CGPoint(x: 54, y: bounds.height - 3))
         cornerPath.close()
         
         let cornerLayer = CAShapeLayer()
