@@ -23,6 +23,13 @@ class MailWritingController: UIViewController, View {
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
+    private let tooltipView = TooltipView().then {
+        $0.applyShadow(shadowColor: UIColor.gray,
+                       shadowRadius: 4,
+                       shadowOffset: CGSize(width: 2, height: 4),
+                       shadowOpacity: 0.4)
+    }
+    
     private let letterContainerView = UIView().then {
         $0.backgroundColor = .white
         
@@ -153,6 +160,7 @@ class MailWritingController: UIViewController, View {
         view.addSubViews(
             topNavigation,
             
+            tooltipView,
             clearTextButton,
             
             letterContainerView.addSubViews(
@@ -187,68 +195,77 @@ class MailWritingController: UIViewController, View {
             $0.top.leading.trailing.equalToSuperview()
         }
         
-        sendButton.snp.makeConstraints {
-            $0.bottom.equalToSuperview().offset(-120)
-            $0.horizontalEdges.equalToSuperview().inset(50)
-            $0.height.equalTo(60)
+        tooltipView.snp.makeConstraints {
+            $0.top.equalTo(topNavigation.snp.bottom).offset(16)
+            $0.horizontalEdges.equalToSuperview().inset(16)
         }
-        
-        letterContainerView.snp.makeConstraints {
-            $0.top.equalTo(topNavigation.snp.bottom).offset(50)
-            $0.bottom.equalTo(sendButton.snp.top).offset(-50)
-            $0.horizontalEdges.equalToSuperview().inset(50)
-        }
-        
-        clearTextButton.snp.makeConstraints {
-            $0.bottom.equalTo(letterContainerView.snp.top).offset(-10)
-            $0.trailing.equalTo(letterContainerView.snp.trailing)
-        }
-        
-        textCountLabel.snp.makeConstraints {
-            $0.top.equalTo(letterContainerView.snp.bottom).offset(10)
-            $0.trailing.equalTo(letterContainerView.snp.trailing)
-        }
-        
-        letterOutlineView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(8)
-        }
-        
-        letterScrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(12)
-        }
-        
-        scrollContentView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-            $0.width.equalToSuperview()
-            $0.height.greaterThanOrEqualToSuperview()
-        }
-        
-        // 수신인 (To.)
-        recipientNameStackView.snp.makeConstraints {
-            $0.top.leading.equalToSuperview()
-        }
-        
-        recipientNameTextField.snp.makeConstraints {
-            $0.width.greaterThanOrEqualTo(50)
-            $0.height.equalTo(25)
-        }
-        
-        // 발신인 (From.)
-        senderNameStackView.snp.makeConstraints {
-            $0.bottom.trailing.equalToSuperview()
-        }
-        
-        senderNameTextField.snp.makeConstraints {
-            $0.width.greaterThanOrEqualTo(50)
-            $0.height.equalTo(25)
-        }
-        
-        // 내용
-        inputTextView.snp.makeConstraints {
-            $0.top.equalTo(recipientNameStackView.snp.bottom).offset(10)
-            $0.bottom.equalTo(senderNameStackView.snp.top).offset(-10)
-            $0.horizontalEdges.equalToSuperview()
-        }
+//        
+//        topNavigation.snp.makeConstraints {
+//            $0.top.leading.trailing.equalToSuperview()
+//        }
+//        
+//        sendButton.snp.makeConstraints {
+//            $0.bottom.equalToSuperview().offset(-120)
+//            $0.horizontalEdges.equalToSuperview().inset(50)
+//            $0.height.equalTo(60)
+//        }
+//        
+//        letterContainerView.snp.makeConstraints {
+//            $0.top.equalTo(topNavigation.snp.bottom).offset(50)
+//            $0.bottom.equalTo(sendButton.snp.top).offset(-50)
+//            $0.horizontalEdges.equalToSuperview().inset(50)
+//        }
+//        
+//        clearTextButton.snp.makeConstraints {
+//            $0.bottom.equalTo(letterContainerView.snp.top).offset(-10)
+//            $0.trailing.equalTo(letterContainerView.snp.trailing)
+//        }
+//        
+//        textCountLabel.snp.makeConstraints {
+//            $0.top.equalTo(letterContainerView.snp.bottom).offset(10)
+//            $0.trailing.equalTo(letterContainerView.snp.trailing)
+//        }
+//        
+//        letterOutlineView.snp.makeConstraints {
+//            $0.edges.equalToSuperview().inset(8)
+//        }
+//        
+//        letterScrollView.snp.makeConstraints {
+//            $0.edges.equalToSuperview().inset(12)
+//        }
+//        
+//        scrollContentView.snp.makeConstraints {
+//            $0.edges.equalToSuperview()
+//            $0.width.equalToSuperview()
+//            $0.height.greaterThanOrEqualToSuperview()
+//        }
+//        
+//        // 수신인 (To.)
+//        recipientNameStackView.snp.makeConstraints {
+//            $0.top.leading.equalToSuperview()
+//        }
+//        
+//        recipientNameTextField.snp.makeConstraints {
+//            $0.width.greaterThanOrEqualTo(50)
+//            $0.height.equalTo(25)
+//        }
+//        
+//        // 발신인 (From.)
+//        senderNameStackView.snp.makeConstraints {
+//            $0.bottom.trailing.equalToSuperview()
+//        }
+//        
+//        senderNameTextField.snp.makeConstraints {
+//            $0.width.greaterThanOrEqualTo(50)
+//            $0.height.equalTo(25)
+//        }
+//        
+//        // 내용
+//        inputTextView.snp.makeConstraints {
+//            $0.top.equalTo(recipientNameStackView.snp.bottom).offset(10)
+//            $0.bottom.equalTo(senderNameStackView.snp.top).offset(-10)
+//            $0.horizontalEdges.equalToSuperview()
+//        }
     }
     
     
