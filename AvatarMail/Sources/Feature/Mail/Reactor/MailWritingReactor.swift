@@ -11,11 +11,14 @@ import ReactorKit
 class MailWritingReactor: Reactor {
     
     enum Action {
-        case closeMailWritingController
+        // Logic
+        case hideToolTip
         case senderNameTextDidChange(text: String)
         case inputTextDidChange(text: String)
         case recipientNameTextDidChange(text: String)
         case sendButtonDipTap
+        // Navigation
+        case closeMailWritingController
     }
     
     enum Mutation {
@@ -23,6 +26,7 @@ class MailWritingReactor: Reactor {
         case setInputText(text: String)
         case setRecipientNameText(text: String)
         case setIsMailSent(isSent: Bool)
+        case setIsTooltipHidden(isHidden: Bool)
         case setToastMessage(text: String)
     }
     
@@ -31,6 +35,7 @@ class MailWritingReactor: Reactor {
         var inputText: String
         var recipientNameText: String
         var isMailSent: Bool
+        var isTooltipHidden: Bool
         
         @Pulse var toastMessage: String
     }
@@ -40,6 +45,7 @@ class MailWritingReactor: Reactor {
         inputText: "",
         recipientNameText: "",
         isMailSent: false,
+        isTooltipHidden: false,
         
         toastMessage: ""
     )
@@ -75,6 +81,8 @@ class MailWritingReactor: Reactor {
             return sendMail(senderName: currentState.senderNameText,
                             content: currentState.inputText,
                             recipientName: currentState.recipientNameText)
+        case .hideToolTip:
+            return Observable.just(Mutation.setIsTooltipHidden(isHidden: true))
         // Navigation
         case .closeMailWritingController:
             coordinator.closeMailWritingController()
@@ -96,6 +104,8 @@ class MailWritingReactor: Reactor {
             newState.recipientNameText = text
         case let .setIsMailSent(isSent: isSent):
             newState.isMailSent = isSent
+        case let .setIsTooltipHidden(isHidden: isHidden):
+            newState.isTooltipHidden = isHidden
         case let .setToastMessage(text: text):
             newState.toastMessage = text
         }

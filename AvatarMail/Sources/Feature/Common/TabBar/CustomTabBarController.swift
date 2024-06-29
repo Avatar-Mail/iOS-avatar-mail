@@ -14,7 +14,7 @@ import Then
 
 class CustomTabBarController: UITabBarController {
     
-    private let customTabBar = CustomTabBar()
+    public let customTabBar = CustomTabBar()
     
     private let disposeBag = DisposeBag()
 
