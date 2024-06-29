@@ -61,7 +61,7 @@ extension UIView {
         }
     }
     
-    func applyGradientBackground(colors: [UIColor]) {
+    func applyGradientBackground(colors: [UIColor], isHorizontal: Bool) {
         layoutIfNeeded()
         
         // 기존 레이어 제거 (layoutSubviews가 여러번 호출될 때 레이어가 중첩되는 이슈 존재)
@@ -69,8 +69,14 @@ extension UIView {
         
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = colors.map { $0.cgColor }
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        
+        if isHorizontal {
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        } else {
+            gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+            gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        }
         gradientLayer.frame = self.bounds
 
         // 기존 레이어의 shadow 복사

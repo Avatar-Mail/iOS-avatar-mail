@@ -7,5 +7,5 @@
 
 enum MailHomeSection {
     case writeMail
-    case checkReceivedMail
+    case checkMailbox
 }

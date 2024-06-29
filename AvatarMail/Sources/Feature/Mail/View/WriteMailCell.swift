@@ -1,5 +1,5 @@
 //
-//  SendMailCell.swift
+//  WriteMailCell.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/29/24.
@@ -121,7 +121,8 @@ class WriteMailCell: UICollectionViewCell {
         super.layoutSubviews()
             
         writeMailButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
-                                                         UIColor(hex: 0x4C5BDF)])
+                                                         UIColor(hex: 0x4C5BDF)],
+                                                isHorizontal: true)
     }
     
     private func makeUI() {

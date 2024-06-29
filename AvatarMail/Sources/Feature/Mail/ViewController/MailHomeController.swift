@@ -31,50 +31,17 @@ class MailHomeController: UIViewController, View {
 
     private lazy var  contentsCollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
+            $0.backgroundColor = UIColor(hex: 0xEEEEEE)
             $0.register(WriteMailCell.self, forCellWithReuseIdentifier: WriteMailCell.identifier)
-            $0.register(RectangleCell2.self, forCellWithReuseIdentifier: RectangleCell2.identifier)
+            $0.register(CheckMailboxCell.self, forCellWithReuseIdentifier: CheckMailboxCell.identifier)
         }
         return collectionView
     }()
     
     private var mailHomeSections: [MailHomeSection] = [
         MailHomeSection.writeMail,
-        MailHomeSection.checkReceivedMail
+        MailHomeSection.checkMailbox
     ]
-    
-    private let mailboxImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
-    }
-    
-    private let checkMailButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xADABAB)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("메일함 확인하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
-    }
-    
-    private let writeMailButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xF8554A)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("메일 작성하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
-    }
     
     init(
         reactor: MailHomeReactor
@@ -103,8 +70,6 @@ class MailHomeController: UIViewController, View {
     }
     
     override func viewDidLayoutSubviews() {
-        view.applyGradientBackground(colors: [UIColor(hex: 0xFFFFFF), UIColor(hex: 0xCCCCCC)])
-        
         topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
                                                                        UIColor(hex: 0x403DD2)])
     }
@@ -112,10 +77,7 @@ class MailHomeController: UIViewController, View {
     private func makeUI() {
         view.addSubViews(
             topNavigation,
-            contentsCollectionView,
-            mailboxImageView,
-            checkMailButton,
-            writeMailButton
+            contentsCollectionView
         )
     
         // topNavigation
@@ -141,30 +103,7 @@ class MailHomeController: UIViewController, View {
     }
     
     
-    func bind(reactor: MailHomeReactor) {
-        checkMailButton.rx.tap
-            .filter { [weak self] in
-                guard let self else { return false }
-                return self.reactor?.currentState.repliedMailExists == true
-            }
-            .map { Reactor.Action.showRepliedMailController }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        writeMailButton.rx.tap
-            .map { Reactor.Action.showMailWritingController }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        // states
-        reactor.state.map(\.repliedMailExists)
-            .distinctUntilChanged()
-            .filter { $0 }
-            .bind { [weak self] _ in
-                guard let self else { return }
-                self.checkMailButton.backgroundColor = UIColor(hex: 0xF8554A)
-            }.disposed(by: disposeBag)
-    }
+    func bind(reactor: MailHomeReactor) {}
     
     
     private func setupCollectionView() {
@@ -183,7 +122,7 @@ extension MailHomeController: UICollectionViewDataSource {
         switch mailHomeSections[section] {
         case .writeMail:
             return 1
-        case .checkReceivedMail:
+        case .checkMailbox:
             return 1
         }
     }
@@ -194,9 +133,9 @@ extension MailHomeController: UICollectionViewDataSource {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: WriteMailCell.identifier, for: indexPath) as! WriteMailCell
             cell.delegate = self
             return cell
-        case .checkReceivedMail:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RectangleCell2.identifier, for: indexPath) as! RectangleCell2
-            cell.setData(text: "Section2")
+        case .checkMailbox:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CheckMailboxCell.identifier, for: indexPath) as! CheckMailboxCell
+            cell.delegate = self
             return cell
         }
     }
@@ -210,8 +149,8 @@ extension MailHomeController {
             switch self.mailHomeSections[section] {
             case .writeMail:
                 return self.makeWriteMailSectionLayout()
-            case .checkReceivedMail:
-                return self.makeCheckReceivedMailSectionLayout()
+            case .checkMailbox:
+                return self.makeCheckMailboxSectionLayout()
             }
         }
     }
@@ -244,7 +183,7 @@ extension MailHomeController {
     }
     
     // '편지함 확인하기' 섹션 레이아웃 생성
-    private func makeCheckReceivedMailSectionLayout() -> NSCollectionLayoutSection? {
+    private func makeCheckMailboxSectionLayout() -> NSCollectionLayoutSection? {
         // Item
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                               heightDimension: .estimated(1))
@@ -275,6 +214,13 @@ extension MailHomeController {
 extension MailHomeController: WriteMailCellDelegate {
     func writeMailButtonDidTap() {
         reactor?.action.onNext(.showMailWritingController)
+    }
+}
+
+
+extension MailHomeController: CheckMailboxCellDelegate {
+    func checkMailboxButtonDidTap() {
+        reactor?.action.onNext(.showRepliedMailController)
     }
 }
 
