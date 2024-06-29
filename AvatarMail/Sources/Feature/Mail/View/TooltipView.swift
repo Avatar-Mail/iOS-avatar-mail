@@ -14,17 +14,11 @@ class TooltipView: UIView {
     }
     
     private let titleLabel = UILabel().then {
-        $0.attributedText = .makeAttributedString(text: "메일 작성하기",
-                                                  color: .white,
-                                                  fontSize: 20,
-                                                  fontWeight: .bold)
         $0.numberOfLines = 1
     }
     
     private let descriptionLabel = UILabel().then {
-        $0.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 메일을 작성해보세요.",
-                                                  color: .white,
-                                                  fontSize: 14)
+        $0.numberOfLines = 0
     }
     
     
@@ -44,6 +38,30 @@ class TooltipView: UIView {
         containerView.applyGradientBackground(colors: [UIColor(hex: 0x5B75FF), UIColor(hex: 0x403DD2)],
                                               isHorizontal: false)
     }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        drawTooltipCorner()
+    }
+    
+    
+    public func setData(title: String?,
+                        description: String?) {
+        if let title {
+            titleLabel.attributedText = .makeAttributedString(text: title,
+                                                              color: .white,
+                                                              fontSize: 20,
+                                                              fontWeight: .bold)
+        }
+        if let description {
+            descriptionLabel.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 메일을 작성해보세요.",
+                                                                    color: .white,
+                                                                    fontSize: 14,
+                                                                    lineBreakMode: .byCharWrapping)
+        }
+    }
+    
     
     private func makeUI() {
         addSubview(
@@ -69,11 +87,6 @@ class TooltipView: UIView {
         }
     }
     
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        
-        drawTooltipCorner()
-    }
     
     private func drawTooltipCorner() {
         let cornerPath = UIBezierPath()

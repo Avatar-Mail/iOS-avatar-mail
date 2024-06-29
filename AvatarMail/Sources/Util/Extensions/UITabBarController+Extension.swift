@@ -8,31 +8,45 @@
 import UIKit
 
 extension UITabBarController {
-    func hideTabBar(isHidden: Bool, animated: Bool){
+    func hideTabBar(isHidden: Bool, animated: Bool) {
         if let customTabBarController = self as? CustomTabBarController {
-            if customTabBarController.customTabBar.isHidden == isHidden { return }
+            guard customTabBarController.customTabBar.isHidden != isHidden else { return }
+            let tabBar = customTabBarController.customTabBar
+            let tabBarHeight = tabBar.frame.size.height
+            let duration: TimeInterval = animated ? 0.3 : 0.0
             
-            let tabBarFrame = customTabBarController.customTabBar.frame
-            let offset = isHidden ? tabBarFrame.size.height: -tabBarFrame.size.height
-            let duration:TimeInterval = (animated ? 0.3 : 0.0)
-            
-            customTabBarController.customTabBar.isHidden = false
-            
-            UIView.animate(withDuration: duration,
-                           animations: { customTabBarController.customTabBar.frame = tabBarFrame.offsetBy(dx: 0, dy: offset) },
-                           completion: { _ in customTabBarController.customTabBar.isHidden = isHidden })
+            if isHidden {
+                UIView.animate(withDuration: duration, animations: {
+                    tabBar.frame.origin.y += tabBarHeight
+                }, completion: { _ in
+                    tabBar.isHidden = true
+                })
+            } else {
+                tabBar.isHidden = false
+                tabBar.frame.origin.y += tabBarHeight
+                UIView.animate(withDuration: duration, animations: {
+                    tabBar.frame.origin.y -= tabBarHeight
+                })
+            }
         } else {
-            if tabBar.isHidden == isHidden { return }
+            guard tabBar.isHidden != isHidden else { return }
+            let tabBar = self.tabBar
+            let tabBarHeight = tabBar.frame.size.height
+            let duration: TimeInterval = animated ? 0.3 : 0.0
             
-            let tabBarFrame = tabBar.frame
-            let offset = isHidden ? tabBarFrame.size.height: -tabBarFrame.size.height
-            let duration:TimeInterval = (animated ? 0.3 : 0.0)
-            
-            tabBar.isHidden = false
-            
-            UIView.animate(withDuration: duration,
-                           animations: { [weak self] in self?.tabBar.frame = tabBarFrame.offsetBy(dx: 0, dy: offset) },
-                           completion: { [weak self] _ in self?.tabBar.isHidden = isHidden })
+            if isHidden {
+                UIView.animate(withDuration: duration, animations: {
+                    tabBar.frame.origin.y += tabBarHeight
+                }, completion: { _ in
+                    tabBar.isHidden = true
+                })
+            } else {
+                tabBar.isHidden = false
+                tabBar.frame.origin.y += tabBarHeight
+                UIView.animate(withDuration: duration, animations: {
+                    tabBar.frame.origin.y -= tabBarHeight
+                })
+            }
         }
     }
 }
