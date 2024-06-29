@@ -16,10 +16,11 @@ class MailWritingController: UIViewController, View {
 
     var disposeBag = DisposeBag()
     
-    
-    private let pageTitleLabel = UILabel().then {
-        $0.text = "메일 작성하기"
-        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    private let topNavigation = TopNavigation().then {
+        $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
+        $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
     private let letterContainerView = UIView().then {
@@ -133,14 +134,22 @@ class MailWritingController: UIViewController, View {
         super.viewDidLoad()
         
         makeUI()
+        
         self.hideKeyboardWhenTappedAround()
+    }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
     private func makeUI() {
         view.backgroundColor = .white
         
         view.addSubViews(
-            pageTitleLabel,
+            topNavigation,
             
             clearTextButton,
             
@@ -172,9 +181,8 @@ class MailWritingController: UIViewController, View {
             sendButton
         )
         
-        pageTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(35)
-            $0.left.equalToSuperview().inset(20)
+        topNavigation.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
         }
         
         sendButton.snp.makeConstraints {
@@ -184,7 +192,7 @@ class MailWritingController: UIViewController, View {
         }
         
         letterContainerView.snp.makeConstraints {
-            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(50)
+            $0.top.equalTo(topNavigation.snp.bottom).offset(50)
             $0.bottom.equalTo(sendButton.snp.top).offset(-50)
             $0.horizontalEdges.equalToSuperview().inset(50)
         }
@@ -302,4 +310,6 @@ extension MailWritingController: UITextViewDelegate {
         }
     }
 }
+
+
 
