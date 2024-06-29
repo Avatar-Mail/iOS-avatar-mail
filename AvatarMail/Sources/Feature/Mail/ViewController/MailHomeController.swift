@@ -31,14 +31,14 @@ class MailHomeController: UIViewController, View {
 
     private lazy var  contentsCollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
-            $0.register(RectangleCell1.self, forCellWithReuseIdentifier: RectangleCell1.identifier)
+            $0.register(WriteMailCell.self, forCellWithReuseIdentifier: WriteMailCell.identifier)
             $0.register(RectangleCell2.self, forCellWithReuseIdentifier: RectangleCell2.identifier)
         }
         return collectionView
     }()
     
     private var mailHomeSections: [MailHomeSection] = [
-        MailHomeSection.sendMail,
+        MailHomeSection.writeMail,
         MailHomeSection.checkReceivedMail
     ]
     
@@ -102,10 +102,14 @@ class MailHomeController: UIViewController, View {
         reactor?.action.onNext(.checkRepliedMailExists)
     }
     
+    override func viewDidLayoutSubviews() {
+        view.applyGradientBackground(colors: [UIColor(hex: 0xFFFFFF), UIColor(hex: 0xCCCCCC)])
+        
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+    }
     
     private func makeUI() {
-        view.backgroundColor = .white
-        
         view.addSubViews(
             topNavigation,
             contentsCollectionView,
@@ -123,9 +127,9 @@ class MailHomeController: UIViewController, View {
         let tabHeight = AppConst.shared.tabHeight
         
         if let safeAreaBottomInset = AppConst.shared.safeAreaInset?.bottom {
-            collectionViewBottomInset = safeAreaBottomInset + tabHeight - 20 - 10
+            collectionViewBottomInset = safeAreaBottomInset + tabHeight - 20 - 16
         } else {
-            collectionViewBottomInset = tabHeight - 10
+            collectionViewBottomInset = tabHeight - 16
         }
         
         // collection-view
@@ -134,31 +138,6 @@ class MailHomeController: UIViewController, View {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview().inset(collectionViewBottomInset)
         }
-        
-//        // mailbox image
-//        mailboxImageView.image = UIImage(named: "mailbox_img")
-//        mailboxImageView.snp.makeConstraints {
-//            $0.top.equalTo(topNavigation.snp.bottom).offset(30)
-//            $0.centerX.equalToSuperview()
-//            $0.height.equalTo(490)
-//            $0.width.equalTo(273)
-//        }
-//        
-//        // write mail button
-//        writeMailButton.snp.makeConstraints {
-//            $0.height.equalTo(60)
-//            $0.width.equalTo(273)
-//            $0.bottom.equalToSuperview().offset(-(tabBarController?.tabBar.frame.height ?? 90) - 10)
-//            $0.centerX.equalToSuperview()
-//        }
-//        
-//        // check mail button
-//        checkMailButton.snp.makeConstraints {
-//            $0.height.equalTo(60)
-//            $0.width.equalTo(273)
-//            $0.bottom.equalTo(writeMailButton.snp.top).offset(-10)
-//            $0.centerX.equalToSuperview()
-//        }
     }
     
     
@@ -202,7 +181,7 @@ extension MailHomeController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch mailHomeSections[section] {
-        case .sendMail:
+        case .writeMail:
             return 1
         case .checkReceivedMail:
             return 1
@@ -211,9 +190,9 @@ extension MailHomeController: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch mailHomeSections[indexPath.section] {
-        case .sendMail:
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RectangleCell1.identifier, for: indexPath) as! RectangleCell1
-            cell.setData(text: "Section1")
+        case .writeMail:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: WriteMailCell.identifier, for: indexPath) as! WriteMailCell
+            cell.delegate = self
             return cell
         case .checkReceivedMail:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RectangleCell2.identifier, for: indexPath) as! RectangleCell2
@@ -225,13 +204,12 @@ extension MailHomeController: UICollectionViewDataSource {
 
 
 extension MailHomeController {
-    
     private func makeFlowLayout() -> UICollectionViewCompositionalLayout {
         return UICollectionViewCompositionalLayout { section, ev -> NSCollectionLayoutSection? in
             // section에 따라 서로 다른 layout 구성
             switch self.mailHomeSections[section] {
-            case .sendMail:
-                return self.makeSendMailSectionLayout()
+            case .writeMail:
+                return self.makeWriteMailSectionLayout()
             case .checkReceivedMail:
                 return self.makeCheckReceivedMailSectionLayout()
             }
@@ -239,15 +217,15 @@ extension MailHomeController {
     }
     
     // '편지 작성하기' 섹션 레이아웃 생성
-    private func makeSendMailSectionLayout() -> NSCollectionLayoutSection? {
+    private func makeWriteMailSectionLayout() -> NSCollectionLayoutSection? {
         // Item
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                               heightDimension: .estimated(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.contentInsets = NSDirectionalEdgeInsets(top: 0,
-                                                     leading: 10,
+                                                     leading: 16,
                                                      bottom: 0,
-                                                     trailing: 10)
+                                                     trailing: 16)
         
         // Group
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
@@ -257,7 +235,7 @@ extension MailHomeController {
         // Section
         let section = NSCollectionLayoutSection(group: group)
         // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10,
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16,
                                                         leading: 0,
                                                         bottom: 0,
                                                         trailing: 0)
@@ -272,9 +250,9 @@ extension MailHomeController {
                                               heightDimension: .estimated(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.contentInsets = NSDirectionalEdgeInsets(top: 0,
-                                                     leading: 10,
+                                                     leading: 16,
                                                      bottom: 0,
-                                                     trailing: 10)
+                                                     trailing: 16)
         
         // Group
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
@@ -284,9 +262,9 @@ extension MailHomeController {
         // Section
         let section = NSCollectionLayoutSection(group: group)
         // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10,
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16,
                                                         leading: 0,
-                                                        bottom: 20,
+                                                        bottom: 32,
                                                         trailing: 0)
         
         return section
@@ -294,43 +272,11 @@ extension MailHomeController {
 }
 
 
-final class RectangleCell1: UICollectionViewCell {
-
-    private let label: UILabel = {
-        let label = UILabel()
-        label.textColor = .white
-        label.textAlignment = .center
-        return label
-    }()
-    
-    static let identifier = "RectangleCell1"
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        
-        makeUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func makeUI() {
-        self.contentView.backgroundColor = .systemBlue
-        
-        contentView.addSubview(label)
-        label.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-            make.height.equalTo(400)
-        }
-    }
-    
-    func setData(text: String) {
-        label.text = text
+extension MailHomeController: WriteMailCellDelegate {
+    func writeMailButtonDidTap() {
+        reactor?.action.onNext(.showMailWritingController)
     }
 }
-
-
 
 final class RectangleCell2: UICollectionViewCell {
     

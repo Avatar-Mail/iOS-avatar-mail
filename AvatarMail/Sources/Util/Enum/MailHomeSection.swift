@@ -6,6 +6,6 @@
 //
 
 enum MailHomeSection {
-    case sendMail
+    case writeMail
     case checkReceivedMail
 }
