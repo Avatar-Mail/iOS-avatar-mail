@@ -31,7 +31,7 @@ class MailHomeController: UIViewController, View {
 
     private lazy var  contentsCollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
-            $0.backgroundColor = UIColor(hex: 0xEEEEEE)
+            $0.backgroundColor = UIColor(hex: 0xEFEFEF)
             $0.register(WriteMailCell.self, forCellWithReuseIdentifier: WriteMailCell.identifier)
             $0.register(CheckMailboxCell.self, forCellWithReuseIdentifier: CheckMailboxCell.identifier)
         }
