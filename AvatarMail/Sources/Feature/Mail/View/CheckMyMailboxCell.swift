@@ -50,6 +50,7 @@ class CheckMailboxCell: UICollectionViewCell {
                                                   fontSize: 16,
                                                   fontWeight: .regular,
                                                   textAlignment: .left)
+        $0.numberOfLines = 0
     }
     
     // 중앙 이미지 뷰
@@ -59,11 +60,10 @@ class CheckMailboxCell: UICollectionViewCell {
     }
 
     private let checkMailboxButton = UIButton().then {
-        $0.setTitle("편지함 확인하기", for: .normal)
-        $0.titleLabel?.attributedText = .makeAttributedString(text: "편지함 확인하기",
-                                                              color: .white,
-                                                              fontSize: 20,
-                                                              fontWeight: .bold)
+        $0.setButtonTitle(title: "편지함 확인하기",
+                          color: .white,
+                          fontSize: 20,
+                          fontWeight: .bold)
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),

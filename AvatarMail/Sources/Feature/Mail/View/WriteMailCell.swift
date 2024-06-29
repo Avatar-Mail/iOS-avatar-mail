@@ -36,7 +36,7 @@ class WriteMailCell: UICollectionViewCell {
   
     // 타이틀 레이블
     private let titleLabel = UILabel().then {
-        $0.attributedText = .makeAttributedString(text: "메일 작성하기",
+        $0.attributedText = .makeAttributedString(text: "편지 작성하기",
                                                   color: .black,
                                                   fontSize: 24,
                                                   fontWeight: .bold,
@@ -45,11 +45,12 @@ class WriteMailCell: UICollectionViewCell {
     
     // 설명 레이블
     private let descriptionLabel = UILabel().then {
-        $0.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 메일을 작성해보세요.",
+        $0.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 편지를 작성해보세요.",
                                                   color: UIColor(hex: 0x777777),
                                                   fontSize: 16,
                                                   fontWeight: .regular,
                                                   textAlignment: .left)
+        $0.numberOfLines = 0
     }
     
     // 중앙 이미지 뷰
@@ -93,11 +94,10 @@ class WriteMailCell: UICollectionViewCell {
     }
     
     private let writeMailButton = UIButton().then {
-        $0.setTitle("새로운 메일 작성하기", for: .normal)
-        $0.titleLabel?.attributedText = .makeAttributedString(text: "새로운 메일 작성하기",
-                                                              color: .white,
-                                                              fontSize: 20,
-                                                              fontWeight: .bold)
+        $0.setButtonTitle(title: "새로운 편지 작성하기",
+                          color: .white,
+                          fontSize: 20,
+                          fontWeight: .bold)
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),

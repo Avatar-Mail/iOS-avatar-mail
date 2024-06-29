@@ -223,39 +223,3 @@ extension MailHomeController: CheckMailboxCellDelegate {
         reactor?.action.onNext(.showRepliedMailController)
     }
 }
-
-final class RectangleCell2: UICollectionViewCell {
-    
-    private let label: UILabel = {
-        let label = UILabel()
-        label.textColor = .white
-        label.textAlignment = .center
-        return label
-    }()
-    
-    static let identifier = "RectangleCell2"
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        
-        makeUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func makeUI() {
-        self.contentView.backgroundColor = .systemGreen
-        
-        contentView.addSubview(label)
-        label.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-            make.height.equalTo(600)
-        }
-    }
-    
-    func setData(text: String) {
-        label.text = text
-    }
-}
