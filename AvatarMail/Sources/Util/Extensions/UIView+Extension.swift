@@ -32,7 +32,7 @@ extension UIStackView {
 
 // MARK: - UI
 extension UIView {
-    func animateClick(completion: @escaping () -> Void) {
+    public func animateClick(completion: @escaping () -> Void) {
         UIView.animate(withDuration: 0.01) {
             self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         } completion: { _ in
@@ -42,7 +42,7 @@ extension UIView {
         }
     }
     
-    func applyShadow(shadowColor: UIColor = UIColor.gray,
+    public func applyShadow(shadowColor: UIColor = UIColor.gray,
                      shadowRadius: CGFloat = 7,
                      shadowOffset: CGSize = .zero,
                      shadowOpacity: Float = 1) {
@@ -53,7 +53,7 @@ extension UIView {
         layer.masksToBounds = false
     }
     
-    func applyCornerRadius(_ cornerRadius: CGFloat = 0, maskedCorners: CACornerMask? = nil) {
+    public func applyCornerRadius(_ cornerRadius: CGFloat = 0, maskedCorners: CACornerMask? = nil) {
         clipsToBounds = true
         layer.cornerRadius = cornerRadius
         if let corners = maskedCorners {
@@ -61,7 +61,7 @@ extension UIView {
         }
     }
     
-    func applyGradientBackground(colors: [UIColor], isHorizontal: Bool) {
+    public func applyGradientBackground(colors: [UIColor], isHorizontal: Bool) {
         layoutIfNeeded()
         
         // 기존 레이어 제거 (layoutSubviews가 여러번 호출될 때 레이어가 중첩되는 이슈 존재)
@@ -90,5 +90,56 @@ extension UIView {
         gradientLayer.cornerRadius = self.layer.cornerRadius
         
         self.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    
+    public func removeGradientBackground() {
+        layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+    }
+    
+    
+    public func applyGradientBorder(width: CGFloat,
+                                    colors: [UIColor],
+                                    isHorizontal: Bool = true) {
+        let existedBorder = gradientBorderLayer()
+        let border = existedBorder ?? CAGradientLayer()
+        border.frame = bounds
+        border.colors = colors.map { return $0.cgColor }
+        
+        if isHorizontal {
+            border.startPoint = CGPoint(x: 0.0, y: 0.5)
+            border.endPoint = CGPoint(x: 1.0, y: 0.5)
+        } else {
+            border.startPoint = CGPoint(x: 0.5, y: 0)
+            border.endPoint = CGPoint(x: 0.5, y: 1)
+        }
+        
+        let mask = CAShapeLayer()
+        mask.path = UIBezierPath(roundedRect: bounds, cornerRadius: 0).cgPath
+        mask.fillColor = UIColor.clear.cgColor
+        mask.strokeColor = UIColor.white.cgColor
+        mask.lineWidth = width
+        
+        border.mask = mask
+        
+        let exists = existedBorder != nil
+        if !exists {
+            border.name = "GradientBorderLayer"
+            layer.addSublayer(border)
+        }
+    }
+    
+    
+    public func removeGradientBorder() {
+        self.gradientBorderLayer()?.removeFromSuperlayer()
+    }
+    
+    
+    private func gradientBorderLayer() -> CAGradientLayer? {
+        let borderLayers = layer.sublayers?.filter { return $0.name == "GradientBorderLayer" }
+        if borderLayers?.count ?? 0 > 1 {
+            fatalError()
+        }
+        return borderLayers?.first as? CAGradientLayer
     }
 }
