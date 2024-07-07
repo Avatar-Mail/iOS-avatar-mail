@@ -98,6 +98,13 @@ extension UIView {
     }
     
     
+    public func applyBorder(width: CGFloat,
+                            color: UIColor) {
+        layer.borderColor = color.cgColor
+        layer.borderWidth = width
+    }
+    
+    
     public func applyGradientBorder(width: CGFloat,
                                     colors: [UIColor],
                                     isHorizontal: Bool = true) {

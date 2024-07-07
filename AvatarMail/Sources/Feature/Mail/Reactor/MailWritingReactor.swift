@@ -15,19 +15,32 @@ class MailWritingReactor: Reactor {
         case hideToolTip
         case senderNameTextDidChange(text: String)
         case inputTextDidChange(text: String)
-        case recipientNameTextDidChange(text: String)
         case sendButtonDipTap
+        
+        // recipient
+        case recipientNameTextDidChange(text: String)
+        case getAllAvatarInfos
+        case clearFilteredAvatarInfos
+        case changeSelectedAvatar(avatar: AvatarInfo)
+        case initializeRecipientStates
+        
         // Navigation
         case closeMailWritingController
+        case showAvatarSettingController
     }
     
     enum Mutation {
         case setSenderNameText(text: String)
         case setInputText(text: String)
-        case setRecipientNameText(text: String)
         case setIsMailSent(isSent: Bool)
         case setIsTooltipHidden(isHidden: Bool)
         case setToastMessage(text: String)
+        
+        // recipient
+        case setRecipientNameText(text: String)
+        case setSelectedAvatar(avatarInfo: AvatarInfo?)
+        case setFilteredAvatarInfos(avatarInfos: [AvatarInfo])
+        case setAvatarInfos(avatarInfos: [AvatarInfo])
     }
     
     struct State {
@@ -36,6 +49,11 @@ class MailWritingReactor: Reactor {
         var recipientNameText: String
         var isMailSent: Bool
         var isTooltipHidden: Bool
+        
+        // recipient
+        var selectedAvatar: AvatarInfo?
+        var avatarInfos: [AvatarInfo]
+        var filteredAvatarInfos: [AvatarInfo]
         
         @Pulse var toastMessage: String
     }
@@ -46,6 +64,10 @@ class MailWritingReactor: Reactor {
         recipientNameText: "",
         isMailSent: false,
         isTooltipHidden: false,
+        
+        selectedAvatar: nil,
+        avatarInfos: [],
+        filteredAvatarInfos: [],
         
         toastMessage: ""
     )
@@ -71,21 +93,46 @@ class MailWritingReactor: Reactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         // Logic
+        
+        
         case let .senderNameTextDidChange(text: text):
             return Observable.just(Mutation.setSenderNameText(text: text))
         case let .inputTextDidChange(text: text):
             return Observable.just(Mutation.setInputText(text: text))
-        case let .recipientNameTextDidChange(text: text):
-            return Observable.just(Mutation.setRecipientNameText(text: text))
         case .sendButtonDipTap:
             return sendMail(senderName: currentState.senderNameText,
                             content: currentState.inputText,
                             recipientName: currentState.recipientNameText)
         case .hideToolTip:
             return Observable.just(Mutation.setIsTooltipHidden(isHidden: true))
+            
+        // recipient
+        case .getAllAvatarInfos:
+            return getAllAvatarInfos()
+        case let .recipientNameTextDidChange(text: text):
+            return Observable.concat([
+                Observable.just(.setRecipientNameText(text: text)),
+                getAllFilteredAvatarInfos(with: text,
+                                          in: currentState.avatarInfos)
+            ])
+        case .clearFilteredAvatarInfos:
+            return Observable.just(.setFilteredAvatarInfos(avatarInfos: []))
+        case let .changeSelectedAvatar(avatar: avatar):
+            return Observable.just(.setSelectedAvatar(avatarInfo: avatar))
+        case .initializeRecipientStates:
+            return Observable.of(
+                .setRecipientNameText(text: ""),
+                .setAvatarInfos(avatarInfos: []),
+                .setFilteredAvatarInfos(avatarInfos: []),
+                .setSelectedAvatar(avatarInfo: nil)
+            )
+            
         // Navigation
         case .closeMailWritingController:
             coordinator.closeMailWritingController()
+            return .empty()
+        case .showAvatarSettingController:
+            coordinator.showAvatarSettingController(with: nil)
             return .empty()
         }
     }
@@ -100,14 +147,21 @@ class MailWritingReactor: Reactor {
             newState.senderNameText = text
         case let .setInputText(text: text):
             newState.inputText = text
-        case  let .setRecipientNameText(text: text):
-            newState.recipientNameText = text
         case let .setIsMailSent(isSent: isSent):
             newState.isMailSent = isSent
         case let .setIsTooltipHidden(isHidden: isHidden):
             newState.isTooltipHidden = isHidden
         case let .setToastMessage(text: text):
             newState.toastMessage = text
+        // recipient
+        case  let .setRecipientNameText(text: text):
+            newState.recipientNameText = text
+        case let .setSelectedAvatar(avatarInfo: avatarInfo):
+            newState.selectedAvatar = avatarInfo
+        case let .setFilteredAvatarInfos(avatarInfos: avatarInfos):
+            newState.filteredAvatarInfos = avatarInfos
+        case let .setAvatarInfos(avatarInfos: avatarInfos):
+            newState.avatarInfos = avatarInfos
         }
         
         return newState
@@ -159,6 +213,25 @@ class MailWritingReactor: Reactor {
                 print(error.localizedDescription)
                 return Observable.just(.setToastMessage(text: "아바타 정보를 불러오는 과정에서 문제가 발생했습니다."))
             }
+    }
+    
+    
+    private func getAllAvatarInfos() -> Observable<Mutation> {
+        return database.getAllAvatars()
+            .map { avatarInfoObjects in
+                return .setAvatarInfos(avatarInfos: avatarInfoObjects.map { $0.toEntity() })
+            }
+    }
+    
+    
+    private func getAllFilteredAvatarInfos(with name: String,
+                                           in avatarInfos: [AvatarInfo]) -> Observable<Mutation> {
+        let filteredAvatars = avatarInfos.filter {
+            ($0.name).contains(name)
+        }
+        print(filteredAvatars)
+        
+        return Observable.just(.setFilteredAvatarInfos(avatarInfos: filteredAvatars))
     }
 }
 

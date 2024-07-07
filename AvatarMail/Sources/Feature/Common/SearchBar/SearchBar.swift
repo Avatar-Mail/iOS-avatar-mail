@@ -13,7 +13,8 @@ import RxCocoa
 import SnapKit
 
 protocol SearchBarDelegate: AnyObject {
-    func searchTextFieldDidTap()
+    func searchTextFieldDidBeginEditing()
+    func searchTextFieldDidEndEditing()
     func searchTextDidChange(text: String)
     func cancelButtonDidTap()
     func clearButtonDidTap()
@@ -121,14 +122,7 @@ final class SearchBar: UIView {
             .distinctUntilChanged()
             .bind { [weak self] text in
                 guard let self = self else { return }
-                
                 self.delegate?.searchTextDidChange(text: text)
-                
-                if !text.isEmpty {
-                    self.showClearButton(true)
-                } else {
-                    self.showClearButton(false)
-                }
             }.disposed(by: disposeBag)
         
         
@@ -136,11 +130,7 @@ final class SearchBar: UIView {
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self = self else { return }
-                
                 self.delegate?.cancelButtonDidTap()
-            
-                self.showCancelButton(false)
-                self.showKeyboard(false)
             })
             .disposed(by: disposeBag)
         
@@ -150,7 +140,6 @@ final class SearchBar: UIView {
             .drive(onNext: { [weak self] in
                 guard let self = self else { return }
                 
-                self.searchTextField.text = ""
                 self.delegate?.clearButtonDidTap()
                 self.showClearButton(false)
             })
@@ -161,16 +150,32 @@ final class SearchBar: UIView {
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self else { return }
+                self.delegate?.searchTextFieldDidBeginEditing()
+            })
+            .disposed(by: disposeBag)
+        
+        
+        searchTextField.rx.controlEvent([.editingDidEnd])
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self else { return }
+                self.delegate?.searchTextFieldDidEndEditing()
                 
-                self.delegate?.searchTextFieldDidTap()
-                
-                self.showCancelButton(true)
             })
             .disposed(by: disposeBag)
     }
     
     
-    private func showCancelButton(_ shouldShowCancelButton: Bool) {
+    public func setSearchText(text: String) {
+        searchTextField.text = text
+    }
+    
+    
+    public func getSearchText() -> String? {
+        return searchTextField.text
+    }
+    
+    public func showCancelButton(_ shouldShowCancelButton: Bool) {
         if shouldShowCancelButton {
             cancelButton.isHidden = false
                 
@@ -194,7 +199,7 @@ final class SearchBar: UIView {
     }
     
     
-    private func showClearButton(_ shouldShowClearButton: Bool) {
+    public func showClearButton(_ shouldShowClearButton: Bool) {
         if shouldShowClearButton {
             clearButton.isHidden = false
         } else {
@@ -203,8 +208,19 @@ final class SearchBar: UIView {
     }
     
     
-    public func setPlaceholderText(placeholderText: String?) {
-        searchTextField.placeholder = placeholderText
+    public func setPlaceholderText(placeholderText: String,
+                                   color: UIColor,
+                                   fontSize: CGFloat,
+                                   fontWeight: UIFont.Weight) {
+        searchTextField.attributedPlaceholder = .makeAttributedString(text: placeholderText,
+                                                                      color: color,
+                                                                      fontSize: fontSize,
+                                                                      fontWeight: fontWeight)
+    }
+    
+    
+    public func clearPlaceholderText() {
+        searchTextField.attributedPlaceholder = nil
     }
     
     
