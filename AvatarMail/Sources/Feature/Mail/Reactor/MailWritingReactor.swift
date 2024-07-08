@@ -11,65 +11,75 @@ import ReactorKit
 class MailWritingReactor: Reactor {
     
     enum Action {
-        // Logic
+        // MARK: Logic
         case hideToolTip
-        case senderNameTextDidChange(text: String)
-        case inputTextDidChange(text: String)
         case sendButtonDipTap
-        
         // recipient
         case recipientNameTextDidChange(text: String)
         case getAllAvatarInfos
         case clearFilteredAvatarInfos
         case changeSelectedAvatar(avatar: AvatarInfo)
         case initializeRecipientStates
+        // content
+        case letterContentsTextDidChange(text: String)
+        case initializeLetterContentStates
+        // sender
+        case senderNameTextDidChange(text: String)
+        case initializeSenderStates
         
-        // Navigation
+        
+        // MARK: Navigation
         case closeMailWritingController
         case showAvatarSettingController
     }
     
     enum Mutation {
-        case setSenderNameText(text: String)
-        case setInputText(text: String)
         case setIsMailSent(isSent: Bool)
         case setIsTooltipHidden(isHidden: Bool)
         case setToastMessage(text: String)
-        
         // recipient
         case setRecipientNameText(text: String)
         case setSelectedAvatar(avatarInfo: AvatarInfo?)
         case setFilteredAvatarInfos(avatarInfos: [AvatarInfo])
         case setAvatarInfos(avatarInfos: [AvatarInfo])
+        // letter contents
+        case setLetterContentsText(text: String)
+        // sender
+        case setSenderNameText(text: String)
     }
     
     struct State {
-        var senderNameText: String
-        var inputText: String
-        var recipientNameText: String
         var isMailSent: Bool
         var isTooltipHidden: Bool
         
         // recipient
+        var recipientNameText: String
         var selectedAvatar: AvatarInfo?
         var avatarInfos: [AvatarInfo]
         var filteredAvatarInfos: [AvatarInfo]
+        // letter contents
+        var letterContentsText: String
+        // sender
+        var senderNameText: String
         
-        @Pulse var toastMessage: String
+        
+        @Pulse var toastMessage: String?
     }
     
     let initialState = State(
-        senderNameText: "",
-        inputText: "",
-        recipientNameText: "",
         isMailSent: false,
         isTooltipHidden: false,
         
+        recipientNameText: "",
         selectedAvatar: nil,
         avatarInfos: [],
         filteredAvatarInfos: [],
         
-        toastMessage: ""
+        letterContentsText: "",
+        
+        senderNameText: "",
+        
+        toastMessage: nil
     )
     
     
@@ -92,20 +102,13 @@ class MailWritingReactor: Reactor {
     // MARK: - mutate
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
-        // Logic
-        
-        
-        case let .senderNameTextDidChange(text: text):
-            return Observable.just(Mutation.setSenderNameText(text: text))
-        case let .inputTextDidChange(text: text):
-            return Observable.just(Mutation.setInputText(text: text))
+        // MARK: Logic
         case .sendButtonDipTap:
             return sendMail(senderName: currentState.senderNameText,
-                            content: currentState.inputText,
-                            recipientName: currentState.recipientNameText)
+                            content: currentState.letterContentsText,
+                            recipientName: currentState.selectedAvatar?.name ?? "")
         case .hideToolTip:
             return Observable.just(Mutation.setIsTooltipHidden(isHidden: true))
-            
         // recipient
         case .getAllAvatarInfos:
             return getAllAvatarInfos()
@@ -126,8 +129,22 @@ class MailWritingReactor: Reactor {
                 .setFilteredAvatarInfos(avatarInfos: []),
                 .setSelectedAvatar(avatarInfo: nil)
             )
+        // letter contents
+        case let .letterContentsTextDidChange(text: text):
+            return Observable.just(Mutation.setLetterContentsText(text: text))
+        case .initializeLetterContentStates:
+            return Observable.of(
+                .setLetterContentsText(text: "")
+            )
+        // sender
+        case let .senderNameTextDidChange(text: text):
+            return Observable.just(Mutation.setSenderNameText(text: text))
+        case .initializeSenderStates:
+            return Observable.of(
+                .setSenderNameText(text: "")
+            )
             
-        // Navigation
+        // MARK: Navigation
         case .closeMailWritingController:
             coordinator.closeMailWritingController()
             return .empty()
@@ -143,10 +160,6 @@ class MailWritingReactor: Reactor {
         var newState = state
         
         switch mutation {
-        case let .setSenderNameText(text: text):
-            newState.senderNameText = text
-        case let .setInputText(text: text):
-            newState.inputText = text
         case let .setIsMailSent(isSent: isSent):
             newState.isMailSent = isSent
         case let .setIsTooltipHidden(isHidden: isHidden):
@@ -162,6 +175,12 @@ class MailWritingReactor: Reactor {
             newState.filteredAvatarInfos = avatarInfos
         case let .setAvatarInfos(avatarInfos: avatarInfos):
             newState.avatarInfos = avatarInfos
+        // letter contents
+        case let .setLetterContentsText(text: text):
+            newState.letterContentsText = text
+        // sender
+        case let .setSenderNameText(text: text):
+            newState.senderNameText = text
         }
         
         return newState
@@ -172,17 +191,17 @@ class MailWritingReactor: Reactor {
                           content: String,
                           recipientName: String) -> Observable<Mutation> {
         
-        // 발신인 이름이 없는 경우
+        // 발신인(사용자)의 이름이 없는 경우
         if senderName.isEmpty {
-            return Observable.just(.setToastMessage(text: "메일을 작성하는 사람의 이름을 입력하세요."))
+            return Observable.just(.setToastMessage(text: "편지를 보내는 사람의 이름을 입력하세요."))
         }
-        // 수신인 이름이 없는 경우
+        // 선택된 수신인(아바타)이 없는 경우
         else if recipientName.isEmpty {
-            return Observable.just(.setToastMessage(text: "메일을 받는 사람의 이름을 입력하세요."))
+            return Observable.just(.setToastMessage(text: "편지를 받는 아바타를 선택하세요."))
         }
-        // 메일의 내용이 없는 경우
+        // 편지의 내용이 없는 경우
         else if content.isEmpty {
-            return Observable.just(.setToastMessage(text: "메일의 내용을 입력하세요."))
+            return Observable.just(.setToastMessage(text: "편지의 내용을 입력하세요."))
         }
         
         let avatarName = recipientName  // 수신인 이름 -> 아바타 이름
@@ -206,7 +225,7 @@ class MailWritingReactor: Reactor {
                     }
                     .catch { error in
                         print(error.localizedDescription)
-                        return Observable.just(.setToastMessage(text: "메일을 보내는 과정에서 문제가 발생했습니다."))
+                        return Observable.just(.setToastMessage(text: "편지를 보내는 과정에서 문제가 발생했습니다."))
                     }
             }
             .catch { error in
