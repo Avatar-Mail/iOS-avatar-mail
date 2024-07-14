@@ -48,6 +48,7 @@ let project = Project(
                 .external(name: "SnapKit", condition: .none),
                 .external(name: "Then", condition: .none),
                 .external(name: "Toast", condition: .none),
+                .external(name: "Lottie", condition: .none)
             ],
             settings: projectSettings
         ),

@@ -184,6 +184,7 @@ class MailWritingController: UIViewController, View {
                        shadowOffset: CGSize(width: 0, height: 2),
                        shadowOpacity: 0.5)
     }
+
     
     init(
         reactor: MailWritingReactor
@@ -325,6 +326,7 @@ class MailWritingController: UIViewController, View {
         scrollContentView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.width.equalToSuperview()
+            $0.height.greaterThanOrEqualToSuperview()
         }
         
         // 수신인 (To.)
@@ -394,9 +396,13 @@ class MailWritingController: UIViewController, View {
             .disposed(by: disposeBag)
         
         sendMailButton.rx.tap
-            .map { Reactor.Action.sendButtonDipTap }
-            .bind(to: reactor.action)
+            .asDriver()
+            .drive(onNext: {
+                reactor.action.onNext(.sendButtonDipTap)
+                GlobalIndicator.shared.show("mail_indicator", with: "메일을 보내는 중입니다...")
+            })
             .disposed(by: disposeBag)
+        
         
         clearTextButton.rx.tap
             .bind { [weak self] in
@@ -441,12 +447,17 @@ class MailWritingController: UIViewController, View {
             .disposed(by: disposeBag)
         
         // states
-        reactor.state.map(\.isMailSent)
-            .observe(on: MainScheduler.instance)
-            .distinctUntilChanged()
-            .filter { $0 }  // isMailSent가 true일 때만 현재 뷰컨 close
-            .map { _ in Reactor.Action.closeMailWritingController }
-            .bind(to: reactor.action)
+        reactor.pulse(\.$isMailSent)
+            .observe(on: MainScheduler.asyncInstance)
+            .compactMap { $0 }
+            .bind { isMailSent in
+                
+                GlobalIndicator.shared.hide()
+                
+                if isMailSent {
+                    reactor.action.onNext(.closeMailWritingController)
+                }
+            }
             .disposed(by: disposeBag)
         
         reactor.state.map(\.letterContentsText)
@@ -487,10 +498,9 @@ class MailWritingController: UIViewController, View {
                 topNavigation.setTitleIsHidden(false)
             }.disposed(by: disposeBag)
         
-        reactor.state
+        reactor.pulse(\.$toastMessage)
             .observe(on: MainScheduler.asyncInstance)
-            .map { $0.toastMessage }
-            .distinctUntilChanged()
+            .compactMap { $0 }
             .filterNil()
             .bind { toastMessage in
                 ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)

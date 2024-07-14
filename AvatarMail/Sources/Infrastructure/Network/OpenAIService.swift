@@ -88,7 +88,7 @@ final class OpenAIService: OpenAIServiceProtocol {
         let query = ChatQuery(
             messages: messages,
             model: .gpt4_o,
-            maxTokens: 300
+            maxTokens: 20
         )
 
         guard let openAI else {

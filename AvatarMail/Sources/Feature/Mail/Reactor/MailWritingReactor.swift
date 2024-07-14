@@ -49,7 +49,6 @@ class MailWritingReactor: Reactor {
     }
     
     struct State {
-        var isMailSent: Bool
         var isTooltipHidden: Bool
         
         // recipient
@@ -62,12 +61,11 @@ class MailWritingReactor: Reactor {
         // sender
         var senderNameText: String
         
-        
+        @Pulse var isMailSent: Bool
         @Pulse var toastMessage: String?
     }
     
     let initialState = State(
-        isMailSent: false,
         isTooltipHidden: false,
         
         recipientNameText: "",
@@ -79,6 +77,7 @@ class MailWritingReactor: Reactor {
         
         senderNameText: "",
         
+        isMailSent: false,
         toastMessage: nil
     )
     
@@ -225,12 +224,18 @@ class MailWritingReactor: Reactor {
                     }
                     .catch { error in
                         print(error.localizedDescription)
-                        return Observable.just(.setToastMessage(text: "편지를 보내는 과정에서 문제가 발생했습니다."))
+                        return Observable.of(
+                            Mutation.setIsMailSent(isSent: false),
+                            Mutation.setToastMessage(text: "편지를 보내는 과정에서 문제가 발생했습니다.")
+                        )
                     }
             }
             .catch { error in
                 print(error.localizedDescription)
-                return Observable.just(.setToastMessage(text: "아바타 정보를 불러오는 과정에서 문제가 발생했습니다."))
+                return Observable.of(
+                    Mutation.setIsMailSent(isSent: false),
+                    Mutation.setToastMessage(text: "아바타 정보를 불러오는 과정에서 문제가 발생했습니다.")
+                )
             }
     }
     
