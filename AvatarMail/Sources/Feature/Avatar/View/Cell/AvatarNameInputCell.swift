@@ -1,5 +1,5 @@
 //
-//  AvatarNameInputView.swift
+//  AvatarNameInputCell.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -13,16 +13,18 @@ import RxCocoa
 import SnapKit
 
 
-protocol AvatarNameInputViewDelegate: AnyObject {
+protocol AvatarNameInputCellDelegate: AnyObject {
     func nameInputTextFieldDidTap()
     func nameInputTextDidChange(text: String)
     func nameClearButtonDidTap()
 }
 
 
-final class AvatarNameInputView: UIView, ActivatableInputView {
+class AvatarNameInputCell: UICollectionViewCell, ActivatableInputView {
     
-    weak var delegate: AvatarNameInputViewDelegate?
+    static let identifier = "AvatarNameInputCell"
+    
+    weak var delegate: AvatarNameInputCellDelegate?
     
     var disposeBag = DisposeBag()
     
