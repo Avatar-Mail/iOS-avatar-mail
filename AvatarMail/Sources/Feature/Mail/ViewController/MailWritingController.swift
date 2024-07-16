@@ -8,6 +8,9 @@
 import UIKit
 import ReactorKit
 import Then
+import RxCocoa
+import RxSwift
+import RxGesture
 
 
 class MailWritingController: UIViewController, View {
@@ -25,6 +28,7 @@ class MailWritingController: UIViewController, View {
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
+    // 상단 툴팁 뷰
     private let tooltipView = TooltipView().then {
         $0.applyShadow(shadowColor: UIColor.gray,
                        shadowRadius: 4,
@@ -34,6 +38,32 @@ class MailWritingController: UIViewController, View {
                    description: "당신이 원하는 아바타에게 편지를 작성해보세요.")
     }
     
+    // 상단 초기화 버튼
+    private let clearTextButton = UIButton().then {
+        var config = UIButton.Configuration.plain()
+        
+        // AttributedString을 사용하여 타이틀 설정
+        var title = AttributedString("초기화")
+        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.foregroundColor = UIColor(hex: 0x7B7B7B)
+        config.attributedTitle = title
+        config.titlePadding = 0
+        
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
+        let image = UIImage(systemName: "arrow.counterclockwise", withConfiguration: imageConfiguration)
+        config.image = image
+        config.imagePadding = 2
+        config.imagePlacement = .trailing
+        
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        
+        $0.configuration = config
+        $0.tintColor = UIColor(hex: 0x7B7B7B)
+        
+        $0.isHidden = true
+    }
+    
+    // 배경 편지지 뷰
     private let letterContainerView = UIView().then {
         $0.backgroundColor = .white
         $0.applyCornerRadius(1.5)
@@ -45,75 +75,101 @@ class MailWritingController: UIViewController, View {
     
     private let letterOutlineView = UIView().then {
         $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
+        $0.layer.cornerRadius = 3
         $0.layer.borderWidth = 1
-        $0.layer.borderColor = UIColor(hex: 0xEBEBEB).cgColor
+        $0.layer.borderColor = UIColor(hex: 0xE6E6E6).cgColor
     }
     
     private let letterScrollView = UIScrollView()
     
     private let scrollContentView = UIView()
     
+    // 수신인 (To.) 영역 뷰
+    private let recipientNameInputContainerView = UIView()
+    
+    private let recipientNameSearchBar = SearchBar().then {
+        $0.setPlaceholderText(placeholderText: "편지를 받을 아바타를 찾아보세요.",
+                              color: UIColor(hex: 0x7B7B7B),
+                              fontSize: 14,
+                              fontWeight: .regular)
+        $0.setLeftIcon(iconName: "magnifyingglass",
+                       iconSize: CGSize(width: 16, height: 16),
+                       iconColor: UIColor(hex:0x7B7B7B),
+                       configuration: nil)
+        $0.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+        $0.setBorder(width: 0, colors: [])
+    }
+    
     private let recipientNameStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 3
+        $0.isHidden = true
     }
     
-    private let recipientTitleTextLabel = UITextField().then {
-        $0.text = "To."
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    private let recipientNameLabel = UILabel()
+    
+    private let recipientNameCorrectionIcon = UIImageView().then {
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 16)
+        let image = UIImage(systemName: "square.and.pencil", withConfiguration: imageConfiguration)
+        $0.image = image
+        $0.tintColor = UIColor(hex:0xA0A0A0)
     }
     
-    private let recipientNameTextField = UITextField().then {
-        $0.backgroundColor = UIColor(hex: 0xF8F8F8)
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        $0.textAlignment = .center
-        $0.layer.cornerRadius = 5
-        $0.clipsToBounds = true
-        $0.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+    // 수신인 자동완성 영역 컬렉션 뷰
+    private let recipientNameAutoCompleteContainerView = UIView().then {
+        $0.isHidden = true
+    }
+    
+    private let recipientNamePlaceholderView = RecipientNamePlaceholderView().then {
+        $0.isHidden = true
+    }
+    
+    private let recipientNameAutoCompleteCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(AutoCompletedNameCell.self, forCellWithReuseIdentifier: AutoCompletedNameCell.identifier)
+        collectionView.backgroundColor = .white
+        collectionView.isHidden = true
+        return collectionView
+    }()
+
+    // 편지 내용 영역 뷰
+    private let inputTextView = LetterContentInputTextView()
+    
+    // 발신인 (From.) 영역 뷰
+    private let senderNameInputContainerView = UIView()
+    
+    private let senderNameInputTextfield = SenderNameInputTextfield().then {
+        $0.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
+                              color: UIColor(hex: 0x7B7B7B),
+                              fontSize: 14,
+                              fontWeight: .regular)
+        $0.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+        $0.setBorder(width: 0, colors: [])
     }
     
     private let senderNameStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 3
+        $0.isHidden = true
     }
     
-    private let senderTitleTextLabel = UITextField().then {
-        $0.text = "From."
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    private let senderNameLabel = UILabel()
+    
+    private let senderNameCorrectionIcon = UIImageView().then {
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 16)
+        let image = UIImage(systemName: "square.and.pencil", withConfiguration: imageConfiguration)
+        $0.image = image
+        $0.tintColor = UIColor(hex:0xA0A0A0)
     }
     
-    private let senderNameTextField = UITextField().then {
-        $0.backgroundColor = UIColor(hex: 0xF8F8F8)
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        $0.textAlignment = .center
-        $0.layer.cornerRadius = 5
-        $0.clipsToBounds = true
-        $0.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
-    }
-    
-    private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
-    }
-    
+    // 하단 글자수 레이블
     private let textCountLabel = UILabel().then {
         $0.text = "0 | 300자"
         $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex:0x7B7B7B)
-        
-        $0.isHidden = true
-    }
-    
-    private let clearTextButton = UIButton().then {
-        $0.setTitle("초기화", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        $0.setTitleColor(UIColor(hex:0x7B7B7B), for: .normal)
-        
-        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14)
-        let image = UIImage(systemName: "arrow.counterclockwise", withConfiguration: imageConfiguration)
-        $0.setImage(image, for: .normal)
-        $0.tintColor = UIColor(hex:0x7B7B7B)
-        $0.semanticContentAttribute = .forceRightToLeft
         
         $0.isHidden = true
     }
@@ -128,6 +184,7 @@ class MailWritingController: UIViewController, View {
                        shadowOffset: CGSize(width: 0, height: 2),
                        shadowOpacity: 0.5)
     }
+
     
     init(
         reactor: MailWritingReactor
@@ -147,12 +204,20 @@ class MailWritingController: UIViewController, View {
         makeUI()
         
         topNavigation.delegate = self
+        recipientNameSearchBar.delegate = self
+        recipientNamePlaceholderView.delegate = self
+        inputTextView.delegate = self
+        recipientNameAutoCompleteCollectionView.delegate = self
+        senderNameInputTextfield.delegate = self
         
         self.hideKeyboardWhenTappedAround()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        reactor?.action.onNext(.initializeRecipientStates)
+        reactor?.action.onNext(.getAllAvatarInfos)
         
         tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
@@ -180,18 +245,31 @@ class MailWritingController: UIViewController, View {
                     letterScrollView.addSubViews(
                         scrollContentView.addSubViews(
                             // 수신인 (To.)
-                            recipientNameStackView.addArrangedSubViews(
-                                recipientTitleTextLabel,
-                                recipientNameTextField
+                            recipientNameInputContainerView.addSubViews(
+                                recipientNameSearchBar,
+
+                                recipientNameStackView.addArrangedSubViews(
+                                    recipientNameLabel,
+                                    recipientNameCorrectionIcon
+                                )
+                            ),
+                            
+                            recipientNameAutoCompleteContainerView.addSubViews(
+                                recipientNameAutoCompleteCollectionView,
+                                recipientNamePlaceholderView
                             ),
                             
                             // 편지 내용
                             inputTextView,
                             
                             // 발신인 (From.)
-                            senderNameStackView.addArrangedSubViews(
-                                senderTitleTextLabel,
-                                senderNameTextField
+                            senderNameInputContainerView.addSubViews(
+                                senderNameInputTextfield,
+                                
+                                senderNameStackView.addArrangedSubViews(
+                                    senderNameLabel,
+                                    senderNameCorrectionIcon
+                                )
                             )
                         )
                     )
@@ -225,22 +303,24 @@ class MailWritingController: UIViewController, View {
             $0.horizontalEdges.equalToSuperview().inset(28)
         }
         
+        // 초기화 버튼
         clearTextButton.snp.makeConstraints {
             $0.bottom.equalTo(letterContainerView.snp.top).offset(-10)
             $0.trailing.equalTo(letterContainerView.snp.trailing)
         }
         
+        // 'N | 300자' 레이블
         textCountLabel.snp.makeConstraints {
             $0.top.equalTo(letterContainerView.snp.bottom).offset(10)
             $0.trailing.equalTo(letterContainerView.snp.trailing)
         }
         
         letterOutlineView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(8)
+            $0.edges.equalToSuperview().inset(14)
         }
         
         letterScrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(12)
+            $0.edges.equalToSuperview().inset(20)
         }
         
         scrollContentView.snp.makeConstraints {
@@ -250,97 +330,137 @@ class MailWritingController: UIViewController, View {
         }
         
         // 수신인 (To.)
-        recipientNameStackView.snp.makeConstraints {
-            $0.top.leading.equalToSuperview()
+        recipientNameInputContainerView.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview()
+            $0.height.equalTo(43)
         }
         
-        recipientNameTextField.snp.makeConstraints {
-            $0.width.greaterThanOrEqualTo(50)
-            $0.height.equalTo(25)
+        recipientNameSearchBar.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        recipientNameStackView.snp.makeConstraints {
+            $0.leading.equalToSuperview()
+            $0.centerY.equalToSuperview()
+        }
+        
+        recipientNameAutoCompleteContainerView.snp.makeConstraints {
+            $0.top.equalTo(recipientNameSearchBar.snp.bottom).offset(10)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview()
+        }
+        
+        recipientNameAutoCompleteCollectionView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        recipientNamePlaceholderView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        // 편지 내용
+        inputTextView.snp.makeConstraints {
+            $0.top.equalTo(recipientNameInputContainerView.snp.bottom).offset(10)
+            $0.bottom.equalTo(senderNameInputContainerView.snp.top).offset(-10)
+            $0.horizontalEdges.equalToSuperview()
         }
         
         // 발신인 (From.)
-        senderNameStackView.snp.makeConstraints {
-            $0.bottom.trailing.equalToSuperview()
-        }
-        
-        senderNameTextField.snp.makeConstraints {
-            $0.width.greaterThanOrEqualTo(50)
-            $0.height.equalTo(25)
-        }
-        
-        // 내용
-        inputTextView.snp.makeConstraints {
-            $0.top.equalTo(recipientNameStackView.snp.bottom).offset(10)
-            $0.bottom.equalTo(senderNameStackView.snp.top).offset(-10)
+        senderNameInputContainerView.snp.makeConstraints {
+            $0.bottom.equalToSuperview()
             $0.horizontalEdges.equalToSuperview()
+            $0.height.equalTo(43)
+        }
+        senderNameInputTextfield.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        senderNameStackView.snp.makeConstraints {
+            $0.trailing.equalToSuperview()
+            $0.centerY.equalToSuperview()
         }
     }
     
     
     func bind(reactor: MailWritingReactor) {
-        inputTextView.rx.text
-            .map { Reactor.Action.inputTextDidChange(text: $0 ?? "") }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        inputTextView.rx.didBeginEditing
-            .bind {
-                if reactor.currentState.isTooltipHidden == false {
-                    reactor.action.onNext(.hideToolTip)
-                }
-            }
-            .disposed(by: disposeBag)
-        
-        recipientNameTextField.rx.text
-            .map { Reactor.Action.recipientNameTextDidChange(text: $0 ?? "") }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        recipientNameTextField.rx.controlEvent(.editingDidBegin)
-            .bind {
-                if reactor.currentState.isTooltipHidden == false {
-                    reactor.action.onNext(.hideToolTip)
-                }
-            }
-            .disposed(by: disposeBag)
-        
-        senderNameTextField.rx.text
-            .map { Reactor.Action.senderNameTextDidChange(text: $0 ?? "") }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        senderNameTextField.rx.controlEvent(.editingDidBegin)
-            .bind {
-                if reactor.currentState.isTooltipHidden == false {
-                    reactor.action.onNext(.hideToolTip)
-                }
+        reactor.state
+            .map { $0.filteredAvatarInfos }
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind(to: recipientNameAutoCompleteCollectionView.rx.items(cellIdentifier: AutoCompletedNameCell.identifier,
+                                                                       cellType: AutoCompletedNameCell.self)) { index, avatar, cell in
+                cell.setData(cellIndex: index, avatarName: avatar.name)
+                cell.delegate = self
             }
             .disposed(by: disposeBag)
         
         sendMailButton.rx.tap
-            .map { Reactor.Action.sendButtonDipTap }
-            .bind(to: reactor.action)
+            .asDriver()
+            .drive(onNext: {
+                reactor.action.onNext(.sendButtonDipTap)
+                GlobalIndicator.shared.show("mail_indicator", with: "메일을 보내는 중입니다...")
+            })
             .disposed(by: disposeBag)
+        
         
         clearTextButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                self.recipientNameTextField.text = ""
-                self.inputTextView.text = ""
-                self.senderNameTextField.text = ""
-            }.disposed(by: disposeBag)
-        
-        // states
-        reactor.state.map(\.isMailSent)
-            .observe(on: MainScheduler.instance)
-            .distinctUntilChanged()
-            .filter { $0 }  // isMailSent가 true일 때만 현재 뷰컨 close
-            .map { _ in Reactor.Action.closeMailWritingController }
-            .bind(to: reactor.action)
+//                self.recipientNameTextField.text = ""
+//                sself.inputTextView.text = ""
+//                self.senderNameTextField.text = ""
+                // 수신인 영역 초기화
+                recipientNameSearchBar.setSearchText(text: "")
+                recipientNameSearchBar.showClearButton(false)
+                recipientNameSearchBar.showCancelButton(false)
+                recipientNameSearchBar.showKeyboard(false)
+                recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 보낼 아바타를 찾아보세요.",
+                                                          color: UIColor(hex: 0x7B7B7B),
+                                                          fontSize: 14,
+                                                          fontWeight: .regular)
+                showRecipientSearchBar(true)
+                reactor.action.onNext(.initializeRecipientStates)
+                
+                
+            }
             .disposed(by: disposeBag)
         
-        reactor.state.map(\.inputText)
+        recipientNameStackView.rx.tapGesture()
+            .skip(1)
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: { [weak self] _ in
+                guard let self else { return }
+                showRecipientSearchBar(true)
+                recipientNameSearchBar.showKeyboard(true)
+            })
+            .disposed(by: disposeBag)
+        
+        senderNameStackView.rx.tapGesture()
+            .skip(1)
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: { [weak self] _ in
+                guard let self else { return }
+                showSenderInputTextfield(true)
+                senderNameInputTextfield.showKeyboard(true)
+            })
+            .disposed(by: disposeBag)
+        
+        // states
+        reactor.pulse(\.$isMailSent)
+            .observe(on: MainScheduler.asyncInstance)
+            .compactMap { $0 }
+            .bind { isMailSent in
+                
+                GlobalIndicator.shared.hide()
+                
+                if isMailSent {
+                    reactor.action.onNext(.closeMailWritingController)
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        reactor.state.map(\.letterContentsText)
             .observe(on: MainScheduler.instance)
             .distinctUntilChanged()
             .bind { [weak self] inputText in
@@ -377,6 +497,72 @@ class MailWritingController: UIViewController, View {
                 // 탑 네비게이션 중앙 타이틀 숨김 해제
                 topNavigation.setTitleIsHidden(false)
             }.disposed(by: disposeBag)
+        
+        reactor.pulse(\.$toastMessage)
+            .observe(on: MainScheduler.asyncInstance)
+            .compactMap { $0 }
+            .filterNil()
+            .bind { toastMessage in
+                ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
+            }.disposed(by: disposeBag)
+    }
+    
+    
+    public func hideTooltip() {
+        if reactor?.currentState.isTooltipHidden == false {
+            reactor?.action.onNext(.hideToolTip)
+        }
+        topNavigation.setTitle(titleText: "편지 작성하기", titleColor: .white, fontSize: 20, fontWeight: .semibold)
+    }
+    
+    
+    public func showRecipientNameAutoCompleteContainerView(_ shouldShow: Bool) {
+        if shouldShow {
+            recipientNameAutoCompleteContainerView.isHidden = false
+            
+            // 다른 뷰 숨김
+            inputTextView.isHidden = true
+            senderNameInputContainerView.isHidden = true
+        } else {
+            recipientNameAutoCompleteContainerView.isHidden = true
+            
+            // 다른 뷰 보임
+            inputTextView.isHidden = false
+            senderNameInputContainerView.isHidden = false
+        }
+    }
+    
+    
+    public func showRecipientNameAutoCompleteCollectionView(_ shouldShow: Bool) {
+        if shouldShow {
+            recipientNamePlaceholderView.isHidden = true
+            recipientNameAutoCompleteCollectionView.isHidden = false
+        } else {
+            recipientNamePlaceholderView.isHidden = false
+            recipientNameAutoCompleteCollectionView.isHidden = true
+        }
+    }
+    
+    
+    public func showRecipientSearchBar(_ shouldShow: Bool) {
+        if shouldShow {
+            recipientNameSearchBar.isHidden = false
+            recipientNameStackView.isHidden = true
+        } else {
+            recipientNameSearchBar.isHidden = true
+            recipientNameStackView.isHidden = false
+        }
+    }
+    
+    
+    public func showSenderInputTextfield(_ shouldShow: Bool) {
+        if shouldShow {
+            senderNameInputTextfield.isHidden = false
+            senderNameStackView.isHidden = true
+        } else {
+            senderNameInputTextfield.isHidden = true
+            senderNameStackView.isHidden = false
+        }
     }
 }
 
@@ -405,4 +591,192 @@ extension MailWritingController: TopNavigationDelegate {
     func topNavigationRightSideSecondaryIconDidTap() {}
     
     func topNavigationRightSideTextButtonDidTap() {}
+}
+
+
+extension MailWritingController: SearchBarDelegate {
+    func searchTextFieldDidBeginEditing() {
+        recipientNameSearchBar.clearPlaceholderText()
+        showRecipientNameAutoCompleteContainerView(true)
+        showRecipientNameAutoCompleteCollectionView(false)
+        recipientNameSearchBar.showCancelButton(true)
+        hideTooltip()
+    }
+    
+    
+    func searchTextFieldDidEndEditing() {
+        if let searchText = recipientNameSearchBar.getSearchText(), searchText.isEmpty {
+            recipientNameSearchBar.setSearchText(text: "")
+            recipientNameSearchBar.showClearButton(false)
+            recipientNameSearchBar.showCancelButton(false)
+            recipientNameSearchBar.showKeyboard(false)
+            recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 보낼 아바타를 찾아보세요.",
+                                                      color: UIColor(hex: 0x7B7B7B),
+                                                      fontSize: 14,
+                                                      fontWeight: .regular)
+        } else {
+            recipientNameSearchBar.showCancelButton(false)
+        }
+        showRecipientNameAutoCompleteContainerView(false)
+    }
+    
+    func searchTextDidChange(text: String) {
+        reactor?.action.onNext(.recipientNameTextDidChange(text: text))
+        
+        if !text.isEmpty {
+            recipientNameSearchBar.showClearButton(true)
+        }
+        
+        if let filteredAvatarInfos = reactor?.currentState.filteredAvatarInfos, !filteredAvatarInfos.isEmpty {
+            showRecipientNameAutoCompleteCollectionView(true)
+        } else {
+            showRecipientNameAutoCompleteCollectionView(false)
+        }
+    }
+    
+    func cancelButtonDidTap() {
+        if let selectedAvatar = reactor?.currentState.selectedAvatar {
+            showRecipientSearchBar(false)
+            showRecipientNameAutoCompleteContainerView(false)
+        } else {
+            recipientNameSearchBar.setSearchText(text: "")
+            recipientNameSearchBar.showClearButton(false)
+            recipientNameSearchBar.showCancelButton(false)
+            recipientNameSearchBar.showKeyboard(false)
+            recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 받을 아바타를 찾아보세요.",
+                                                      color: UIColor(hex: 0x7B7B7B),
+                                                      fontSize: 14,
+                                                      fontWeight: .regular)
+            showRecipientNameAutoCompleteContainerView(false)
+        }
+    }
+    
+    func clearButtonDidTap() {
+        recipientNameSearchBar.setSearchText(text: "")
+        recipientNameSearchBar.showKeyboard(true)
+        reactor?.action.onNext(.recipientNameTextDidChange(text: ""))
+    }
+}
+
+
+extension MailWritingController: SenderNameInputTextfieldDelegate {
+    func senderNameInputTextfieldDidBeginEditing() {
+        senderNameInputTextfield.clearPlaceholderText()
+        senderNameInputTextfield.showCancelButton(true)
+        hideTooltip()
+    }
+    
+    func senderNameInputTextfieldDidEndEditing() {
+        guard let inputText = senderNameInputTextfield.getInputText() else { return }
+        
+        if inputText.isEmpty {
+            senderNameInputTextfield.setInputText(text: "")
+            senderNameInputTextfield.showClearButton(false)
+            senderNameInputTextfield.showCancelButton(false)
+            senderNameInputTextfield.showKeyboard(false)
+            senderNameInputTextfield.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
+                                                        color: UIColor(hex: 0x7B7B7B),
+                                                        fontSize: 14,
+                                                        fontWeight: .regular)
+        }
+    }
+    
+    func senderNameInputTextfieldDidEndEditingOnExit() {
+        guard let inputText = senderNameInputTextfield.getInputText() else { return }
+        
+        if inputText.isNotEmpty {
+            senderNameInputTextfield.showCancelButton(false)
+            
+            senderNameLabel.attributedText = .makeAttributedString(text: "From. \(inputText)",
+                                                                   color: .black,
+                                                                   fontSize: 16,
+                                                                   fontWeight: .regular)
+            showSenderInputTextfield(false)
+        }
+    }
+    
+    func senderNameInputTextDidChange(text: String) {
+        reactor?.action.onNext(.senderNameTextDidChange(text: text))
+        
+        if !text.isEmpty {
+            senderNameInputTextfield.showClearButton(true)
+        }
+    }
+    
+    func senderNameInputTextfieldCancelButtonDidTap() {
+        
+        if let senderName = reactor?.currentState.senderNameText, senderName.isEmpty {
+            senderNameInputTextfield.setInputText(text: "")
+            senderNameInputTextfield.showClearButton(false)
+            senderNameInputTextfield.showCancelButton(false)
+            senderNameInputTextfield.showKeyboard(false)
+            senderNameInputTextfield.setPlaceholderText(placeholderText: "편지를 보내는 사람의 이름을 입력하세요.",
+                                                        color: UIColor(hex: 0x7B7B7B),
+                                                        fontSize: 14,
+                                                        fontWeight: .regular)
+        } else {
+            showSenderInputTextfield(false)
+        }
+    }
+    
+    func senderNameInputTextfieldClearButtonDidTap() {
+        senderNameInputTextfield.setInputText(text: "")
+        senderNameInputTextfield.showKeyboard(true)
+        reactor?.action.onNext(.senderNameTextDidChange(text: ""))
+    }
+}
+
+
+extension MailWritingController: LetterContentInputTextViewDelegate {
+    func inputTextDidChange(text: String) {
+        reactor?.action.onNext(.letterContentsTextDidChange(text: text))
+    }
+    
+    func inputTextViewDidBeginEditing() {
+        hideTooltip()
+        inputTextView.showInputTextView(true)
+    }
+    
+    func inputTextViewDidEndEditing() {
+        if inputTextView.getInputText().isEmpty {
+            inputTextView.showInputTextView(false)
+        }
+    }
+}
+
+
+extension MailWritingController: RecipientNamePlaceholderViewDelegate {
+    func recipientNamePlaceholderViewDidTap() {
+        recipientNameSearchBar.becomeFirstResponder()  // 검색창 포커스 유지
+    }
+    
+    func newAvatarCreationButtonDidTap() {
+        reactor?.action.onNext(.showAvatarSettingController)
+    }
+}
+
+
+extension MailWritingController: AutoCompletedNameCellDelegate {
+    func autoCompletedNameCellDidTap(cellIndex: Int) {
+        guard let filteredAvatars = reactor?.currentState.filteredAvatarInfos else { return }
+        
+        let selectedAvatar = filteredAvatars[cellIndex]
+        
+        reactor?.action.onNext(.changeSelectedAvatar(avatar: selectedAvatar))
+        
+        recipientNameSearchBar.setSearchText(text: selectedAvatar.name)
+        
+        recipientNameLabel.attributedText = .makeAttributedString(text: "To. \(selectedAvatar.name)",
+                                                                  color: .black,
+                                                                  fontSize: 16,
+                                                                  fontWeight: .regular)
+        showRecipientSearchBar(false)
+    }
+}
+
+
+extension MailWritingController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: collectionView.bounds.width, height: 45)
+    }
 }

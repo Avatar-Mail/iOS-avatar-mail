@@ -13,20 +13,20 @@ import RxCocoa
 import SnapKit
 import RxGesture
 
-protocol AvatarInfoCellDelegate: AnyObject {
-    func avatarInfoCellDidTap(cellIndex: Int)
+protocol AutoCompletedNameCellDelegate: AnyObject {
+    func autoCompletedNameCellDidTap(cellIndex: Int)
 }
 
 
-final class AvatarInfoCell: UICollectionViewCell {
+final class AutoCompletedNameCell: UICollectionViewCell {
     
-    static let identifier = "AvatarInfoCell"
+    static let identifier = "AutoCompletedNameCell"
     
     private var cellIndex: Int?
     
     private var disposeBag = DisposeBag()
     
-    weak var delegate: AvatarInfoCellDelegate?
+    weak var delegate: AutoCompletedNameCellDelegate?
     
     
     private let nameLabel = UILabel().then {
@@ -66,7 +66,7 @@ final class AvatarInfoCell: UICollectionViewCell {
             .subscribe(onNext: { [weak self] _ in
                 guard let self, let delegate, let cellIndex else { return }
                 
-                delegate.avatarInfoCellDidTap(cellIndex: cellIndex)
+                delegate.autoCompletedNameCellDidTap(cellIndex: cellIndex)
             }).disposed(by: disposeBag)
     }
 }

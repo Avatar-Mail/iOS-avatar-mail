@@ -10,6 +10,7 @@ import UIKit
 
 protocol MailWritingCoordinatorProtocol: Coordinator {
     func closeMailWritingController()
+    func showAvatarSettingController(with avatar: AvatarInfo?)
 }
 
 class MailWritingCoordinator: MailWritingCoordinatorProtocol {
@@ -32,6 +33,15 @@ class MailWritingCoordinator: MailWritingCoordinatorProtocol {
     
     public func closeMailWritingController() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    
+    public func showAvatarSettingController(with avatar: AvatarInfo?) {
+        print("Avatar: ", avatar?.name ?? "None")
+        let viewParameter = AvatarSettingCoordinator.ViewParameter(avatarInfo: avatar)
+        let avatarSettingCoordinator = AvatarSettingCoordinator(navigationController: navigationController,
+                                                                viewParameter: viewParameter)
+        avatarSettingCoordinator.start()
     }
 }
 
