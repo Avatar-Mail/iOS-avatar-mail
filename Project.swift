@@ -22,7 +22,8 @@ let project = Project(
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
-                    "APIKey": "$(OPEN_API_KEY)"
+                    "APIKey": "$(OPEN_API_KEY)",
+                    "NSMicrophoneUsageDescription": "This app requires access to the microphone to record audio."
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],

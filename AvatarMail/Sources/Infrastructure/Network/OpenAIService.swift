@@ -106,7 +106,8 @@ final class OpenAIService: OpenAIServiceProtocol {
                     self.repliedMail = Mail(
                         recipientName: senderName,
                         content: content,
-                        senderName: recipientName
+                        senderName: recipientName,
+                        date: Date()    
                     )
                     
                     self.repliedMail?.content = returnMessage
