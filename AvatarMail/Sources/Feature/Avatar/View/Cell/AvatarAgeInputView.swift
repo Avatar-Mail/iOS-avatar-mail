@@ -1,5 +1,5 @@
 //
-//  AvatarAgeInputView.swift
+//  AvatarAgeInputCell.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -13,14 +13,16 @@ import RxCocoa
 import SnapKit
 
 
-protocol AvatarAgeInputViewDelegate: AnyObject {
-    func avatarAgeInputViewChipDidTap(data: String)
+protocol AvatarAgeInputCellDelegate: AnyObject {
+    func avatarAgeInputCellInnerChipDidTap(data: String)
 }
 
 
-final class AvatarAgeInputView: UIView {
+final class AvatarAgeInputCell: UICollectionViewCell {
     
-    weak var delegate: AvatarAgeInputViewDelegate?
+    static let identifier = "AvatarAgeInputCell"
+    
+    weak var delegate: AvatarAgeInputCellDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -54,7 +56,7 @@ final class AvatarAgeInputView: UIView {
         $0.showsHorizontalScrollIndicator = false
     }
     
-    private let contentView = UIView()
+    private let contentsView = UIView()
     
     private let stackView = UIStackView().then {
         $0.axis = .horizontal
@@ -87,7 +89,7 @@ final class AvatarAgeInputView: UIView {
                 
                 // scroll-view
                 scrollView.addSubViews(
-                    contentView.addSubViews(
+                    contentsView.addSubViews(
                         stackView
                     )
                 )
@@ -111,7 +113,7 @@ final class AvatarAgeInputView: UIView {
             $0.bottom.equalToSuperview().inset(20)
         }
         
-        contentView.snp.makeConstraints {
+        contentsView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.height.equalToSuperview()
         }
@@ -153,7 +155,7 @@ final class AvatarAgeInputView: UIView {
 }
 
 
-extension AvatarAgeInputView: AvatarAgeChipDelegate {
+extension AvatarAgeInputCell: AvatarAgeChipDelegate {
     func chipDidTap(chip: AvatarAgeChip) {
         
         switch chip.getChipState() {
@@ -173,7 +175,7 @@ extension AvatarAgeInputView: AvatarAgeChipDelegate {
         
         guard let chipData = chip.data else { return }
         
-        delegate?.avatarAgeInputViewChipDidTap(data: chipData)
+        delegate?.avatarAgeInputCellInnerChipDidTap(data: chipData)
     }
 }
 

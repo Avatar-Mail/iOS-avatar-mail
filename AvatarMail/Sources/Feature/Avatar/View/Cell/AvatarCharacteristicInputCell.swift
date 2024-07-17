@@ -1,5 +1,5 @@
 //
-//  AvatarCharacteristicInputView.swift
+//  AvatarCharacteristicInputCell.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -12,17 +12,20 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-protocol AvatarCharacteristicInputViewDelegate: AnyObject {
+protocol AvatarCharacteristicInputCellDelegate: AnyObject {
     func characteristicInputTextViewDidTap()
     func characteristicInputTextDidChange(text: String)
     func characteristicClearButtonDidTap()
 }
 
-final class AvatarCharacteristicInputView: UIView, ActivatableInputView {
+final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInputView {
     
-    weak var delegate: AvatarCharacteristicInputViewDelegate?
+    static let identifier = "AvatarCharacteristicInputCell"
+    
+    weak var delegate: AvatarCharacteristicInputCellDelegate?
     
     var disposeBag = DisposeBag()
+    
     
     private let containerView = UIView().then {
         $0.backgroundColor = .white

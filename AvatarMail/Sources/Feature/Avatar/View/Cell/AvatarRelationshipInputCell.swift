@@ -13,7 +13,7 @@ import RxCocoa
 import SnapKit
 
 
-protocol AvatarRelationshipInputViewDelegate: AnyObject {
+protocol AvatarRelationshipInputCellDelegate: AnyObject {
     // avatar
     func avatarRoleInputTextFieldDidTap()
     func avatarRoleInputTextDidChange(text: String)
@@ -25,9 +25,11 @@ protocol AvatarRelationshipInputViewDelegate: AnyObject {
 }
 
 
-final class AvatarRelationshipInputView: UIView, ActivatableInputView {
+final class AvatarRelationshipInputCell: UICollectionViewCell, ActivatableInputView {
     
-    weak var delegate: AvatarRelationshipInputViewDelegate?
+    static let identifier = "AvatarRelationshipInputCell"
+    
+    weak var delegate: AvatarRelationshipInputCellDelegate?
     
     var disposeBag = DisposeBag()
     

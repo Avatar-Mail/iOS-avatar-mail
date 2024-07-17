@@ -1,5 +1,5 @@
 //
-//  AvatarParlanceInputView.swift
+//  AvatarParlanceInputCell.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -12,17 +12,20 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-protocol AvatarParlanceInputViewDelegate: AnyObject {
+protocol AvatarParlanceInputCellDelegate: AnyObject {
     func parlanceInputTextViewDidTap()
     func parlanceInputTextDidChange(text: String)
     func parlanceClearButtonDidTap()
 }
 
-final class AvatarParlanceInputView: UIView, ActivatableInputView {
+final class AvatarParlanceInputCell: UICollectionViewCell, ActivatableInputView {
     
-    weak var delegate: AvatarParlanceInputViewDelegate?
+    static let identifier = "AvatarParlanceInputCell"
+    
+    weak var delegate: AvatarParlanceInputCellDelegate?
     
     var disposeBag = DisposeBag()
+    
     
     private let containerView = UIView().then {
         $0.backgroundColor = .white

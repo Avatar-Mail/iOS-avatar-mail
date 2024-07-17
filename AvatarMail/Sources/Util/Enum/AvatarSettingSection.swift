@@ -7,8 +7,8 @@
 
 enum AvatarSettingSection {
     case avatarNameInput
-//    case avatarAgeInput
-//    case avatarRelationshipInput
-//    case avatarCharacteristicInput
-//    case avatarParlanceInput
+    case avatarAgeInput
+    case avatarRelationshipInput
+    case avatarCharacteristicInput
+    case avatarParlanceInput
 }

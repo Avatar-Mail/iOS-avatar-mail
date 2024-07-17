@@ -35,16 +35,20 @@ class AvatarSettingController: UIViewController, View {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
             $0.backgroundColor = UIColor(hex: 0xEFEFEF)
             $0.register(AvatarNameInputCell.self, forCellWithReuseIdentifier: AvatarNameInputCell.identifier)
+            $0.register(AvatarAgeInputCell.self, forCellWithReuseIdentifier: AvatarAgeInputCell.identifier)
+            $0.register(AvatarRelationshipInputCell.self, forCellWithReuseIdentifier: AvatarRelationshipInputCell.identifier)
+            $0.register(AvatarCharacteristicInputCell.self, forCellWithReuseIdentifier: AvatarCharacteristicInputCell.identifier)
+            $0.register(AvatarParlanceInputCell.self, forCellWithReuseIdentifier: AvatarParlanceInputCell.identifier)
         }
         return collectionView
     }()
     
     private var avatarSettingSections: [AvatarSettingSection] = [
-        .avatarNameInput
-//        .avatarAgeInput,
-//        .avatarRelationshipInput,
-//        .avatarCharacteristicInput,
-//        .avatarParlanceInput,
+        .avatarNameInput,
+        .avatarAgeInput,
+        .avatarRelationshipInput,
+        .avatarCharacteristicInput,
+        .avatarParlanceInput
     ]
     
     // save button
@@ -189,7 +193,7 @@ class AvatarSettingController: UIViewController, View {
 }
 
 
-// MARK: AvatarNameInputViewDelegate
+// MARK: AvatarNameInputCellDelegate
 extension AvatarSettingController: AvatarNameInputCellDelegate {
     func nameInputTextFieldDidTap() {
         // activateSpecificChildView(view: avatarNameInputView)
@@ -203,16 +207,16 @@ extension AvatarSettingController: AvatarNameInputCellDelegate {
 }
 
 
-// MARK: AvatarAgeInputViewDelegate
-extension AvatarSettingController: AvatarAgeInputViewDelegate {
-    func avatarAgeInputViewChipDidTap(data: String) {
+// MARK: AvatarAgeInputCellDelegate
+extension AvatarSettingController: AvatarAgeInputCellDelegate {
+    func avatarAgeInputCellInnerChipDidTap(data: String) {
         reactor?.action.onNext(.avatarAgeDidChange(age: data))
     }
 }
 
 
-// MARK: AvatarRelationshipInputViewDelegate
-extension AvatarSettingController: AvatarRelationshipInputViewDelegate {
+// MARK: AvatarRelationshipInputCellDelegate
+extension AvatarSettingController: AvatarRelationshipInputCellDelegate {
     func avatarRoleInputTextFieldDidTap() {
         // activateSpecificChildView(view: avatarRelationshipInputView)
     }
@@ -236,7 +240,7 @@ extension AvatarSettingController: AvatarRelationshipInputViewDelegate {
 
 
 // MARK: AvatarCharacteristicInputViewDelegate
-extension AvatarSettingController: AvatarCharacteristicInputViewDelegate {
+extension AvatarSettingController: AvatarCharacteristicInputCellDelegate {
     func characteristicInputTextViewDidTap() {
         // activateSpecificChildView(view: avatarCharacteristicInputView)
     }
@@ -250,7 +254,7 @@ extension AvatarSettingController: AvatarCharacteristicInputViewDelegate {
 
 
 // MARK: AvatarParlanceInputViewDelegate
-extension AvatarSettingController: AvatarParlanceInputViewDelegate {
+extension AvatarSettingController: AvatarParlanceInputCellDelegate {
     func parlanceInputTextViewDidTap() {
         // activateSpecificChildView(view: avatarParlanceInputView)
     }
@@ -281,6 +285,14 @@ extension AvatarSettingController: UICollectionViewDataSource {
         switch avatarSettingSections[section] {
         case .avatarNameInput:
             return 1
+        case .avatarAgeInput:
+            return 1
+        case .avatarRelationshipInput:
+            return 1
+        case .avatarCharacteristicInput:
+            return 1
+        case .avatarParlanceInput:
+            return 1
         }
     }
 
@@ -288,6 +300,22 @@ extension AvatarSettingController: UICollectionViewDataSource {
         switch avatarSettingSections[indexPath.section] {
         case .avatarNameInput:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarNameInputCell.identifier, for: indexPath) as! AvatarNameInputCell
+            cell.delegate = self
+            return cell
+        case .avatarAgeInput:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarAgeInputCell.identifier, for: indexPath) as! AvatarAgeInputCell
+            cell.delegate = self
+            return cell
+        case .avatarRelationshipInput:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarRelationshipInputCell.identifier, for: indexPath) as! AvatarRelationshipInputCell
+            cell.delegate = self
+            return cell
+        case .avatarCharacteristicInput:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarCharacteristicInputCell.identifier, for: indexPath) as! AvatarCharacteristicInputCell
+            cell.delegate = self
+            return cell
+        case .avatarParlanceInput:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarParlanceInputCell.identifier, for: indexPath) as! AvatarParlanceInputCell
             cell.delegate = self
             return cell
         }
@@ -298,17 +326,42 @@ extension AvatarSettingController: UICollectionViewDataSource {
 
 extension AvatarSettingController {
     private func makeFlowLayout() -> UICollectionViewCompositionalLayout {
-        return UICollectionViewCompositionalLayout { section, ev -> NSCollectionLayoutSection? in
+        return UICollectionViewCompositionalLayout { [weak self] section, ev -> NSCollectionLayoutSection? in
+            guard let self else { return nil }
             // section에 따라 서로 다른 layout 구성
-            switch self.avatarSettingSections[section] {
-            case .avatarNameInput:
-                return self.makeAvatarNameInputSectionLayout()
-            }
+            return self.makeSectionLayout(currentSection: self.avatarSettingSections[section])
         }
     }
     
     // '편지 작성하기' 섹션 레이아웃 생성
-    private func makeAvatarNameInputSectionLayout() -> NSCollectionLayoutSection? {
+    private func makeSectionLayout(currentSection: AvatarSettingSection) -> NSCollectionLayoutSection? {
+        // Item
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                              heightDimension: .estimated(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0,
+                                                     leading: 16,
+                                                     bottom: 0,
+                                                     trailing: 16)
+        
+        // Group
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                               heightDimension: .estimated(1))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        // Section
+        let section = NSCollectionLayoutSection(group: group)
+        // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16,
+                                                        leading: 0,
+                                                        bottom: 0,
+                                                        trailing: 0)
+        
+        return section
+    }
+    
+    // '편지 작성하기' 섹션 레이아웃 생성
+    private func makeAvatarAgeInputSectionLayout() -> NSCollectionLayoutSection? {
         // Item
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                               heightDimension: .estimated(1))
