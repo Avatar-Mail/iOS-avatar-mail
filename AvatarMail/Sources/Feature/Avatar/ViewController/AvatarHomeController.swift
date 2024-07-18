@@ -82,6 +82,8 @@ class AvatarHomeController: UIViewController, View {
         reactor?.action.onNext(.getAllAvatarInfos)
         
         showAvatarSearchView(false)
+        
+        tabBarController?.hideTabBar(isHidden: false, animated: true)
     }
     
     

@@ -42,13 +42,12 @@ class AvatarSettingController: UIViewController, View {
         return collectionView
     }()
     
-    private var avatarSettingSections: [AvatarSettingSection] = [
-        .avatarNameInput,
-        .avatarAgeInput,
-        .avatarRelationshipInput,
-        .avatarCharacteristicInput,
-        .avatarParlanceInput
-    ]
+
+    private let saveAvatarButtonContainerHeight: CGFloat = (UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 20) + 20 + 72
+    
+    private let saveAvatarButtonContainer = UIView().then {
+        $0.backgroundColor = .white
+    }
     
     private let saveAvatarButton = UIButton().then {
         $0.backgroundColor = UIColor(hex: 0xF8554A)
@@ -65,7 +64,20 @@ class AvatarSettingController: UIViewController, View {
         $0.layer.masksToBounds = false
     }
     
+    
+    private var avatarSettingSections: [AvatarSettingSection] = [
+        .avatarNameInput,
+        .avatarAgeInput,
+        .avatarRelationshipInput,
+        .avatarCharacteristicInput,
+        .avatarParlanceInput
+    ]
+    
     var dataSource: UICollectionViewDiffableDataSource<AvatarSettingSection, AvatarSettingItem>?
+    
+    
+    private var isSaveButtonContainerHidden = false
+
     
     init(reactor: AvatarSettingReactor) {
         super.init(nibName: nil, bundle: nil)
@@ -80,10 +92,17 @@ class AvatarSettingController: UIViewController, View {
         super.viewDidLoad()
         
         makeUI()
+        setDelegates()
         configureDataSource()
         setAvatarInfo(reactor?.currentState.initialAvatarInfo)  // FIXME: 데이터를 받는 시점은 viewDidLoad 이전인데.. viewDidLoad 이후에 setAvatarInfo가 호출되어야 제대로 그려짐
         
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
+    }
+    
+    
+    private func setDelegates() {
         topNavigation.delegate = self
+        contentsCollectionView.delegate = self
     }
     
     private func configureDataSource() {
@@ -127,7 +146,7 @@ class AvatarSettingController: UIViewController, View {
         dataSource?.apply(snapshot, animatingDifferences: false)
     }
     
-    public func setAvatarInfo(_ avatar: AvatarInfo?) {
+    private func setAvatarInfo(_ avatar: AvatarInfo?) {
         var snapshot = NSDiffableDataSourceSnapshot<AvatarSettingSection, AvatarSettingItem>()
         snapshot.appendSections(avatarSettingSections)
         
@@ -146,7 +165,7 @@ class AvatarSettingController: UIViewController, View {
         view.addSubViews(
             topNavigation,
             contentsCollectionView,
-            saveAvatarButton
+            saveAvatarButtonContainer.addSubViews(saveAvatarButton)
         )
         
         topNavigation.snp.makeConstraints {
@@ -156,13 +175,19 @@ class AvatarSettingController: UIViewController, View {
         contentsCollectionView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalTo(saveAvatarButton.snp.top).offset(-20)
+            $0.bottom.equalToSuperview()
+        }
+        
+        saveAvatarButtonContainer.snp.makeConstraints {
+            $0.height.equalTo(saveAvatarButtonContainerHeight)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview().offset(saveAvatarButtonContainerHeight)
         }
         
         saveAvatarButton.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview().inset(20)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(20)
-            $0.height.equalTo(50)
+            $0.top.equalToSuperview().offset(20)
+            $0.height.equalTo(72)
         }
     }
     
@@ -277,7 +302,13 @@ extension AvatarSettingController {
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 0, trailing: 0)
+        
+        // 마지막 섹션인 경우, '탭바 높이 + 16px' 하단 inset 적용
+        if currentSection == .avatarParlanceInput {
+            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 112, trailing: 0)
+        } else {
+            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 0, trailing: 0)
+        }
         
         return section
     }
@@ -296,3 +327,42 @@ extension AvatarSettingController: TopNavigationDelegate {
     func topNavigationRightSideTextButtonDidTap() {}
 }
 
+
+
+extension AvatarSettingController: UICollectionViewDelegate {
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let scrollOffset = scrollView.contentOffset.y
+        let thresholdOffset: CGFloat = 150
+        
+        if scrollOffset > thresholdOffset && isSaveButtonContainerHidden {
+            setSaveButtonContainerIsHidden(isHidden: false)
+        } else if scrollOffset <= thresholdOffset && !isSaveButtonContainerHidden {
+            setSaveButtonContainerIsHidden(isHidden: true)
+        }
+    }
+    
+    private func setSaveButtonContainerIsHidden(isHidden: Bool) {
+        isSaveButtonContainerHidden = isHidden
+        
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self else { return }
+            if isHidden {
+                // SaveButtonContainer를 디바이스 아래로 숨김
+                self.saveAvatarButtonContainer.snp.updateConstraints {
+                    $0.height.equalTo(self.saveAvatarButtonContainerHeight)
+                    $0.horizontalEdges.equalToSuperview()
+                    $0.bottom.equalToSuperview().offset(self.saveAvatarButtonContainerHeight)
+                }
+            } else {
+                // SaveButtonContainer를 원래 위치로 이동
+                self.saveAvatarButtonContainer.snp.updateConstraints {
+                    $0.height.equalTo(self.saveAvatarButtonContainerHeight)
+                    $0.horizontalEdges.equalToSuperview()
+                    $0.bottom.equalToSuperview()
+                }
+            }
+            view.layoutIfNeeded()
+        }
+    }
+}
