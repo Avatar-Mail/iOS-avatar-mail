@@ -5,7 +5,7 @@
 //  Created by 최지석 on 7/16/24.
 //
 
-enum AvatarSettingSection {
+enum AvatarSettingSection: CaseIterable {
     case avatarNameInput
     case avatarAgeInput
     case avatarRelationshipInput
