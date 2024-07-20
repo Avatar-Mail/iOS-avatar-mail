@@ -49,7 +49,6 @@ class MailHomeController: UIViewController, View {
         super.init(nibName: nil, bundle: nil)
         
         self.reactor = reactor
-        
     }
     
     required init?(coder: NSCoder) {
