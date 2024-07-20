@@ -12,16 +12,25 @@ import RxCocoa
 
 final class AudioRecordingManager: NSObject {
     
+    private let settings = [
+        AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+        AVSampleRateKey: 12000,
+        AVNumberOfChannelsKey: 1,
+        AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+    ]
+    
     private var audioRecorder : AVAudioRecorder?
     private var recording: AudioRecording?
     private var recordingTimer: CustomTimer?
+    
     var recordingTime = BehaviorSubject<Double>(value: 0)
     
     
     override init() { }
     
     
-    public func startRecording(with avatarName: String) -> Result<AudioRecording, AudioRecordingError> {
+    public func startRecording(contents: String,
+                               with avatarName: String) -> Result<AudioRecording, AudioRecordingError> {
         
         initializeRecorder()
         
@@ -38,17 +47,11 @@ final class AudioRecordingManager: NSObject {
         // AudioRecording 인스턴스 생성
         // 파일 ID
         let fileID = UUID().uuidString
-        
         // 파일 이름
-        let fileName = "음성 녹음 - \(avatarName).m4a"
-
+        let fileName: String = "\(avatarName)_\(fileID)"
         // 파일 경로
         let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fileURL = documentPath.appendingPathComponent("\(avatarName)\(fileID).m4a")
-        
-        print(documentPath)
-        print(fileURL.absoluteString)
-        
+        let fileURL = documentPath.appendingPathComponent("\(fileName).m4a")
         // 파일 생성 날짜
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -57,26 +60,20 @@ final class AudioRecordingManager: NSObject {
         recording = AudioRecording(id: fileID,
                                    fileName: fileName,
                                    fileURL: fileURL,
-                                   createdAtString: currentDate,
-                                   recordingDuration: 0.0)
+                                   contents: contents,
+                                   createdDate: currentDate,
+                                   duration: 0.0)
         
         guard let recording else { return .failure(.recordingInstanceCreationFailure) }
         
         do {
-            let settings = [
-                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 12000,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
-            
             // AVAudioRecorder 인스턴스 생성
             audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
             // 타이머 인스턴스 생성
             recordingTimer = CustomTimer()
             recordingTimer?.delegate = self
             
-            guard let recordingTimer else { return .failure(.timerInstanceCreationFailure) }
+            guard let recordingTimer else { return .failure(.timerCreationFailure) }
             guard let audioRecorder else { return .failure(.audioRecorderCreationFailure) }
             
             // 타이머 시작
@@ -93,6 +90,7 @@ final class AudioRecordingManager: NSObject {
         return .success(recording)
     }
     
+    
     public func stopRecording() -> Result<AudioRecording, AudioRecordingError> {
         guard let audioRecorder else { return .failure(.audioRecorderNotFound) }
         guard let recordingTimer else { return .failure(.timerNotFound)}
@@ -100,7 +98,7 @@ final class AudioRecordingManager: NSObject {
         
         audioRecorder.stop()
         recordingTimer.stopTimer()
-        recording.recordingDuration = recordingTimer.getRecordedTime()
+        recording.duration = recordingTimer.getRecordedTime()
         
         return .success(recording)
     }
@@ -133,6 +131,6 @@ enum AudioRecordingError: Error {
     case recordingInstanceNotFound
     case audioRecorderCreationFailure
     case audioRecorderNotFound
-    case timerInstanceCreationFailure
+    case timerCreationFailure
     case timerNotFound
 }

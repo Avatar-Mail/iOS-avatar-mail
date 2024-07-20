@@ -10,36 +10,139 @@ import AVFoundation
 class SettingHomeController: UIViewController {
     
     var disposeBag = DisposeBag()
+    
     let recordingManager = AudioRecordingManager()
+    let playingManager = AudioPlayingManager()
     
     private let pageTitleLabel = UILabel().then {
         $0.text = "설정"
         $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
     }
     
-    private let startButton = UIButton().then {
+    private let recordingStartButton = UIButton().then {
         $0.setTitle("녹음 시작", for: .normal)
         $0.backgroundColor = .systemBlue
         $0.layer.cornerRadius = 8
     }
     
-    private let stopButton = UIButton().then {
+    private let recordingStopButton = UIButton().then {
         $0.setTitle("녹음 종료", for: .normal)
         $0.backgroundColor = .systemRed
         $0.layer.cornerRadius = 8
     }
     
-    private let recordingTimeLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 16)
-        $0.textColor = .black
-        $0.textAlignment = .center
+    private let playingStartButton = UIButton().then {
+        $0.setTitle("재생 시작", for: .normal)
+        $0.backgroundColor = .systemBlue
+        $0.layer.cornerRadius = 8
     }
     
-    private let fileNameLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 16)
-        $0.textColor = .darkGray
-        $0.textAlignment = .center
+    private let playingStopButton = UIButton().then {
+        $0.setTitle("재생 종료", for: .normal)
+        $0.backgroundColor = .systemRed
+        $0.layer.cornerRadius = 8
     }
+    
+    // 파일
+    private let fileNameLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "FileName: ",
+                                                  color: .black,
+                                                  fontSize: 24,
+                                                  fontWeight: .bold)
+        $0.numberOfLines = 0
+    }
+    
+    private let fileUrlLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "FileURL: ",
+                                                  color: .darkGray,
+                                                  fontSize: 20,
+                                                  fontWeight: .medium)
+        $0.numberOfLines = 0
+    }
+    
+    private let createdDateLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "Date: ",
+                                                  color: .gray,
+                                                  fontSize: 20,
+                                                  fontWeight: .medium)
+        $0.numberOfLines = 1
+    }
+    
+    // 음성 녹음
+    private let recordingTitleLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "음성 기록 시간",
+                                                  color: .black,
+                                                  fontSize: 20,
+                                                  fontWeight: .semibold)
+    }
+    
+    private let recordingMinutesLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    private let recordingSecondsLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    private let recordingMillisecondsLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    // 음성 재생
+    private let playingTitleLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "음성 재생 시간",
+                                                  color: .black,
+                                                  fontSize: 20,
+                                                  fontWeight: .semibold)
+    }
+    
+    private let playingMinutesLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    private let playingSecondsLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    private let playingMillisecondsLabel = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.attributedText = .makeAttributedString(text: "00",
+                                                  color: .black,
+                                                  fontSize: 18,
+                                                  fontWeight: .medium)
+    }
+    
+    
+    // 음성 녹음 파일
+    private var currentRecording: AudioRecording?
+    
+    
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -48,6 +151,7 @@ class SettingHomeController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,56 +164,155 @@ class SettingHomeController: UIViewController {
     private func makeUI() {
         view.backgroundColor = .white
         
-        view.addSubview(pageTitleLabel)
-        view.addSubview(startButton)
-        view.addSubview(stopButton)
-        view.addSubview(recordingTimeLabel)
-        view.addSubview(fileNameLabel)
+        view.addSubViews(
+            pageTitleLabel,
+            
+            fileNameLabel,
+            fileUrlLabel,
+            createdDateLabel,
+            
+            recordingTitleLabel,
+            recordingMinutesLabel,
+            recordingSecondsLabel,
+            recordingMillisecondsLabel,
+            
+            playingTitleLabel,
+            playingMinutesLabel,
+            playingSecondsLabel,
+            playingMillisecondsLabel,
+            
+            recordingStartButton,
+            recordingStopButton,
         
-        // title label
+            playingStartButton,
+            playingStopButton
+        )
+        
         pageTitleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(35)
             $0.left.equalToSuperview().inset(20)
         }
         
-        startButton.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.centerY.equalToSuperview().offset(-50)
-            make.width.equalTo(120)
-            make.height.equalTo(50)
+        // 파일 설정
+        fileNameLabel.snp.makeConstraints {
+            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(40)
+            $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
-        stopButton.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.top.equalTo(startButton.snp.bottom).offset(20)
-            make.width.equalTo(120)
-            make.height.equalTo(50)
+        fileUrlLabel.snp.makeConstraints {
+            $0.top.equalTo(fileNameLabel.snp.bottom).offset(20)
+            $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
-        recordingTimeLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.top.equalTo(stopButton.snp.bottom).offset(20)
-            make.width.equalTo(200)
-            make.height.equalTo(50)
+        createdDateLabel.snp.makeConstraints {
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(20)
+            $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
-        fileNameLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.top.equalTo(recordingTimeLabel.snp.bottom).offset(20)
-            make.width.equalTo(300)
-            make.height.equalTo(50)
+        // 음성 기록 시간
+        recordingTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(100)
+            $0.trailing.equalToSuperview().inset(20)
+        }
+        
+        recordingMillisecondsLabel.snp.makeConstraints {
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.trailing.equalToSuperview().inset(20)
+            $0.width.equalTo(30)
+        }
+        
+        recordingSecondsLabel.snp.makeConstraints {
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.trailing.equalTo(recordingMillisecondsLabel.snp.leading)
+            $0.width.equalTo(30)
+        }
+
+        recordingMinutesLabel.snp.makeConstraints {
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.trailing.equalTo(recordingSecondsLabel.snp.leading)
+            $0.width.equalTo(30)
+        }
+        
+        // 음성 재생 시간
+        playingTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(100)
+            $0.leading.equalToSuperview().inset(20)
+        }
+        
+        playingMinutesLabel.snp.makeConstraints {
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.leading.equalToSuperview().inset(20)
+            $0.width.equalTo(30)
+        }
+        
+        playingSecondsLabel.snp.makeConstraints {
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.leading.equalTo(playingMinutesLabel.snp.trailing)
+            $0.width.equalTo(30)
+        }
+        
+        playingMillisecondsLabel.snp.makeConstraints {
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.leading.equalTo(playingSecondsLabel.snp.trailing)
+            $0.width.equalTo(30)
+        }
+
+        // 음성 녹음 버튼
+        recordingStartButton.snp.makeConstraints {
+            $0.top.equalTo(recordingMinutesLabel.snp.bottom).offset(30)
+            $0.centerX.equalToSuperview().offset(-70)
+            $0.width.equalTo(120)
+            $0.height.equalTo(50)
+        }
+        
+        recordingStopButton.snp.makeConstraints {
+            $0.top.equalTo(recordingMinutesLabel.snp.bottom).offset(30)
+            $0.centerX.equalToSuperview().offset(70)
+            $0.width.equalTo(120)
+            $0.height.equalTo(50)
+        }
+        
+        // 음성 재생 버튼
+        playingStartButton.snp.makeConstraints {
+            $0.top.equalTo(recordingStartButton.snp.bottom).offset(15)
+            $0.centerX.equalToSuperview().offset(-70)
+            $0.width.equalTo(120)
+            $0.height.equalTo(50)
+        }
+        
+        playingStopButton.snp.makeConstraints {
+            $0.top.equalTo(recordingStartButton.snp.bottom).offset(15)
+            $0.centerX.equalToSuperview().offset(70)
+            $0.width.equalTo(120)
+            $0.height.equalTo(50)
         }
     }
     
     private func bindUI() {
-        startButton.rx.tap
+        recordingStartButton.rx.tap
             .bind { [weak self] _ in
                 guard let self else { return }
-                let result = self.recordingManager.startRecording(with: "AvatarName")
+                let result = self.recordingManager.startRecording(contents: "Hello",
+                                                                  with: "AvatarName")
                 
                 switch result {
                 case .success(let recording):
-                    print(recording)
+                    print("Recording Start")
+                    currentRecording = recording
+                    playingManager.playingTime.onNext(0)
+                    
+                    fileNameLabel.attributedText = .makeAttributedString(text: "FileName: \(recording.fileName)",
+                                                                         color: .black,
+                                                                         fontSize: 24,
+                                                                         fontWeight: .bold)
+                    fileUrlLabel.attributedText = .makeAttributedString(text: "FileURL: \(recording.fileURL.absoluteString)",
+                                                                        color: .darkGray,
+                                                                        fontSize: 20,
+                                                                        fontWeight: .medium)
+                    createdDateLabel.attributedText = .makeAttributedString(text: "Date: \(recording.createdDate)",
+                                                                            color: .gray,
+                                                                            fontSize: 20,
+                                                                            fontWeight: .medium)
                 case .failure(let error):
                     switch error {
                     case .audioRecorderCreationFailure:
@@ -122,7 +325,7 @@ class SettingHomeController: UIViewController {
                         print("recordingInstanceCreationFailure")
                     case .recordingSessionSetupFailure:
                         print("recordingSessionSetupFailure")
-                    case .timerInstanceCreationFailure:
+                    case .timerCreationFailure:
                         print("timerInstanceCreationFailure")
                     case .timerNotFound:
                         print("timerNotFound")
@@ -130,14 +333,15 @@ class SettingHomeController: UIViewController {
                 }
             }.disposed(by: disposeBag)
         
-        stopButton.rx.tap
+        recordingStopButton.rx.tap
             .bind { [weak self] _ in
                 guard let self else { return }
                 let result = self.recordingManager.stopRecording()
                 
                 switch result {
                 case .success(let recording):
-                    print(recording)
+                    print("Recording End")
+                    currentRecording = recording
                 case .failure(let error):
                     switch error {
                     case .audioRecorderCreationFailure:
@@ -150,7 +354,7 @@ class SettingHomeController: UIViewController {
                         print("recordingInstanceCreationFailure")
                     case .recordingSessionSetupFailure:
                         print("recordingSessionSetupFailure")
-                    case .timerInstanceCreationFailure:
+                    case .timerCreationFailure:
                         print("timerInstanceCreationFailure")
                     case .timerNotFound:
                         print("timerNotFound")
@@ -158,10 +362,112 @@ class SettingHomeController: UIViewController {
                 }
             }.disposed(by: disposeBag)
         
+        playingStartButton.rx.tap
+            .bind { [weak self] _ in
+                guard let self else { return }
+                
+                if let recording = self.currentRecording {
+                    let result = self.playingManager.startPlaying(url: recording.fileURL)
+                    
+                    switch result {
+                    case .success:
+                        print("Playing Start")
+                    case .failure(let error):
+                        switch error {
+                        case .audioPlayerCreationFailure:
+                            print("audioPlayerCreationFailure")
+                        case .audioPlayerNotFound:
+                            print("audioPlayerNotFound")
+                        case .playingSessionSetupFailure:
+                            print("playingSessionSetupFailure")
+                        case .timerCreationFailure:
+                            print("timerCreationFailure")
+                        case .timerNotFound:
+                            print("timerNotFound")
+                        }
+                    }
+                } else {
+                    print("Recording Not Found")
+                }
+            }.disposed(by: disposeBag)
+        
+        playingStopButton.rx.tap
+            .bind { [weak self] _ in
+                guard let self else { return }
+                
+                if let recording = self.currentRecording {
+                    let result = self.playingManager.stopPlaying()
+                    
+                    switch result {
+                    case .success:
+                        print("Playing End")
+                    case .failure(let error):
+                        switch error {
+                        case .audioPlayerCreationFailure:
+                            print("audioPlayerCreationFailure")
+                        case .audioPlayerNotFound:
+                            print("audioPlayerNotFound")
+                        case .playingSessionSetupFailure:
+                            print("playingSessionSetupFailure")
+                        case .timerCreationFailure:
+                            print("timerCreationFailure")
+                        case .timerNotFound:
+                            print("timerNotFound")
+                        }
+                    }
+                } else {
+                    print("Recording Not Found")
+                }
+            }.disposed(by: disposeBag)
+  
         recordingManager.recordingTime
             .subscribe(onNext: { [weak self] seconds in
                 guard let self else { return }
-                recordingTimeLabel.text = String(seconds)
+                
+                let totalMilliseconds = Int(seconds * 1000)
+                let minutes = (totalMilliseconds / 1000) / 60
+                let seconds = (totalMilliseconds / 1000) % 60
+                let milliseconds = (totalMilliseconds % 1000) / 10
+                
+                recordingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
+                                                                             color: .black,
+                                                                             fontSize: 18,
+                                                                             fontWeight: .medium)
+                
+                recordingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
+                                                                             color: .black,
+                                                                             fontSize: 18,
+                                                                             fontWeight: .medium)
+                
+                recordingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
+                                                                             color: .black,
+                                                                             fontSize: 18,
+                                                                             fontWeight: .medium)
+            }).disposed(by: disposeBag)
+        
+        playingManager.playingTime
+            .subscribe(onNext: { [weak self] seconds in
+                guard let self else { return }
+                
+                let totalMilliseconds = Int(seconds * 1000)
+                let minutes = (totalMilliseconds / 1000) / 60
+                let seconds = (totalMilliseconds / 1000) % 60
+                let milliseconds = (totalMilliseconds % 1000) / 10
+                
+                playingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
+                                                                           color: .black,
+                                                                           fontSize: 18,
+                                                                           fontWeight: .medium)
+                
+                playingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
+                                                                           color: .black,
+                                                                           fontSize: 18,
+                                                                           fontWeight: .medium)
+                
+                playingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
+                                                                                color: .black,
+                                                                                fontSize: 18,
+                                                                                fontWeight: .medium)
             }).disposed(by: disposeBag)
     }
 }
