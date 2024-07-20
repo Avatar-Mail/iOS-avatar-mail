@@ -213,7 +213,7 @@ extension SettingHomeController: CustomTimerDelegate {
         let totalMilliseconds = Int(seconds * 1000)
         let minutes = (totalMilliseconds / 1000) / 60
         let secs = (totalMilliseconds / 1000) % 60
-        let millisecs = totalMilliseconds % 1000
+        let millisecs = (totalMilliseconds % 1000) / 10
         
         return (String(format: "%02d", minutes), String(format: "%02d", secs), String(format: "%02d", millisecs))
     }
