@@ -1,5 +1,5 @@
 //
-//  TimerManager.swift
+//  CustomTimer.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 7/20/24.
@@ -19,7 +19,7 @@ class CustomTimer {
     var timer: Timer?
     
     private let timerInterval: Double = 0.01
-    private var seconds: Double = 0.0
+    private var seconds: Double = 0
 
     init() {}
     
@@ -27,6 +27,7 @@ class CustomTimer {
         // 초기화
         timer?.invalidate()
         timer = nil
+        seconds = 0
         
         timer = Timer.scheduledTimer(timeInterval: timerInterval,
                                      target: self,
@@ -34,18 +35,20 @@ class CustomTimer {
                                      userInfo: nil,
                                      repeats: true)
     }
-    
-
-    @objc private func updateTimer() {
-        // 이 메서드는 타이머가 동작할 때마다 호출됩니다.
-        seconds += timerInterval
-        print(seconds)
-        // print("Timer Progress: \(seconds) 초")
-        delegate?.timerUpdated(seconds: seconds)
-    }
 
     func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    func getRecordedTime() -> Double {
+        return seconds
+    }
+    
+    @objc private func updateTimer() {
+        // 이 메서드는 타이머가 동작할 때마다 호출됩니다.
+        seconds += timerInterval
+        // print("Timer Progress: \(seconds) 초")
+        delegate?.timerUpdated(seconds: seconds)
     }
 }
