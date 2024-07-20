@@ -32,7 +32,7 @@ class AvatarInfoObject: Object {
 }
 
 extension AvatarInfoObject {
-    a
+    
     // AvatarInfoObject를 AvatarInfo 엔티티로 변환
     func toEntity() -> AvatarInfo {
         return AvatarInfo(
