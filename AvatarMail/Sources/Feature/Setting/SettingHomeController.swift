@@ -1,10 +1,3 @@
-//
-//  SettingHomeController.swift
-//  AvatarMail
-//
-//  Created by 최지석 on 6/23/24.
-//
-
 import Foundation
 import UIKit
 import Then
@@ -38,6 +31,18 @@ class SettingHomeController: UIViewController, AVAudioRecorderDelegate, AVAudioP
         $0.borderStyle = .roundedRect
     }
     
+    private var minuteLabel = UILabel().then {
+        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    }
+    
+    private var secondLabel = UILabel().then {
+        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    }
+    
+    private var millisecondLabel = UILabel().then {
+        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    }
+    
     var audioRecorder: AVAudioRecorder!
     var audioPlayer: AVAudioPlayer!
     var isRecording = false
@@ -61,8 +66,25 @@ class SettingHomeController: UIViewController, AVAudioRecorderDelegate, AVAudioP
         playButton.addTarget(self, action: #selector(playButtonTapped), for: .touchUpInside)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    private var timer: CustomTimer?
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        timer = CustomTimer()
+        timer?.delegate = self
+        timer?.startTimer()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+            self?.timer?.stopTimer()
+        }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        timer?.stopTimer()
+        timer = nil
     }
     
     private func makeUI() {
@@ -72,6 +94,9 @@ class SettingHomeController: UIViewController, AVAudioRecorderDelegate, AVAudioP
         view.addSubview(recordButton)
         view.addSubview(textField)
         view.addSubview(playButton)
+        view.addSubview(minuteLabel)
+        view.addSubview(secondLabel)
+        view.addSubview(millisecondLabel)
         
         // title label
         pageTitleLabel.snp.makeConstraints {
@@ -101,6 +126,21 @@ class SettingHomeController: UIViewController, AVAudioRecorderDelegate, AVAudioP
             $0.centerX.equalToSuperview()
             $0.width.equalTo(100)
             $0.height.equalTo(50)
+        }
+        
+        minuteLabel.snp.makeConstraints {
+            $0.top.equalTo(playButton.snp.bottom).offset(20)
+            $0.left.equalTo(view.snp.centerX).offset(-60)
+        }
+        
+        secondLabel.snp.makeConstraints {
+            $0.top.equalTo(playButton.snp.bottom).offset(20)
+            $0.centerX.equalToSuperview()
+        }
+        
+        millisecondLabel.snp.makeConstraints {
+            $0.top.equalTo(playButton.snp.bottom).offset(20)
+            $0.left.equalTo(view.snp.centerX).offset(60)
         }
     }
     
@@ -163,5 +203,25 @@ class SettingHomeController: UIViewController, AVAudioRecorderDelegate, AVAudioP
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         playButton.setTitle("실행", for: .normal)
         isPlaying = false
+    }
+}
+
+
+extension SettingHomeController: CustomTimerDelegate {
+    
+    func convertSecondsToTimeString(seconds: Double) -> (String, String, String) {
+        let totalMilliseconds = Int(seconds * 1000)
+        let minutes = (totalMilliseconds / 1000) / 60
+        let secs = (totalMilliseconds / 1000) % 60
+        let millisecs = totalMilliseconds % 1000
+        
+        return (String(format: "%02d", minutes), String(format: "%02d", secs), String(format: "%02d", millisecs))
+    }
+    
+    func timerUpdated(seconds: Double) {
+        let (minutes, seconds, millisecs) = convertSecondsToTimeString(seconds: seconds)
+        minuteLabel.text = minutes
+        secondLabel.text = seconds
+        millisecondLabel.text = millisecs
     }
 }
