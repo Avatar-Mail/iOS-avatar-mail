@@ -19,6 +19,25 @@ class SettingHomeController: UIViewController {
         $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
     }
     
+    // scroll-view
+    private let pageScrollView = UIScrollView().then {
+        $0.backgroundColor = .clear
+    }
+    
+    // scroll content-view
+    private let pageContentView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
+    // content stackview
+    private let contentStackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.alignment = .fill
+        $0.backgroundColor = .clear
+        $0.spacing = 20
+        $0.isLayoutMarginsRelativeArrangement = true
+    }
+    
     private let recordingStartButton = UIButton().then {
         $0.setTitle("녹음 시작", for: .normal)
         $0.backgroundColor = .systemBlue
@@ -47,7 +66,7 @@ class SettingHomeController: UIViewController {
     private let fileNameLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "FileName: ",
                                                   color: .black,
-                                                  fontSize: 24,
+                                                  fontSize: 20,
                                                   fontWeight: .bold)
         $0.numberOfLines = 0
     }
@@ -55,7 +74,7 @@ class SettingHomeController: UIViewController {
     private let fileUrlLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "FileURL: ",
                                                   color: .darkGray,
-                                                  fontSize: 20,
+                                                  fontSize: 16,
                                                   fontWeight: .medium)
         $0.numberOfLines = 0
     }
@@ -63,7 +82,7 @@ class SettingHomeController: UIViewController {
     private let createdDateLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "Date: ",
                                                   color: .gray,
-                                                  fontSize: 20,
+                                                  fontSize: 16,
                                                   fontWeight: .medium)
         $0.numberOfLines = 1
     }
@@ -72,7 +91,7 @@ class SettingHomeController: UIViewController {
     private let recordingTitleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "음성 기록 시간",
                                                   color: .black,
-                                                  fontSize: 20,
+                                                  fontSize: 16,
                                                   fontWeight: .semibold)
     }
     
@@ -107,7 +126,7 @@ class SettingHomeController: UIViewController {
     private let playingTitleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "음성 재생 시간",
                                                   color: .black,
-                                                  fontSize: 20,
+                                                  fontSize: 16,
                                                   fontWeight: .semibold)
     }
     
@@ -138,10 +157,35 @@ class SettingHomeController: UIViewController {
                                                   fontWeight: .medium)
     }
     
+    private let textViewContainerView = UIView().then {
+        $0.backgroundColor = .white
+        $0.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
+        $0.layer.borderWidth = 2
+        $0.layer.cornerRadius = 10
+    }
+    
+    private let inputTextView = UITextView().then {
+        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.isScrollEnabled = true
+    }
+    
+    private let sendMailButton = UIButton().then {
+        $0.setTitle("편지 보내기", for: .normal)
+        $0.backgroundColor = .systemBlue
+        $0.layer.cornerRadius = 8
+    }
+    
+    private let playServerSentFileButton = UIButton().then {
+        $0.setTitle("음성 파일 실행", for: .normal)
+        $0.backgroundColor = .lightGray
+        $0.layer.cornerRadius = 8
+    }
+    
     
     // 음성 녹음 파일
     private var currentRecording: AudioRecording?
-    
+    // 편지 내용
+    private var mailContents: String?
     
     
     init() {
@@ -167,25 +211,36 @@ class SettingHomeController: UIViewController {
         view.addSubViews(
             pageTitleLabel,
             
-            fileNameLabel,
-            fileUrlLabel,
-            createdDateLabel,
-            
-            recordingTitleLabel,
-            recordingMinutesLabel,
-            recordingSecondsLabel,
-            recordingMillisecondsLabel,
-            
-            playingTitleLabel,
-            playingMinutesLabel,
-            playingSecondsLabel,
-            playingMillisecondsLabel,
-            
-            recordingStartButton,
-            recordingStopButton,
-        
-            playingStartButton,
-            playingStopButton
+            pageScrollView.addSubViews(
+                pageContentView.addSubViews(
+                    fileNameLabel,
+                    fileUrlLabel,
+                    createdDateLabel,
+                    
+                    recordingTitleLabel,
+                    recordingMinutesLabel,
+                    recordingSecondsLabel,
+                    recordingMillisecondsLabel,
+                    
+                    playingTitleLabel,
+                    playingMinutesLabel,
+                    playingSecondsLabel,
+                    playingMillisecondsLabel,
+                    
+                    recordingStartButton,
+                    recordingStopButton,
+                
+                    playingStartButton,
+                    playingStopButton,
+                    
+                    textViewContainerView.addSubViews(
+                        inputTextView
+                    ),
+                    
+                    sendMailButton,
+                    playServerSentFileButton
+                )
+            )
         )
         
         pageTitleLabel.snp.makeConstraints {
@@ -193,66 +248,77 @@ class SettingHomeController: UIViewController {
             $0.left.equalToSuperview().inset(20)
         }
         
+        pageScrollView.snp.makeConstraints {
+            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(40)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview().offset(-120)
+        }
+        
+        pageContentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+        }
+        
         // 파일 설정
         fileNameLabel.snp.makeConstraints {
-            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(40)
+            $0.top.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
         fileUrlLabel.snp.makeConstraints {
-            $0.top.equalTo(fileNameLabel.snp.bottom).offset(20)
+            $0.top.equalTo(fileNameLabel.snp.bottom).offset(10)
             $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
         createdDateLabel.snp.makeConstraints {
-            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(20)
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(10)
             $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
         // 음성 기록 시간
         recordingTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(100)
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(50)
             $0.trailing.equalToSuperview().inset(20)
         }
         
         recordingMillisecondsLabel.snp.makeConstraints {
-            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(10)
             $0.trailing.equalToSuperview().inset(20)
             $0.width.equalTo(30)
         }
         
         recordingSecondsLabel.snp.makeConstraints {
-            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(10)
             $0.trailing.equalTo(recordingMillisecondsLabel.snp.leading)
             $0.width.equalTo(30)
         }
 
         recordingMinutesLabel.snp.makeConstraints {
-            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(recordingTitleLabel.snp.bottom).offset(10)
             $0.trailing.equalTo(recordingSecondsLabel.snp.leading)
             $0.width.equalTo(30)
         }
         
         // 음성 재생 시간
         playingTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(100)
+            $0.top.equalTo(fileUrlLabel.snp.bottom).offset(50)
             $0.leading.equalToSuperview().inset(20)
         }
         
         playingMinutesLabel.snp.makeConstraints {
-            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(10)
             $0.leading.equalToSuperview().inset(20)
             $0.width.equalTo(30)
         }
         
         playingSecondsLabel.snp.makeConstraints {
-            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(10)
             $0.leading.equalTo(playingMinutesLabel.snp.trailing)
             $0.width.equalTo(30)
         }
         
         playingMillisecondsLabel.snp.makeConstraints {
-            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(20)
+            $0.top.equalTo(playingTitleLabel.snp.bottom).offset(10)
             $0.leading.equalTo(playingSecondsLabel.snp.trailing)
             $0.width.equalTo(30)
         }
@@ -260,31 +326,57 @@ class SettingHomeController: UIViewController {
         // 음성 녹음 버튼
         recordingStartButton.snp.makeConstraints {
             $0.top.equalTo(recordingMinutesLabel.snp.bottom).offset(30)
-            $0.centerX.equalToSuperview().offset(-70)
-            $0.width.equalTo(120)
+            $0.leading.equalToSuperview().inset(20)
+            $0.width.equalTo(100)
             $0.height.equalTo(50)
         }
         
         recordingStopButton.snp.makeConstraints {
-            $0.top.equalTo(recordingMinutesLabel.snp.bottom).offset(30)
-            $0.centerX.equalToSuperview().offset(70)
-            $0.width.equalTo(120)
+            $0.top.equalTo(recordingStartButton.snp.bottom).offset(20)
+            $0.leading.equalToSuperview().inset(20)
+            $0.width.equalTo(100)
             $0.height.equalTo(50)
         }
         
         // 음성 재생 버튼
         playingStartButton.snp.makeConstraints {
-            $0.top.equalTo(recordingStartButton.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview().offset(-70)
-            $0.width.equalTo(120)
+            $0.top.equalTo(recordingMinutesLabel.snp.bottom).offset(30)
+            $0.trailing.equalToSuperview().inset(20)
+            $0.width.equalTo(100)
             $0.height.equalTo(50)
         }
         
         playingStopButton.snp.makeConstraints {
-            $0.top.equalTo(recordingStartButton.snp.bottom).offset(15)
-            $0.centerX.equalToSuperview().offset(70)
-            $0.width.equalTo(120)
+            $0.top.equalTo(playingStartButton.snp.bottom).offset(20)
+            $0.trailing.equalToSuperview().inset(20)
+            $0.width.equalTo(100)
             $0.height.equalTo(50)
+        }
+        
+        textViewContainerView.snp.makeConstraints {
+            $0.top.equalTo(playingStopButton.snp.bottom).offset(30)
+            $0.horizontalEdges.equalToSuperview().inset(20)
+            $0.height.equalTo(100)
+        }
+        
+        inputTextView.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(10)
+        }
+        
+        sendMailButton.snp.makeConstraints {
+            $0.top.equalTo(textViewContainerView.snp.bottom).offset(20)
+            $0.leading.equalToSuperview().inset(20)
+            $0.height.equalTo(60)
+            $0.width.equalTo(150)
+            $0.bottom.equalToSuperview().inset(20)
+        }
+        
+        playServerSentFileButton.snp.makeConstraints {
+            $0.top.equalTo(textViewContainerView.snp.bottom).offset(20)
+            $0.trailing.equalToSuperview().inset(20)
+            $0.height.equalTo(60)
+            $0.width.equalTo(150)
+            $0.bottom.equalToSuperview().inset(20)
         }
     }
     
@@ -303,15 +395,15 @@ class SettingHomeController: UIViewController {
                     
                     fileNameLabel.attributedText = .makeAttributedString(text: "FileName: \(recording.fileName)",
                                                                          color: .black,
-                                                                         fontSize: 24,
+                                                                         fontSize: 20,
                                                                          fontWeight: .bold)
                     fileUrlLabel.attributedText = .makeAttributedString(text: "FileURL: \(recording.fileURL.absoluteString)",
                                                                         color: .darkGray,
-                                                                        fontSize: 20,
+                                                                        fontSize: 16,
                                                                         fontWeight: .medium)
                     createdDateLabel.attributedText = .makeAttributedString(text: "Date: \(recording.createdDate)",
                                                                             color: .gray,
-                                                                            fontSize: 20,
+                                                                            fontSize: 16,
                                                                             fontWeight: .medium)
                 case .failure(let error):
                     switch error {
@@ -469,6 +561,35 @@ class SettingHomeController: UIViewController {
                                                                                 fontSize: 18,
                                                                                 fontWeight: .medium)
             }).disposed(by: disposeBag)
+        
+        inputTextView.rx.text
+            .asDriver()
+            .drive(onNext: { [weak self] text in
+                guard let self else { return }
+                
+                mailContents = text
+                
+            }).disposed(by: disposeBag)
+        
+        sendMailButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                
+                let url = URL(string: "http://127.0.0.1:8000/")
+                var request = URLRequest(url: url!)
+                request.httpMethod = "GET"
+                
+                
+                let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                    guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                        print("Error: invalid response")
+                        return
+                    }
+                    print("Response : \(data!)")
+                }
+                task.resume()
+                
+            }.disposed(by: disposeBag)
     }
 }
 

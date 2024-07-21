@@ -65,8 +65,10 @@ class AvatarSettingController: UIViewController, View {
     
     // parlance input view
     private let avatarParlanceInputView = AvatarParlanceInputView()
-
     
+    // voice input view
+    private let avatarVoiceInputView = AvatarVoiceInputView()
+
     private let saveAvatarButtonContainerHeight: CGFloat = (UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 20) + 20 + 72
     private let saveAvatarButtonContainer = UIView().then {
         $0.backgroundColor = .white
@@ -117,6 +119,7 @@ class AvatarSettingController: UIViewController, View {
         avatarRelationshipInputView.delegate = self
         avatarCharacteristicInputView.delegate = self
         avatarParlanceInputView.delegate = self
+        avatarVoiceInputView.delegate = self
         
         pageScrollView.delegate = self
     }
@@ -170,12 +173,14 @@ class AvatarSettingController: UIViewController, View {
                         avatarRelationshipInputView,
                         avatarCharacteristicInputView,
                         avatarParlanceInputView,
-                        saveAvatarButton
+                        avatarVoiceInputView
                     )
                 )
             ),
             
-            saveAvatarButtonContainer.addSubViews(saveAvatarButton)
+            saveAvatarButtonContainer.addSubViews(
+                saveAvatarButton
+            )
         )
         
         topNavigation.snp.makeConstraints {
@@ -320,31 +325,38 @@ extension AvatarSettingController: AvatarParlanceInputViewDelegate {
 }
 
 
+// MARK: AvatarVoiceInputViewDelegate
+extension AvatarSettingController: AvatarVoiceInputViewDelegate {
+    
+    func backButtonDidTap() {
+        let viewState = avatarVoiceInputView.getViewState()
+        
+        switch viewState {
+        case .initial: ()
+        case .inputText:
+            avatarVoiceInputView.clearInputText()
+            avatarVoiceInputView.setViewState(.initial)
+        case .inputVoice: ()
+            avatarVoiceInputView.setViewState(.inputText)
+        }
+    }
+    
+    func initialAvatarVoiceRecordButtonDidTap() {
+        avatarVoiceInputView.setViewState(.inputText)
+    }
+    
+    func startRecordingTextButtonDidTap() {
+        avatarVoiceInputView.setViewState(.inputVoice)
+    }
+}
+
+
 // MARK: UIScrollViewDelegate
 extension AvatarSettingController: UIScrollViewDelegate {
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         activateSpecificChildView(view: nil)
         view.endEditing(true)  // 키보드 내림
     }
-}
-
-
-// Top Navigation Delegate 설정
-extension AvatarSettingController: TopNavigationDelegate {
-    func topNavigationLeftSideIconDidTap() {
-        reactor?.action.onNext(.closeAvatarSettingController)
-    }
-    
-    func topNavigationRightSidePrimaryIconDidTap() {}
-    
-    func topNavigationRightSideSecondaryIconDidTap() {}
-    
-    func topNavigationRightSideTextButtonDidTap() {}
-}
-
-
-
-extension AvatarSettingController: UICollectionViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let scrollOffset = scrollView.contentOffset.y
@@ -380,4 +392,18 @@ extension AvatarSettingController: UICollectionViewDelegate {
             view.layoutIfNeeded()
         }
     }
+}
+
+
+//MARK: TopNavigationDelegate
+extension AvatarSettingController: TopNavigationDelegate {
+    func topNavigationLeftSideIconDidTap() {
+        reactor?.action.onNext(.closeAvatarSettingController)
+    }
+    
+    func topNavigationRightSidePrimaryIconDidTap() {}
+    
+    func topNavigationRightSideSecondaryIconDidTap() {}
+    
+    func topNavigationRightSideTextButtonDidTap() {}
 }
