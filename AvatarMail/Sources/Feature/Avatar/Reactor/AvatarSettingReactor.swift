@@ -115,7 +115,8 @@ class AvatarSettingReactor: Reactor {
                                     relationship: Relationship(avatar: currentState.avatarRole,
                                                                user: currentState.userRole),
                                     characteristic: currentState.characteristic,
-                                    parlance: currentState.parlance)
+                                    parlance: currentState.parlance,
+                                    recordings: [])
             return saveAvatar(avatar)
         // Navigation
         case .closeAvatarSettingController:

@@ -1,5 +1,5 @@
 //
-//  AvatarAgeInputCell.swift
+//  AvatarAgeInputView.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -13,16 +13,14 @@ import RxCocoa
 import SnapKit
 
 
-protocol AvatarAgeInputCellDelegate: AnyObject {
-    func avatarAgeInputCellInnerChipDidTap(data: String)
+protocol AvatarAgeInputViewDelegate: AnyObject {
+    func avatarAgeInputViewInnerChipDidTap(data: String)
 }
 
 
-final class AvatarAgeInputCell: UICollectionViewCell {
+final class AvatarAgeInputView: UIView {
     
-    static let identifier = "AvatarAgeInputCell"
-    
-    weak var delegate: AvatarAgeInputCellDelegate?
+    weak var delegate: AvatarAgeInputViewDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -98,7 +96,6 @@ final class AvatarAgeInputCell: UICollectionViewCell {
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {
@@ -155,7 +152,7 @@ final class AvatarAgeInputCell: UICollectionViewCell {
 }
 
 
-extension AvatarAgeInputCell: AvatarAgeChipDelegate {
+extension AvatarAgeInputView: AvatarAgeChipDelegate {
     func chipDidTap(chip: AvatarAgeChip) {
         
         switch chip.getChipState() {
@@ -175,7 +172,7 @@ extension AvatarAgeInputCell: AvatarAgeChipDelegate {
         
         guard let chipData = chip.data else { return }
         
-        delegate?.avatarAgeInputCellInnerChipDidTap(data: chipData)
+        delegate?.avatarAgeInputViewInnerChipDidTap(data: chipData)
     }
 }
 

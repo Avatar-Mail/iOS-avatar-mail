@@ -13,7 +13,7 @@ import RxCocoa
 import SnapKit
 
 
-protocol AvatarRelationshipInputCellDelegate: AnyObject {
+protocol AvatarRelationshipInputViewDelegate: AnyObject {
     // avatar
     func avatarRoleInputTextFieldDidTap()
     func avatarRoleInputTextDidChange(text: String)
@@ -25,11 +25,9 @@ protocol AvatarRelationshipInputCellDelegate: AnyObject {
 }
 
 
-final class AvatarRelationshipInputCell: UICollectionViewCell, ActivatableInputView {
+final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     
-    static let identifier = "AvatarRelationshipInputCell"
-    
-    weak var delegate: AvatarRelationshipInputCellDelegate?
+    weak var delegate: AvatarRelationshipInputViewDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -183,7 +181,6 @@ final class AvatarRelationshipInputCell: UICollectionViewCell, ActivatableInputV
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {

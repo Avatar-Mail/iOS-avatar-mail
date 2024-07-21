@@ -30,21 +30,44 @@ class AvatarSettingController: UIViewController, View {
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
-    private lazy var contentsCollectionView: UICollectionView = {
-        let layout = makeFlowLayout()
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = UIColor(hex: 0xEFEFEF)
-        collectionView.register(AvatarNameInputCell.self, forCellWithReuseIdentifier: AvatarNameInputCell.identifier)
-        collectionView.register(AvatarAgeInputCell.self, forCellWithReuseIdentifier: AvatarAgeInputCell.identifier)
-        collectionView.register(AvatarRelationshipInputCell.self, forCellWithReuseIdentifier: AvatarRelationshipInputCell.identifier)
-        collectionView.register(AvatarCharacteristicInputCell.self, forCellWithReuseIdentifier: AvatarCharacteristicInputCell.identifier)
-        collectionView.register(AvatarParlanceInputCell.self, forCellWithReuseIdentifier: AvatarParlanceInputCell.identifier)
-        return collectionView
-    }()
+    // scroll-view
+    private let pageScrollView = UIScrollView().then {
+        $0.backgroundColor = .clear
+    }
     
+    // scroll content-view
+    private let pageContentView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
+    // content stackview
+    private let contentStackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.alignment = .fill
+        $0.backgroundColor = .clear
+        $0.spacing = 20
+        $0.isLayoutMarginsRelativeArrangement = true
+    }
+    
+    // name input view
+    private let avatarNameInputView = AvatarNameInputView()
+    
+    // age input view
+    private let avatarAgeInputView = AvatarAgeInputView().then {
+        $0.setData(selectedChipData: nil)
+    }
+    
+    // relationship input view
+    private let avatarRelationshipInputView = AvatarRelationshipInputView()
+    
+    // characteristic input view
+    private let avatarCharacteristicInputView = AvatarCharacteristicInputView()
+    
+    // parlance input view
+    private let avatarParlanceInputView = AvatarParlanceInputView()
 
-    private let saveAvatarButtonContainerHeight: CGFloat = (UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 20) + 20 + 72
     
+    private let saveAvatarButtonContainerHeight: CGFloat = (UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 20) + 20 + 72
     private let saveAvatarButtonContainer = UIView().then {
         $0.backgroundColor = .white
     }
@@ -63,19 +86,7 @@ class AvatarSettingController: UIViewController, View {
         $0.layer.shadowRadius = 4
         $0.layer.masksToBounds = false
     }
-    
-    
-    private var avatarSettingSections: [AvatarSettingSection] = [
-        .avatarNameInput,
-        .avatarAgeInput,
-        .avatarRelationshipInput,
-        .avatarCharacteristicInput,
-        .avatarParlanceInput
-    ]
-    
-    var dataSource: UICollectionViewDiffableDataSource<AvatarSettingSection, AvatarSettingItem>?
-    
-    
+
     private var isSaveButtonContainerHidden = false
 
     
@@ -93,8 +104,6 @@ class AvatarSettingController: UIViewController, View {
         
         makeUI()
         setDelegates()
-        configureDataSource()
-        setAvatarInfo(reactor?.currentState.initialAvatarInfo)  // FIXME: 데이터를 받는 시점은 viewDidLoad 이전인데.. viewDidLoad 이후에 setAvatarInfo가 호출되어야 제대로 그려짐
         
         tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
@@ -102,61 +111,49 @@ class AvatarSettingController: UIViewController, View {
     
     private func setDelegates() {
         topNavigation.delegate = self
-        contentsCollectionView.delegate = self
+        
+        avatarNameInputView.delegate = self
+        avatarAgeInputView.delegate = self
+        avatarRelationshipInputView.delegate = self
+        avatarCharacteristicInputView.delegate = self
+        avatarParlanceInputView.delegate = self
+        
+        pageScrollView.delegate = self
     }
     
-    private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<AvatarSettingSection, AvatarSettingItem>(collectionView: contentsCollectionView) { collectionView, indexPath, item in
-            switch item {
-            case .avatarNameInput(let name):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarNameInputCell.identifier,
-                                                                    for: indexPath) as? AvatarNameInputCell else { return UICollectionViewCell() }
-                cell.delegate = self
-                cell.setData(name: name)
-                return cell
-            case .avatarAgeInput(let age):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarAgeInputCell.identifier,
-                                                                    for: indexPath) as? AvatarAgeInputCell else { return UICollectionViewCell() }
-                cell.delegate = self
-                cell.setData(selectedChipData: age)
-                return cell
-            case .avatarRelationshipInput(let avatarRole, let userRole):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarRelationshipInputCell.identifier,
-                                                                    for: indexPath) as? AvatarRelationshipInputCell else { return UICollectionViewCell() }
-                cell.delegate = self
-                cell.setData(avatarRole: avatarRole, userRole: userRole)
-                return cell
-            case .avatarCharacteristicInput(let characteristic):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarCharacteristicInputCell.identifier,
-                                                                    for: indexPath) as? AvatarCharacteristicInputCell else { return UICollectionViewCell() }
-                cell.delegate = self
-                cell.setData(characteristic: characteristic)
-                return cell
-            case .avatarParlanceInput(let parlance):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarParlanceInputCell.identifier,
-                                                                    for: indexPath) as? AvatarParlanceInputCell else { return UICollectionViewCell() }
-                cell.delegate = self
-                cell.setData(parlance: parlance)
-                return cell
+    
+    private func setAvatarInfo(_ avatar: AvatarInfo) {
+        avatarNameInputView.setData(name: avatar.name)
+        avatarAgeInputView.setData(selectedChipData: avatar.ageGroup)
+        avatarRelationshipInputView.setData(avatarRole: avatar.relationship.avatar,
+                                            userRole: avatar.relationship.user)
+        avatarCharacteristicInputView.setData(characteristic: avatar.characteristic)
+        avatarParlanceInputView.setData(parlance: avatar.parlance)
+    }
+    
+    private func activateSpecificChildView(view: UIView?) {
+        
+        if let view {
+            // 스택 뷰 안의 subview들과 비교
+            for subview in contentStackView.arrangedSubviews {
+                if let activatableSubview = subview as? ActivatableInputView {
+                    if activatableSubview == view {
+                        activatableSubview.activateInputView(true)
+                    } else {
+                        activatableSubview.activateInputView(false)
+                    }
+                }
             }
         }
-        
-        var snapshot = NSDiffableDataSourceSnapshot<AvatarSettingSection, AvatarSettingItem>()
-        snapshot.appendSections(avatarSettingSections)
-        dataSource?.apply(snapshot, animatingDifferences: false)
-    }
-    
-    private func setAvatarInfo(_ avatar: AvatarInfo?) {
-        var snapshot = NSDiffableDataSourceSnapshot<AvatarSettingSection, AvatarSettingItem>()
-        snapshot.appendSections(avatarSettingSections)
-        
-        snapshot.appendItems([.avatarNameInput(avatar?.name ?? "")], toSection: .avatarNameInput)
-        snapshot.appendItems([.avatarAgeInput(avatar?.ageGroup ?? "")], toSection: .avatarAgeInput)
-        snapshot.appendItems([.avatarRelationshipInput(avatar?.relationship.avatar ?? "", avatar?.relationship.user ?? "")], toSection: .avatarRelationshipInput)
-        snapshot.appendItems([.avatarCharacteristicInput(avatar?.characteristic ?? "")], toSection: .avatarCharacteristicInput)
-        snapshot.appendItems([.avatarParlanceInput(avatar?.parlance ?? "")], toSection: .avatarParlanceInput)
-        
-        dataSource?.apply(snapshot, animatingDifferences: false)
+        // 모든 자식 뷰를 비활성화 해야 하는 경우
+        else {
+            // 스택 뷰 안의 subview들 de-activate
+            for subview in contentStackView.arrangedSubviews {
+                if let activatableSubview = subview as? ActivatableInputView {
+                    activatableSubview.activateInputView(false)
+                }
+            }
+        }
     }
     
     private func makeUI() {
@@ -164,7 +161,20 @@ class AvatarSettingController: UIViewController, View {
         
         view.addSubViews(
             topNavigation,
-            contentsCollectionView,
+            
+            pageScrollView.addSubViews(
+                pageContentView.addSubViews(
+                    contentStackView.addArrangedSubViews(
+                        avatarNameInputView,
+                        avatarAgeInputView,
+                        avatarRelationshipInputView,
+                        avatarCharacteristicInputView,
+                        avatarParlanceInputView,
+                        saveAvatarButton
+                    )
+                )
+            ),
+            
             saveAvatarButtonContainer.addSubViews(saveAvatarButton)
         )
         
@@ -172,11 +182,27 @@ class AvatarSettingController: UIViewController, View {
             $0.top.leading.trailing.equalToSuperview()
         }
         
-        contentsCollectionView.snp.makeConstraints {
+        // page scroll-view
+        pageScrollView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
+        // page scroll-view content area
+        pageContentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+        }
+        
+        // page stack-view
+        contentStackView.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(16)
+        }
+        contentStackView.directionalLayoutMargins = .init(top: 0,
+                                                          leading: 0,
+                                                          bottom: 92,
+                                                          trailing: 0)
         
         saveAvatarButtonContainer.snp.makeConstraints {
             $0.height.equalTo(saveAvatarButtonContainerHeight)
@@ -219,9 +245,12 @@ class AvatarSettingController: UIViewController, View {
     }
 }
 
-// MARK: AvatarNameInputCellDelegate
-extension AvatarSettingController: AvatarNameInputCellDelegate {
-    func nameInputTextFieldDidTap() {}
+
+// MARK: AvatarNameInputViewDelegate
+extension AvatarSettingController: AvatarNameInputViewDelegate {
+    func nameInputTextFieldDidTap() {
+        activateSpecificChildView(view: avatarNameInputView)
+    }
     
     func nameInputTextDidChange(text: String) {
         reactor?.action.onNext(.avatarNameDidChange(name: text))
@@ -230,16 +259,20 @@ extension AvatarSettingController: AvatarNameInputCellDelegate {
     func nameClearButtonDidTap() {}
 }
 
-// MARK: AvatarAgeInputCellDelegate
-extension AvatarSettingController: AvatarAgeInputCellDelegate {
-    func avatarAgeInputCellInnerChipDidTap(data: String) {
+
+// MARK: AvatarAgeInputViewDelegate
+extension AvatarSettingController: AvatarAgeInputViewDelegate {
+    func avatarAgeInputViewInnerChipDidTap(data: String) {
         reactor?.action.onNext(.avatarAgeDidChange(age: data))
     }
 }
 
-// MARK: AvatarRelationshipInputCellDelegate
-extension AvatarSettingController: AvatarRelationshipInputCellDelegate {
-    func avatarRoleInputTextFieldDidTap() {}
+
+// MARK: AvatarRelationshipInputViewDelegate
+extension AvatarSettingController: AvatarRelationshipInputViewDelegate {
+    func avatarRoleInputTextFieldDidTap() {
+        activateSpecificChildView(view: avatarRelationshipInputView)
+    }
     
     func avatarRoleInputTextDidChange(text: String) {
         reactor?.action.onNext(.avatarSelfRoleDidChange(avatarRole: text))
@@ -247,7 +280,9 @@ extension AvatarSettingController: AvatarRelationshipInputCellDelegate {
     
     func avatarRoleClearButtonDidTap() {}
     
-    func userRoleInputTextFieldDidTap() {}
+    func userRoleInputTextFieldDidTap() {
+        activateSpecificChildView(view: avatarRelationshipInputView)
+    }
     
     func userRoleInputTextDidChange(text: String) {
         reactor?.action.onNext(.avatarUserRoleDidChange(userRole: text))
@@ -256,9 +291,12 @@ extension AvatarSettingController: AvatarRelationshipInputCellDelegate {
     func userRoleClearButtonDidTap() {}
 }
 
-// MARK: AvatarCharacteristicInputCellDelegate
-extension AvatarSettingController: AvatarCharacteristicInputCellDelegate {
-    func characteristicInputTextViewDidTap() {}
+
+// MARK: AvatarCharacteristicInputViewDelegate
+extension AvatarSettingController: AvatarCharacteristicInputViewDelegate {
+    func characteristicInputTextViewDidTap() {
+        activateSpecificChildView(view: avatarCharacteristicInputView)
+    }
     
     func characteristicInputTextDidChange(text: String) {
         reactor?.action.onNext(.avatarCharacteristicDidChange(characteristic: text))
@@ -267,9 +305,12 @@ extension AvatarSettingController: AvatarCharacteristicInputCellDelegate {
     func characteristicClearButtonDidTap() {}
 }
 
-// MARK: AvatarParlanceInputCellDelegate
-extension AvatarSettingController: AvatarParlanceInputCellDelegate {
-    func parlanceInputTextViewDidTap() {}
+
+// MARK: AvatarParlanceInputViewDelegate
+extension AvatarSettingController: AvatarParlanceInputViewDelegate {
+    func parlanceInputTextViewDidTap() {
+        activateSpecificChildView(view: avatarParlanceInputView)
+    }
     
     func parlanceInputTextDidChange(text: String) {
         reactor?.action.onNext(.avatarParlanceDidChange(parlance: text))
@@ -278,41 +319,15 @@ extension AvatarSettingController: AvatarParlanceInputCellDelegate {
     func parlanceClearButtonDidTap() {}
 }
 
+
 // MARK: UIScrollViewDelegate
 extension AvatarSettingController: UIScrollViewDelegate {
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        view.endEditing(true)
+        activateSpecificChildView(view: nil)
+        view.endEditing(true)  // 키보드 내림
     }
 }
 
-extension AvatarSettingController {
-    private func makeFlowLayout() -> UICollectionViewCompositionalLayout {
-        return UICollectionViewCompositionalLayout { [weak self] section, _ -> NSCollectionLayoutSection? in
-            guard let self = self else { return nil }
-            return self.makeSectionLayout(currentSection: self.avatarSettingSections[section])
-        }
-    }
-    
-    private func makeSectionLayout(currentSection: AvatarSettingSection) -> NSCollectionLayoutSection? {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(1))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
-        
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(1))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        
-        let section = NSCollectionLayoutSection(group: group)
-        
-        // 마지막 섹션인 경우, '탭바 높이 + 16px' 하단 inset 적용
-        if currentSection == .avatarParlanceInput {
-            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 112, trailing: 0)
-        } else {
-            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 0, trailing: 0)
-        }
-        
-        return section
-    }
-}
 
 // Top Navigation Delegate 설정
 extension AvatarSettingController: TopNavigationDelegate {

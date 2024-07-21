@@ -1,5 +1,5 @@
 //
-//  AvatarCharacteristicInputCell.swift
+//  AvatarParlanceInputView.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -12,17 +12,15 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-protocol AvatarCharacteristicInputCellDelegate: AnyObject {
-    func characteristicInputTextViewDidTap()
-    func characteristicInputTextDidChange(text: String)
-    func characteristicClearButtonDidTap()
+protocol AvatarParlanceInputViewDelegate: AnyObject {
+    func parlanceInputTextViewDidTap()
+    func parlanceInputTextDidChange(text: String)
+    func parlanceClearButtonDidTap()
 }
 
-final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInputView {
+final class AvatarParlanceInputView: UIView, ActivatableInputView {
     
-    static let identifier = "AvatarCharacteristicInputCell"
-    
-    weak var delegate: AvatarCharacteristicInputCellDelegate?
+    weak var delegate: AvatarParlanceInputViewDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -39,12 +37,12 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
     }
     
     private let titleLabel = UILabel().then {
-        $0.text = "아바타의 성격을 입력하세요."
+        $0.text = "아바타의 말투를 입력하세요."
         $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
-        $0.text = "e.g. 쾌활하고 밝은 성격이다."
+        $0.text = "아바타가 어떤 말투를 가지는지, 예시 문구를 입력하세요."
         $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         $0.textColor = .lightGray
     }
@@ -81,8 +79,8 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
     }
     
     
-    public func setData(characteristic: String?) {
-        inputTextView.text = characteristic
+    public func setData(parlance: String?) {
+        inputTextView.text = parlance
     }
     
     
@@ -113,7 +111,6 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {
@@ -132,14 +129,14 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
         }
         
         textViewContainerView.snp.makeConstraints {
-            $0.top.greaterThanOrEqualTo(subTitleLabel.snp.bottom).offset(15)
+            $0.top.equalTo(subTitleLabel.snp.bottom).offset(15)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().inset(20)
+            $0.height.greaterThanOrEqualTo(60)
         }
         
         inputTextView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(10)
-            $0.height.greaterThanOrEqualTo(60)
         }
     }
     
@@ -148,12 +145,12 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
         clearButton.rx.tap
             .asDriver()
             .drive(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
                 self.inputTextView.text = ""
                 
-                self.delegate?.characteristicInputTextDidChange(text: "")
-                self.delegate?.characteristicClearButtonDidTap()
+                self.delegate?.parlanceInputTextDidChange(text: "")
+                self.delegate?.parlanceClearButtonDidTap()
                 
                 self.showClearButton(false)
             })
@@ -162,9 +159,9 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
         inputTextView.rx.didBeginEditing
             .asDriver()
             .drive(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
-                self.delegate?.characteristicInputTextViewDidTap()
+                self.delegate?.parlanceInputTextViewDidTap()
             })
             .disposed(by: disposeBag)
         
@@ -172,11 +169,11 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
             .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
             .asDriver(onErrorJustReturn: ())
             .drive(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
                 let text = self.inputTextView.text ?? ""
                 
-                self.delegate?.characteristicInputTextDidChange(text: text)
+                self.delegate?.parlanceInputTextDidChange(text: text)
                 
                 if !text.isEmpty {
                     self.showClearButton(true)
@@ -187,7 +184,7 @@ final class AvatarCharacteristicInputCell: UICollectionViewCell, ActivatableInpu
         
         inputTextView.rx.didEndEditing
             .subscribe(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
                 self.inputTextView.resignFirstResponder()
             })
