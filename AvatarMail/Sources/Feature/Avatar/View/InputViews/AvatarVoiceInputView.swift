@@ -31,17 +31,22 @@ final class AvatarVoiceInputView: UIView {
         case inputVoice
     }
     
+    enum RecordingButtonInnerShape {
+        case circle
+        case rectangle
+    }
+    
     private var viewState: AvatarVoiceInputViewState = .initial {
         didSet {
             showInitialStateView(viewState == .initial ? true : false)
             showInputTextStateView(viewState == .inputText ? true : false)
+            showInputVoiceStateView(viewState == .inputVoice ? true : false)
             
             switch viewState {
             case .initial:
                 showBackButton(false)
                 titleLabel.text = "아바타의 목소리를 입력하세요."
                 subTitleLabel.text = "음성 녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요. 샘플 문장과 음성을 모두 입력해야 합니다."
-                
             case .inputText:
                 showBackButton(true)
                 titleLabel.text = "문장 입력"
@@ -157,6 +162,9 @@ final class AvatarVoiceInputView: UIView {
     
     private let contentsTextLabel = UILabel().then {
         $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.lineBreakMode = .byWordWrapping
+        $0.lineBreakStrategy = .hangulWordPriority
     }
     
     private let minutesLabel = UILabel().then {
@@ -186,6 +194,16 @@ final class AvatarVoiceInputView: UIView {
         $0.textColor = UIColor(hex: 0x898989)
     }
     
+    private let recordingButtonInnerShape = UIView().then {
+        $0.applyCornerRadius(30)
+        $0.backgroundColor = UIColor(hex:0x6878F6)
+    }
+    
+    private let recordingButton = UIButton().then {
+        $0.applyCornerRadius(34)
+        $0.applyBorder(width: 2, color: UIColor(hex:0xC9C9C9))
+    }
+
     
 
     override init(frame: CGRect) {
@@ -246,14 +264,34 @@ final class AvatarVoiceInputView: UIView {
                         initialAvatarVoiceRecordButton
                     ),
                     
-                    // inputSentence-state 뷰
+                    // inputText-state 뷰
                     inputTextStateContainerView.addSubViews(
                         textViewContainerView.addSubViews(
                             inputTextView
                         ),
                         textCountLabel,
                         startRecordingTextButton
+                    ),
+                    
+                    // inputVoice-state 뷰
+                    inputVoiceStateContainerView.addSubViews(
+                        // 음성 녹음 내용 레이블
+                        contentsTextLabel,
+                        
+//                        // 분 레이블
+//                        minutesLabel,
+//                        firstColonLabel,
+//                        // 초 레이블
+//                        secondsLabel,
+//                        secondColonLabel,
+//                        // 밀리초 레이블
+//                        millisecondsLabel,
+                        
+                        // 음성 녹음 버튼
+                        recordingButtonInnerShape,
+                        recordingButton
                     )
+                    
                 )
             )
         )
@@ -313,6 +351,26 @@ final class AvatarVoiceInputView: UIView {
             $0.left.bottom.right.equalToSuperview()
             $0.height.equalTo(64)
         }
+        
+        inputVoiceStateContainerView.snp.makeConstraints {
+            $0.height.equalTo(200)
+        }
+        
+        contentsTextLabel.snp.makeConstraints {
+            $0.left.top.right.equalToSuperview()
+            $0.height.equalTo(90)
+        }
+        
+        recordingButton.snp.makeConstraints {
+            $0.bottom.equalToSuperview()
+            $0.centerX.equalToSuperview()
+            $0.size.equalTo(68)
+        }
+        
+        recordingButtonInnerShape.snp.makeConstraints {
+            $0.size.equalTo(60)
+            $0.center.equalTo(recordingButton.snp.center)
+        }
     }
     
     
@@ -350,6 +408,12 @@ final class AvatarVoiceInputView: UIView {
                                                                       fontSize: 16,
                                                                       fontWeight: .regular)
             }).disposed(by: disposeBag)
+        
+        recordingButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                setRecordingButtonInnerShape(as: .rectangle)
+            }.disposed(by: disposeBag)
     }
     
     
@@ -357,20 +421,45 @@ final class AvatarVoiceInputView: UIView {
         initialStateContainerView.isHidden = !shouldShow
     
     }
-
     
     private func showInputTextStateView(_ shouldShow: Bool) {
         inputTextStateContainerView.isHidden = !shouldShow
     }
     
+    private func showInputVoiceStateView(_ shouldShow: Bool) {
+        inputVoiceStateContainerView.isHidden = !shouldShow
+    }
     
     public func setViewState(_ state: AvatarVoiceInputViewState) {
         viewState = state
     }
     
-    
     public func getViewState() -> AvatarVoiceInputViewState {
         return viewState
+    }
+    
+    public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape) {
+        let cornerRadius: CGFloat
+        let newSize: CGSize
+        
+        switch shape {
+        case .circle:
+            cornerRadius = 30
+            newSize = CGSize(width: 60, height: 60)
+        case .rectangle:
+            cornerRadius = 5
+            newSize = CGSize(width: 25, height: 25)
+        }
+        
+        let animator = UIViewPropertyAnimator(duration: 0.4, dampingRatio: 0.7) {
+            self.recordingButtonInnerShape.layer.cornerRadius = cornerRadius
+            self.recordingButtonInnerShape.snp.updateConstraints {
+                $0.size.equalTo(newSize)
+            }
+            self.layoutIfNeeded() // Ensures that the constraints are applied
+        }
+        
+        animator.startAnimation()
     }
 }
 
