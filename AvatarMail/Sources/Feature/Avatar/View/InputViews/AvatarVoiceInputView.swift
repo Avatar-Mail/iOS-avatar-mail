@@ -54,11 +54,16 @@ final class AvatarVoiceInputView: UIView {
             case .inputVoice: ()
                 titleLabel.text = "음성 녹음"
                 subTitleLabel.text = "문장을 아바타의 목소리로 녹음하세요."
+                
+                contentsTextLabel.attributedText = .makeAttributedString(text: "\"\(recordingContents)\"",
+                                                                         color: .black,
+                                                                         fontSize: 20)
+                contentsTextLabel.textAlignment = .center
             }
         }
     }
     
-    private var recordingContents: String?
+    private var recordingContents: String = ""
     
     
     private let containerView = UIView().then {
@@ -357,7 +362,8 @@ final class AvatarVoiceInputView: UIView {
         }
         
         contentsTextLabel.snp.makeConstraints {
-            $0.left.top.right.equalToSuperview()
+            $0.top.equalToSuperview()
+            $0.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(90)
         }
         
@@ -401,9 +407,9 @@ final class AvatarVoiceInputView: UIView {
             .drive(onNext: { [weak self] text in
                 guard let self else { return }
                 
-                recordingContents = text
+                recordingContents = text ?? ""
                 
-                textCountLabel.attributedText = .makeAttributedString(text: "\(text?.count ?? 0) | 60자",
+                textCountLabel.attributedText = .makeAttributedString(text: "\(recordingContents.count) | 60자",
                                                                       color: UIColor(hex:0x7B7B7B),
                                                                       fontSize: 16,
                                                                       fontWeight: .regular)
@@ -412,7 +418,7 @@ final class AvatarVoiceInputView: UIView {
         recordingButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                setRecordingButtonInnerShape(as: .rectangle)
+                setRecordingButtonInnerShape(as: .rectangle, animated: true)
             }.disposed(by: disposeBag)
     }
     
@@ -438,7 +444,11 @@ final class AvatarVoiceInputView: UIView {
         return viewState
     }
     
-    public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape) {
+    public func isRecordingContentsEmpty() -> Bool {
+        return recordingContents.isEmpty
+    }
+    
+    public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape, animated: Bool) {
         let cornerRadius: CGFloat
         let newSize: CGSize
         
@@ -451,15 +461,23 @@ final class AvatarVoiceInputView: UIView {
             newSize = CGSize(width: 25, height: 25)
         }
         
-        let animator = UIViewPropertyAnimator(duration: 0.4, dampingRatio: 0.7) {
-            self.recordingButtonInnerShape.layer.cornerRadius = cornerRadius
-            self.recordingButtonInnerShape.snp.updateConstraints {
+        if animated {
+            let animator = UIViewPropertyAnimator(duration: 0.4, dampingRatio: 0.7) { [weak self] in
+                guard let self else { return }
+                recordingButtonInnerShape.layer.cornerRadius = cornerRadius
+                recordingButtonInnerShape.snp.updateConstraints {
+                    $0.size.equalTo(newSize)
+                }
+                layoutIfNeeded()
+            }
+            animator.startAnimation()
+        } else {
+            recordingButtonInnerShape.layer.cornerRadius = cornerRadius
+            recordingButtonInnerShape.snp.updateConstraints {
                 $0.size.equalTo(newSize)
             }
-            self.layoutIfNeeded()
+            layoutIfNeeded()
         }
-        
-        animator.startAnimation()
     }
 }
 
