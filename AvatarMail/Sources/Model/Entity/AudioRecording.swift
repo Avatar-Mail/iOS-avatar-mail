@@ -15,6 +15,6 @@ struct AudioRecording: Hashable {
     let fileURL: URL              // 파일 URL
     let contents: String          // 파일(음성 녹음) 내용
     let createdDate: String       // 파일 생성 시간
-    var duration: Double          // 녹음 시간
+    var duration: TimeInterval    // 녹음 시간
 }
 

@@ -181,12 +181,19 @@ class SettingHomeController: UIViewController {
         $0.layer.cornerRadius = 8
     }
     
+    // 타이머
+    private let recordingTimer = CustomTimer(identifier: "RecordingTimer", interval: 0.01)
+    private let playingTimer = CustomTimer(identifier: "PlayingTimer", interval: 0.01)
+    
+    // 음성 녹음/재생 시간
+    private let recordingTime = BehaviorSubject<Double>(value: 0.0)
+    private let playingTime = BehaviorSubject<Double>(value: 0.0)
     
     // 음성 녹음 파일
     private var currentRecording: AudioRecording?
     // 편지 내용
     private var mailContents: String?
-    
+    // 서버가 보낸 파일 URL
     private var serverSentFileURL: URL?
     
     
@@ -204,6 +211,9 @@ class SettingHomeController: UIViewController {
         
         makeUI()
         bindUI()
+        
+        recordingTimer.delegate = self
+        playingTimer.delegate = self
     }
     
     
@@ -390,23 +400,9 @@ class SettingHomeController: UIViewController {
                                                                   with: "AvatarName")
                 
                 switch result {
-                case .success(let recording):
+                case .success(_):
                     print("Recording Start")
-                    currentRecording = recording
-                    playingManager.playingTime.onNext(0)
-                    
-                    fileNameLabel.attributedText = .makeAttributedString(text: "FileName: \(recording.fileName)",
-                                                                         color: .black,
-                                                                         fontSize: 20,
-                                                                         fontWeight: .bold)
-                    fileUrlLabel.attributedText = .makeAttributedString(text: "FileURL: \(recording.fileURL.absoluteString)",
-                                                                        color: .darkGray,
-                                                                        fontSize: 16,
-                                                                        fontWeight: .medium)
-                    createdDateLabel.attributedText = .makeAttributedString(text: "Date: \(recording.createdDate)",
-                                                                            color: .gray,
-                                                                            fontSize: 16,
-                                                                            fontWeight: .medium)
+                    recordingTimer.startTimer()
                 case .failure(let error):
                     switch error {
                     case .audioRecorderCreationFailure:
@@ -419,10 +415,8 @@ class SettingHomeController: UIViewController {
                         print("recordingInstanceCreationFailure")
                     case .recordingSessionSetupFailure:
                         print("recordingSessionSetupFailure")
-                    case .timerCreationFailure:
-                        print("timerInstanceCreationFailure")
-                    case .timerNotFound:
-                        print("timerNotFound")
+                    case .loadDurationFailure:
+                        print("loadDurationFailure")
                     }
                 }
             }.disposed(by: disposeBag)
@@ -448,12 +442,11 @@ class SettingHomeController: UIViewController {
                         print("recordingInstanceCreationFailure")
                     case .recordingSessionSetupFailure:
                         print("recordingSessionSetupFailure")
-                    case .timerCreationFailure:
-                        print("timerInstanceCreationFailure")
-                    case .timerNotFound:
-                        print("timerNotFound")
+                    case .loadDurationFailure:
+                        print("loadDurationFailure")
                     }
                 }
+                recordingTimer.stopTimer()
             }.disposed(by: disposeBag)
         
         playingStartButton.rx.tap
@@ -466,6 +459,7 @@ class SettingHomeController: UIViewController {
                     switch result {
                     case .success:
                         print("Playing Start")
+                        playingTimer.startTimer()
                     case .failure(let error):
                         switch error {
                         case .audioPlayerCreationFailure:
@@ -474,10 +468,6 @@ class SettingHomeController: UIViewController {
                             print("audioPlayerNotFound")
                         case .playingSessionSetupFailure:
                             print("playingSessionSetupFailure")
-                        case .timerCreationFailure:
-                            print("timerCreationFailure")
-                        case .timerNotFound:
-                            print("timerNotFound")
                         }
                     }
                 } else {
@@ -503,22 +493,19 @@ class SettingHomeController: UIViewController {
                             print("audioPlayerNotFound")
                         case .playingSessionSetupFailure:
                             print("playingSessionSetupFailure")
-                        case .timerCreationFailure:
-                            print("timerCreationFailure")
-                        case .timerNotFound:
-                            print("timerNotFound")
                         }
                     }
+                    playingTimer.stopTimer()
                 } else {
                     print("Recording Not Found")
                 }
             }.disposed(by: disposeBag)
   
-        recordingManager.recordingTime
-            .subscribe(onNext: { [weak self] seconds in
+        recordingTime
+            .subscribe(onNext: { [weak self] elapsedTime in
                 guard let self else { return }
                 
-                let totalMilliseconds = Int(seconds * 1000)
+                let totalMilliseconds = Int(elapsedTime * 1000)
                 let minutes = (totalMilliseconds / 1000) / 60
                 let seconds = (totalMilliseconds / 1000) % 60
                 let milliseconds = (totalMilliseconds % 1000) / 10
@@ -539,29 +526,33 @@ class SettingHomeController: UIViewController {
                                                                              fontWeight: .medium)
             }).disposed(by: disposeBag)
         
-        playingManager.playingTime
-            .subscribe(onNext: { [weak self] seconds in
+        playingTime
+            .subscribe(onNext: { [weak self] elapsedTime in
                 guard let self else { return }
                 
-                let totalMilliseconds = Int(seconds * 1000)
-                let minutes = (totalMilliseconds / 1000) / 60
-                let seconds = (totalMilliseconds / 1000) % 60
-                let milliseconds = (totalMilliseconds % 1000) / 10
-                
-                playingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
-                                                                           color: .black,
-                                                                           fontSize: 18,
-                                                                           fontWeight: .medium)
-                
-                playingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
-                                                                           color: .black,
-                                                                           fontSize: 18,
-                                                                           fontWeight: .medium)
-                
-                playingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
-                                                                                color: .black,
-                                                                                fontSize: 18,
-                                                                                fontWeight: .medium)
+                if let endTime = currentRecording?.duration, endTime <= elapsedTime {
+                    playingTimer.stopTimer()
+                } else {
+                    let totalMilliseconds = Int(elapsedTime * 1000)
+                    let minutes = (totalMilliseconds / 1000) / 60
+                    let seconds = (totalMilliseconds / 1000) % 60
+                    let milliseconds = (totalMilliseconds % 1000) / 10
+                    
+                    playingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
+                                                                               color: .black,
+                                                                               fontSize: 18,
+                                                                               fontWeight: .medium)
+                    
+                    playingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
+                                                                               color: .black,
+                                                                               fontSize: 18,
+                                                                               fontWeight: .medium)
+                    
+                    playingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
+                                                                                    color: .black,
+                                                                                    fontSize: 18,
+                                                                                    fontWeight: .medium)
+                }
             }).disposed(by: disposeBag)
         
         inputTextView.rx.text
@@ -593,10 +584,6 @@ class SettingHomeController: UIViewController {
                             print("audioPlayerNotFound")
                         case .playingSessionSetupFailure:
                             print("playingSessionSetupFailure")
-                        case .timerCreationFailure:
-                            print("timerCreationFailure")
-                        case .timerNotFound:
-                            print("timerNotFound")
                         }
                     }
                 } else {
@@ -695,6 +682,19 @@ extension Data {
     mutating func appendString(_ string: String) {
         if let data = string.data(using: .utf8) {
             append(data)
+        }
+    }
+}
+
+
+extension SettingHomeController: CustomTimerDelegate {
+    func timerUpdated(timerIdentifier: String, elapsedTime: Double) {
+        switch timerIdentifier {
+        case "RecordingTimer":
+            recordingTime.onNext(elapsedTime)
+        case "PlayingTimer":
+            playingTime.onNext(elapsedTime)
+        default: ()
         }
     }
 }

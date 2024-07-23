@@ -13,9 +13,6 @@ import RxCocoa
 final class AudioPlayingManager: NSObject {
     
     private var audioPlayer : AVAudioPlayer?
-    private var playingTimer: CustomTimer?
-    
-    var playingTime = BehaviorSubject<Double>(value: 0)
     
     
     override init() { }
@@ -39,18 +36,12 @@ final class AudioPlayingManager: NSObject {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.delegate = self
             
-            // 타이머 인스턴스 생성
-            playingTimer = CustomTimer()
-            playingTimer?.delegate = self
-            
             guard let audioPlayer else { return .failure(.audioPlayerCreationFailure) }
-            guard let playingTimer else { return .failure(.timerCreationFailure)}
             
             // 오디오 재생 준비
             audioPlayer.volume = 1
             audioPlayer.prepareToPlay()
-            // 타이머 시작
-            playingTimer.startTimer()
+
             // 오디오 재생
             audioPlayer.play()
         } catch {
@@ -60,13 +51,10 @@ final class AudioPlayingManager: NSObject {
         return .success(())
     }
     
-    
     public func stopPlaying() -> Result<Void, AudioPlayingError> {
         guard let audioPlayer else { return .failure(.audioPlayerNotFound) }
-        guard let playingTimer else { return .failure(.timerNotFound)}
         
         audioPlayer.stop()
-        playingTimer.stopTimer()
         
         return .success(())
     }
@@ -75,32 +63,26 @@ final class AudioPlayingManager: NSObject {
         initializeRecorder()
     }
     
+    public func getRecordedTime(url: URL) -> Result<Double, AudioPlayingError> {
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: url)
+            let duration = audioPlayer.duration
+            return .success(duration)
+        } catch {
+            return .failure(.audioPlayerCreationFailure)
+        }
+    }
+    
     private func initializeRecorder() {
         audioPlayer?.stop()
         audioPlayer = nil
-        playingTimer?.stopTimer()
-        playingTimer = nil
-        playingTime.onNext(0)
-    }
-}
-
-
-extension AudioPlayingManager: CustomTimerDelegate {
-    func timerUpdated(seconds: Double) {
-        playingTime.onNext(seconds)
     }
 }
 
 
 extension AudioPlayingManager: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        if flag {
-            playingTimer?.stopTimer()
-            playingTimer = nil
-            audioPlayer = nil
-        } else {
-            initializeRecorder()
-        }
+        audioPlayer = nil
     }
 }
 
@@ -109,6 +91,4 @@ enum AudioPlayingError: Error {
     case playingSessionSetupFailure
     case audioPlayerCreationFailure
     case audioPlayerNotFound
-    case timerCreationFailure
-    case timerNotFound
 }

@@ -456,7 +456,7 @@ final class AvatarVoiceInputView: UIView {
             self.recordingButtonInnerShape.snp.updateConstraints {
                 $0.size.equalTo(newSize)
             }
-            self.layoutIfNeeded() // Ensures that the constraints are applied
+            self.layoutIfNeeded()
         }
         
         animator.startAnimation()

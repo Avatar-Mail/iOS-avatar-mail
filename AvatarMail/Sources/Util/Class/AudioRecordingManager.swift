@@ -21,9 +21,6 @@ final class AudioRecordingManager: NSObject {
     
     private var audioRecorder : AVAudioRecorder?
     private var recording: AudioRecording?
-    private var recordingTimer: CustomTimer?
-    
-    var recordingTime = BehaviorSubject<Double>(value: 0)
     
     
     override init() { }
@@ -69,15 +66,8 @@ final class AudioRecordingManager: NSObject {
         do {
             // AVAudioRecorder 인스턴스 생성
             audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
-            // 타이머 인스턴스 생성
-            recordingTimer = CustomTimer()
-            recordingTimer?.delegate = self
-            
-            guard let recordingTimer else { return .failure(.timerCreationFailure) }
+
             guard let audioRecorder else { return .failure(.audioRecorderCreationFailure) }
-            
-            // 타이머 시작
-            recordingTimer.startTimer()
                 
             // 음성 녹음 시작
             audioRecorder.isMeteringEnabled = true
@@ -93,14 +83,27 @@ final class AudioRecordingManager: NSObject {
     
     public func stopRecording() -> Result<AudioRecording, AudioRecordingError> {
         guard let audioRecorder else { return .failure(.audioRecorderNotFound) }
-        guard let recordingTimer else { return .failure(.timerNotFound)}
         guard var recording else { return .failure(.recordingInstanceNotFound)}
         
         audioRecorder.stop()
-        recordingTimer.stopTimer()
-        recording.duration = recordingTimer.getRecordedTime()
         
-        return .success(recording)
+        if let duration = getRecordedTime(url: recording.fileURL) {
+            recording.duration = duration
+            return .success(recording)
+        } else {
+            return .failure(.loadDurationFailure)
+        }
+    }
+    
+    private func getRecordedTime(url: URL) -> TimeInterval? {
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: url)
+            let duration = audioPlayer.duration
+            return duration
+        } catch {
+            print("Error initializing AVAudioPlayer: \(error)")
+            return nil
+        }
     }
     
     public func cancelRecording() {
@@ -110,17 +113,7 @@ final class AudioRecordingManager: NSObject {
     private func initializeRecorder() {
         audioRecorder?.stop()
         audioRecorder = nil
-        recordingTimer?.stopTimer()
-        recordingTimer = nil
         recording = nil
-        recordingTime.onNext(0)
-    }
-}
-
-
-extension AudioRecordingManager: CustomTimerDelegate {
-    func timerUpdated(seconds: Double) {
-        recordingTime.onNext(seconds)
     }
 }
 
@@ -131,6 +124,5 @@ enum AudioRecordingError: Error {
     case recordingInstanceNotFound
     case audioRecorderCreationFailure
     case audioRecorderNotFound
-    case timerCreationFailure
-    case timerNotFound
+    case loadDurationFailure
 }
