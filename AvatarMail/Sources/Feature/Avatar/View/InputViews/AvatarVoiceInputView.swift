@@ -172,31 +172,40 @@ final class AvatarVoiceInputView: UIView {
         $0.lineBreakStrategy = .hangulWordPriority
     }
     
+    private let timerContainerView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
     private let minutesLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
+        $0.textAlignment = .center
     }
     
     private let firstColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
+        $0.textAlignment = .center
     }
     
     private let secondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
+        $0.textAlignment = .center
     }
     
     private let secondColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
+        $0.textAlignment = .center
     }
     
     private let millisecondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
+        $0.textAlignment = .center
     }
     
     private let recordingButtonInnerShape = UIView().then {
@@ -288,20 +297,22 @@ final class AvatarVoiceInputView: UIView {
                         // 음성 녹음 내용 레이블
                         contentsTextLabel,
                         
-                        // 분 레이블
-                        minutesLabel,
-                        firstColonLabel,
-                        // 초 레이블
-                        secondsLabel,
-                        secondColonLabel,
-                        // 밀리초 레이블
-                        millisecondsLabel,
+                        // 녹음 시간 타이머 뷰
+                        timerContainerView.addSubViews(
+                            // 분 레이블
+                            minutesLabel,
+                            firstColonLabel,
+                            // 초 레이블
+                            secondsLabel,
+                            secondColonLabel,
+                            // 밀리초 레이블
+                            millisecondsLabel
+                        ),
                         
                         // 음성 녹음 버튼
                         recordingButtonInnerShape,
                         recordingButton
                     )
-                    
                 )
             )
         )
@@ -371,6 +382,44 @@ final class AvatarVoiceInputView: UIView {
             $0.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(90)
         }
+        
+        timerContainerView.snp.makeConstraints {
+            $0.bottom.equalTo(recordingButton.snp.top).offset(-10)
+            $0.centerX.equalToSuperview()
+            $0.height.equalTo(30)
+            $0.width.equalTo(150)
+        }
+        
+        minutesLabel.snp.makeConstraints {
+            $0.trailing.equalTo(firstColonLabel.snp.leading)
+            $0.centerY.equalTo(secondsLabel.snp.centerY)
+            $0.width.equalTo(20)
+        }
+        
+        firstColonLabel.snp.makeConstraints {
+            $0.trailing.equalTo(secondsLabel.snp.leading)
+            $0.centerY.equalTo(secondsLabel.snp.centerY)
+            $0.width.equalTo(5)
+        }
+        
+        secondsLabel.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            $0.width.equalTo(20)
+        }
+        
+        secondColonLabel.snp.makeConstraints {
+            $0.leading.equalTo(secondsLabel.snp.trailing)
+            $0.centerY.equalTo(secondsLabel.snp.centerY)
+            $0.width.equalTo(5)
+        }
+        
+        millisecondsLabel.snp.makeConstraints {
+            $0.leading.equalTo(secondColonLabel.snp.trailing)
+            $0.centerY.equalTo(secondsLabel.snp.centerY)
+            $0.width.equalTo(20)
+        }
+        
+        
         
         recordingButton.snp.makeConstraints {
             $0.bottom.equalToSuperview()
