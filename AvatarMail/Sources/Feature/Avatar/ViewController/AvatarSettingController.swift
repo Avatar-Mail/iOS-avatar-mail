@@ -233,13 +233,27 @@ class AvatarSettingController: UIViewController, View {
                 }
             }.disposed(by: disposeBag)
         
-        reactor.state
-            .observe(on: MainScheduler.asyncInstance)
-            .map { $0.toastMessage }
-            .distinctUntilChanged()
+        reactor.pulse(\.$toastMessage)
             .filterNil()
             .bind { toastMessage in
                 ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
+            }.disposed(by: disposeBag)
+        
+        reactor.state.map(\.isRecording)
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] isRecording in
+                guard let self else { return }
+                
+                if isRecording == true {
+                    avatarVoiceInputView.startTimer()
+                    avatarVoiceInputView.setRecordingButtonInnerShape(as: .rectangle, animated: true)
+                } else {
+                    avatarVoiceInputView.stopTimer()
+                    avatarVoiceInputView.setRecordingButtonInnerShape(as: .circle, animated: false)
+                    avatarVoiceInputView.setViewState(.initial)
+                    
+                }
             }.disposed(by: disposeBag)
         
         saveAvatarButton.rx.tap
@@ -350,8 +364,12 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
         avatarVoiceInputView.setViewState(.inputVoice)
     }
     
-    func recordingButtonDidTap() {
-        
+    func recordingButtonDidTap(with recordingContents: String) {
+        if let isRecording = reactor?.currentState.isRecording, isRecording == false {
+            reactor?.action.onNext(.startRecording(recordingContents: recordingContents))
+        } else {
+            reactor?.action.onNext(.stopRecording)
+        }
     }
 }
 

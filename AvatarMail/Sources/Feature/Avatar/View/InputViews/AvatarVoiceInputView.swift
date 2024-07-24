@@ -16,7 +16,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func backButtonDidTap()
     func initialAvatarVoiceRecordButtonDidTap()
     func startRecordingTextButtonDidTap()
-    func recordingButtonDidTap()
+    func recordingButtonDidTap(with recordingContents: String)
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -209,6 +209,9 @@ final class AvatarVoiceInputView: UIView {
         $0.applyBorder(width: 2, color: UIColor(hex:0xC9C9C9))
     }
 
+    private let timer = CustomTimer(identifier: "AvatarVoiceInputViewTimer", interval: 0.01)
+    
+    private let recordingTime = BehaviorSubject<Double>(value: 0.0)
     
 
     override init(frame: CGRect) {
@@ -216,6 +219,8 @@ final class AvatarVoiceInputView: UIView {
         
         makeUI()
         bindUI()
+        
+        timer.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -381,6 +386,24 @@ final class AvatarVoiceInputView: UIView {
     
     
     private func bindUI() {
+        
+        // 녹음 시간 바인딩
+        recordingTime
+            .subscribe(onNext: { [weak self] elapsedTime in
+                guard let self else { return }
+                
+                let totalMilliseconds = Int(elapsedTime * 1000)
+                let minutes = (totalMilliseconds / 1000) / 60
+                let seconds = (totalMilliseconds / 1000) % 60
+                let milliseconds = (totalMilliseconds % 1000) / 10
+                
+                minutesLabel.text = String(format: "%02d", minutes)
+                secondsLabel.text = String(format: "%02d", seconds)
+                millisecondsLabel.text = String(format: "%02d", milliseconds)
+
+            }).disposed(by: disposeBag)
+        
+
         backButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
@@ -419,7 +442,7 @@ final class AvatarVoiceInputView: UIView {
         recordingButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                delegate?.recordingButtonDidTap()
+                delegate?.recordingButtonDidTap(with: recordingContents)
             }
             .disposed(by: disposeBag)
     }
@@ -444,10 +467,6 @@ final class AvatarVoiceInputView: UIView {
     
     public func getViewState() -> AvatarVoiceInputViewState {
         return viewState
-    }
-    
-    public func isRecordingContentsEmpty() -> Bool {
-        return recordingContents.isEmpty
     }
     
     public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape, animated: Bool) {
@@ -481,6 +500,19 @@ final class AvatarVoiceInputView: UIView {
             layoutIfNeeded()
         }
     }
+    
+    public func startTimer() {
+        timer.startTimer()
+    }
+    
+    public func stopTimer() {
+        timer.stopTimer()
+    }
 }
 
 
+extension AvatarVoiceInputView: CustomTimerDelegate {
+    func timerUpdated(timerIdentifier: String, elapsedTime: Double) {
+        recordingTime.onNext(elapsedTime)
+    }
+}

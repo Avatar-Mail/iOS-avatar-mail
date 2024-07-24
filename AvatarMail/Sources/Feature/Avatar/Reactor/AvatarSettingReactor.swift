@@ -186,7 +186,7 @@ class AvatarSettingReactor: Reactor {
     
     private func startRecording(recordingContents: String?) -> Observable<Mutation> {
         
-        if let recordingContents {
+        if let recordingContents, !recordingContents.isEmpty {
             let result = audioRecordingManager.startRecording(contents: recordingContents,
                                                               with: currentState.name)
             
@@ -214,10 +214,16 @@ class AvatarSettingReactor: Reactor {
                     .setToastMessage(text: "정상적으로 녹음을 완료했습니다.")
                 )
             case .failure(_):
-                return Observable.just(.setToastMessage(text: "녹음하는데 실패했습니다."))
+                return Observable.of(
+                    .setIsRecording(isRecording: false),
+                    .setToastMessage(text: "녹음하는 데 실패했습니다.")
+                )
             }
         } else {
-            return Observable.just(.setToastMessage(text: "현재 녹성 중이 아닙니다."))
+            return Observable.of(
+                .setIsRecording(isRecording: false),
+                .setToastMessage(text: "현재 녹음 중이 아닙니다.")
+            )
         }
     }
 }
