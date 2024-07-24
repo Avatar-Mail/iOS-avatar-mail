@@ -243,9 +243,10 @@ class AvatarSettingController: UIViewController, View {
             }.disposed(by: disposeBag)
         
         saveAvatarButton.rx.tap
-            .observe(on: MainScheduler.asyncInstance)
-            .map { Reactor.Action.saveAvatarButtonDidTap }
-            .bind(to: reactor.action)
+            .asDriver()
+            .drive(onNext: {
+                reactor.action.onNext(.saveAvatar)
+            })
             .disposed(by: disposeBag)
     }
 }
@@ -327,7 +328,7 @@ extension AvatarSettingController: AvatarParlanceInputViewDelegate {
 
 // MARK: AvatarVoiceInputViewDelegate
 extension AvatarSettingController: AvatarVoiceInputViewDelegate {
-    
+
     func backButtonDidTap() {
         let viewState = avatarVoiceInputView.getViewState()
         
@@ -347,6 +348,10 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     
     func startRecordingTextButtonDidTap() {
         avatarVoiceInputView.setViewState(.inputVoice)
+    }
+    
+    func recordingButtonDidTap() {
+        
     }
 }
 

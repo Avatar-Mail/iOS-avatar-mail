@@ -24,6 +24,7 @@ class RealmDatabase: RealmDatabaseDelegate {
     }
     
     public func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String> {
+        
         return Observable.create { observer -> Disposable in
             do {
                 let realm = try Realm()
@@ -54,8 +55,6 @@ class RealmDatabase: RealmDatabaseDelegate {
                     }
                     return Disposables.create()
                 }
-                
-                return Disposables.create()
             } catch {
                 observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "아바타를 추가/업데이트하는 과정에서 문제가 발생했습니다."))
             }

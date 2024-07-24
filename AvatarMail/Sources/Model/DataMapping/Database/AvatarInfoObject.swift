@@ -16,7 +16,7 @@ class AvatarInfoObject: Object {
     @Persisted var userRole: String?                           // 나의 역할(관계)
     @Persisted var characteristic: String?                     // 아바타 성격
     @Persisted var parlance: String?                           // 아바타 말투
-    @Persisted var recordings = List<AudioRecordingObject>()   // 음성 녹음 파일 리스트
+    let recordings = List<AudioRecordingObject>()              // 음성 녹음 파일 리스트
     
     convenience init(avatar: AvatarInfo) {
         self.init()

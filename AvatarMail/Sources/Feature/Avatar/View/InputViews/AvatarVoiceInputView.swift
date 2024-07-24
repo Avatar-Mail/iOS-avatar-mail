@@ -16,7 +16,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func backButtonDidTap()
     func initialAvatarVoiceRecordButtonDidTap()
     func startRecordingTextButtonDidTap()
-    
+    func recordingButtonDidTap()
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -283,14 +283,14 @@ final class AvatarVoiceInputView: UIView {
                         // 음성 녹음 내용 레이블
                         contentsTextLabel,
                         
-//                        // 분 레이블
-//                        minutesLabel,
-//                        firstColonLabel,
-//                        // 초 레이블
-//                        secondsLabel,
-//                        secondColonLabel,
-//                        // 밀리초 레이블
-//                        millisecondsLabel,
+                        // 분 레이블
+                        minutesLabel,
+                        firstColonLabel,
+                        // 초 레이블
+                        secondsLabel,
+                        secondColonLabel,
+                        // 밀리초 레이블
+                        millisecondsLabel,
                         
                         // 음성 녹음 버튼
                         recordingButtonInnerShape,
@@ -413,13 +413,15 @@ final class AvatarVoiceInputView: UIView {
                                                                       color: UIColor(hex:0x7B7B7B),
                                                                       fontSize: 16,
                                                                       fontWeight: .regular)
-            }).disposed(by: disposeBag)
+            })
+            .disposed(by: disposeBag)
         
         recordingButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                setRecordingButtonInnerShape(as: .rectangle, animated: true)
-            }.disposed(by: disposeBag)
+                delegate?.recordingButtonDidTap()
+            }
+            .disposed(by: disposeBag)
     }
     
     
