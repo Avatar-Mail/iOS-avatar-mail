@@ -213,6 +213,8 @@ final class AvatarVoiceInputView: UIView {
         $0.backgroundColor = UIColor(hex:0x6878F6)
     }
     
+    let test = AudioRecordingCell()
+    
     private let recordingButton = UIButton().then {
         $0.applyCornerRadius(34)
         $0.applyBorder(width: 2, color: UIColor(hex:0xC9C9C9))
@@ -280,6 +282,7 @@ final class AvatarVoiceInputView: UIView {
                     
                     // initial-state 뷰
                     initialStateContainerView.addSubViews(
+                        test,
                         initialAvatarVoiceRecordButton
                     ),
                     
@@ -345,8 +348,17 @@ final class AvatarVoiceInputView: UIView {
             $0.left.bottom.right.equalToSuperview().inset(20)
         }
         
+        initialStateContainerView.snp.makeConstraints {
+            $0.height.equalTo(200)
+        }
+        
+        test.snp.makeConstraints {
+            $0.left.top.right.equalToSuperview()
+            $0.height.equalTo(108)
+        }
+        
         initialAvatarVoiceRecordButton.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.left.bottom.right.equalToSuperview()
             $0.height.equalTo(64)
         }
         
@@ -418,8 +430,6 @@ final class AvatarVoiceInputView: UIView {
             $0.centerY.equalTo(secondsLabel.snp.centerY)
             $0.width.equalTo(20)
         }
-        
-        
         
         recordingButton.snp.makeConstraints {
             $0.bottom.equalToSuperview()

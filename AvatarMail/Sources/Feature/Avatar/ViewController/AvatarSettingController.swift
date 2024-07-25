@@ -105,6 +105,8 @@ class AvatarSettingController: UIViewController, View {
         super.viewDidLoad()
         
         makeUI()
+        setUI()
+        
         setDelegates()
         
         tabBarController?.hideTabBar(isHidden: true, animated: true)
@@ -124,15 +126,6 @@ class AvatarSettingController: UIViewController, View {
         pageScrollView.delegate = self
     }
     
-    
-    private func setAvatarInfo(_ avatar: AvatarInfo) {
-        avatarNameInputView.setData(name: avatar.name)
-        avatarAgeInputView.setData(selectedChipData: avatar.ageGroup)
-        avatarRelationshipInputView.setData(avatarRole: avatar.relationship.avatar,
-                                            userRole: avatar.relationship.user)
-        avatarCharacteristicInputView.setData(characteristic: avatar.characteristic)
-        avatarParlanceInputView.setData(parlance: avatar.parlance)
-    }
     
     private func activateSpecificChildView(view: UIView?) {
         
@@ -221,6 +214,19 @@ class AvatarSettingController: UIViewController, View {
             $0.height.equalTo(72)
         }
     }
+    
+    
+    private func setUI() {
+        guard let reactor else { return }
+        
+        avatarNameInputView.setData(name: reactor.initialState.name)
+        avatarAgeInputView.setData(selectedChipData: reactor.initialState.age)
+        avatarRelationshipInputView.setData(avatarRole: reactor.initialState.avatarRole,
+                                            userRole: reactor.initialState.userRole)
+        avatarCharacteristicInputView.setData(characteristic: reactor.initialState.characteristic)
+        avatarParlanceInputView.setData(parlance: reactor.initialState.parlance)
+    }
+    
     
     func bind(reactor: AvatarSettingReactor) {
         reactor.state
