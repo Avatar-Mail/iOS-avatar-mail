@@ -17,6 +17,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func initialAvatarVoiceRecordButtonDidTap()
     func startRecordingTextButtonDidTap()
     func recordingButtonDidTap(with recordingContents: String)
+    func playingButtonDidTap(with recording: AudioRecording)
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -232,6 +233,7 @@ final class AvatarVoiceInputView: UIView {
         bindUI()
         
         timer.delegate = self
+        test.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -265,7 +267,9 @@ final class AvatarVoiceInputView: UIView {
     }
     
     public func setData(recordings: [AudioRecording]) {
-        // TODO: 아바타 녹음 파일 컬렉션 뷰 표시
+        if recordings.count > 0 {
+            test.setData(recording: recordings[0])
+        }
     }
     
     
@@ -573,5 +577,12 @@ final class AvatarVoiceInputView: UIView {
 extension AvatarVoiceInputView: CustomTimerDelegate {
     func timerUpdated(timerIdentifier: String, elapsedTime: Double) {
         recordingTime.onNext(elapsedTime)
+    }
+}
+
+
+extension AvatarVoiceInputView: AudioRecordingCellDelegate {
+    func playingButtonDidTap(with recording: AudioRecording) {
+        delegate?.playingButtonDidTap(with: recording)
     }
 }

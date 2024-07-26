@@ -13,7 +13,7 @@ import RxCocoa
 
 
 protocol AudioRecordingCellDelegate: AnyObject {
-    func playingButtonDidTap(recording: AudioRecording)
+    func playingButtonDidTap(with recording: AudioRecording)
 }
 
 final class AudioRecordingCell: UIView {
@@ -194,13 +194,16 @@ final class AudioRecordingCell: UIView {
         playingButton.rx.tap
             .bind { [weak self] in
                 guard let self, let recording else { return }
-                delegate?.playingButtonDidTap(recording: recording)
+                delegate?.playingButtonDidTap(with: recording)
             }
             .disposed(by: disposeBag)
     }
     
     
     public func setData(recording: AudioRecording) {
+        self.recording = recording
         
+        recordingTitleLabel.text = recording.fileName
+        recordedDateLabel.text = recording.createdDate
     }
 }

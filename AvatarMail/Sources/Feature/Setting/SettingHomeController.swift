@@ -11,7 +11,7 @@ class SettingHomeController: UIViewController {
     
     var disposeBag = DisposeBag()
     
-    let recordingManager = AudioRecordingManager()
+    let recordingManager = AudioRecordingManager.shared
     let playingManager = AudioPlayingManager()
     
     private let pageTitleLabel = UILabel().then {

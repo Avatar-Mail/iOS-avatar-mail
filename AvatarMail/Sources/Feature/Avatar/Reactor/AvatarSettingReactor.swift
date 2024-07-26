@@ -21,6 +21,8 @@ class AvatarSettingReactor: Reactor {
         case saveAvatar
         case startRecording(recordingContents: String?)
         case stopRecording
+        case startPlaying(recording: AudioRecording)
+        case stopPlaying
         // Navigation
         case closeAvatarSettingController
     }
@@ -33,6 +35,7 @@ class AvatarSettingReactor: Reactor {
         case setAvatarCharacteristic(characteristic: String?)
         case setAvatarParlance(parlance: String?)
         case setIsRecording(isRecording: Bool)
+        case setIsPlaying(isPlaying: Bool)
         case addRecording(recording: AudioRecording)
         case setAvatarHasSaved(hasSaved: Bool)
         case setToastMessage(text: String)
@@ -48,6 +51,7 @@ class AvatarSettingReactor: Reactor {
         var recordings: [AudioRecording]    // 음성 녹음 파일들
         
         var isRecording: Bool               // 녹음 중인지 여부
+        var isPlaying: Bool                 // 재생 중인지 여부
         
         var hasAvatarSaved: Bool            // 아바타 저장 여부
         
@@ -66,7 +70,7 @@ class AvatarSettingReactor: Reactor {
     init(
         coordinator: AvatarSettingCoordinator,
         database: RealmDatabase,
-        audioRecordingManager: AudioRecordingManager = AudioRecordingManager(),
+        audioRecordingManager: AudioRecordingManager = AudioRecordingManager.shared,
         audioPlayingManager: AudioPlayingManager = AudioPlayingManager(),
         avatar: AvatarInfo?
     ) {
@@ -74,7 +78,7 @@ class AvatarSettingReactor: Reactor {
         self.database = database
         self.audioRecordingManager = audioRecordingManager
         self.audioPlayingManager = audioPlayingManager
-        
+
         self.initialState = State(name: avatar?.name ?? "",
                                   age: avatar?.ageGroup,
                                   avatarRole: avatar?.relationship.avatar,
@@ -83,7 +87,10 @@ class AvatarSettingReactor: Reactor {
                                   parlance: avatar?.parlance, 
                                   recordings: avatar?.recordings ?? [],
                                   isRecording: false,
+                                  isPlaying: false,
                                   hasAvatarSaved: false)
+        
+        self.audioPlayingManager.delegate = self
     }
     
     
@@ -107,6 +114,10 @@ class AvatarSettingReactor: Reactor {
             return startRecording(recordingContents: recordingContents)
         case .stopRecording:
             return stopRecording()
+        case let .startPlaying(recording: recording):
+            return startPlaying(recording: recording)
+        case .stopPlaying:
+            return stopPlaying()
         case .saveAvatar:
             let avatar = AvatarInfo(name: currentState.name,
                                     ageGroup: currentState.age,
@@ -116,6 +127,7 @@ class AvatarSettingReactor: Reactor {
                                     parlance: currentState.parlance,
                                     recordings: currentState.recordings)
             return saveAvatar(avatar)
+            
         // Navigation
         case .closeAvatarSettingController:
             coordinator.closeAvatarSettingController()
@@ -145,6 +157,8 @@ class AvatarSettingReactor: Reactor {
             newState.isRecording = isRecording
         case let .addRecording(recording: recording):
             newState.recordings = state.recordings + [recording]
+        case let .setIsPlaying(isPlaying: isPlaying):
+            newState.isPlaying = isPlaying
         case let .setAvatarHasSaved(hasSaved: hasSaved):
             newState.hasAvatarSaved = hasSaved
         case let .setToastMessage(text: text):
@@ -226,7 +240,49 @@ class AvatarSettingReactor: Reactor {
             )
         }
     }
+    
+    private func startPlaying(recording: AudioRecording) -> Observable<Mutation> {
+        
+        let result = audioPlayingManager.startPlaying(url: recording.fileURL)
+            
+        switch result {
+        case .success(_):
+            return Observable.just(.setIsPlaying(isPlaying: true))
+        case .failure(_):
+            return Observable.just(.setToastMessage(text: "파일을 재생하는데 실패했습니다."))
+        }
+    }
+    
+    private func stopPlaying() -> Observable<Mutation> {
+        
+        if currentState.isPlaying {
+            let result = audioPlayingManager.stopPlaying()
+            
+            switch result {
+            case .success:
+                return Observable.of(
+                    .setIsPlaying(isPlaying: false)
+                )
+            case .failure(_):
+                return Observable.of(
+                    .setIsRecording(isRecording: false),
+                    .setToastMessage(text: "재생하는 데 실패했습니다.")
+                )
+            }
+        } else {
+            return Observable.of(
+                .setIsRecording(isRecording: false),
+                .setToastMessage(text: "현재 재생 중이 아닙니다.")
+            )
+        }
+    }
 }
 
 
 
+extension AvatarSettingReactor: AudioPlayingManagerDelegate {
+    func didFinishPlaying(with fileURL: String?) {
+        print("fileURL finished")
+        self.action.onNext(.stopPlaying)
+    }
+}

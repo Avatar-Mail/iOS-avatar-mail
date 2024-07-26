@@ -12,7 +12,9 @@ import RxCocoa
 
 final class AudioRecordingManager: NSObject {
     
-    private let settings = [
+    public static let shared = AudioRecordingManager()
+    
+    let settings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
         AVSampleRateKey: 12000,
         AVNumberOfChannelsKey: 1,
@@ -20,10 +22,14 @@ final class AudioRecordingManager: NSObject {
     ]
     
     private var audioRecorder : AVAudioRecorder?
+    private var audioSession: AVAudioSession
     private var recording: AudioRecording?
     
     
-    override init() { }
+    private override init() {
+        audioSession = AVAudioSession.sharedInstance()
+        super.init()
+    }
     
     
     public func startRecording(contents: String,
@@ -31,12 +37,9 @@ final class AudioRecordingManager: NSObject {
         
         initializeRecorder()
         
-        // AVAudioSession 설정
-        let session = AVAudioSession.sharedInstance()
-        
         do {
-            try session.setCategory(.playAndRecord, mode: .default)
-            try session.setActive(true)
+            try audioSession.setCategory(.playAndRecord, mode: .default)
+            try audioSession.setActive(true)
         } catch {
             return .failure(.recordingSessionSetupFailure)
         }

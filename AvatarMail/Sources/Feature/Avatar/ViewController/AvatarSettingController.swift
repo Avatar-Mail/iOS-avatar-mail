@@ -225,6 +225,7 @@ class AvatarSettingController: UIViewController, View {
                                             userRole: reactor.initialState.userRole)
         avatarCharacteristicInputView.setData(characteristic: reactor.initialState.characteristic)
         avatarParlanceInputView.setData(parlance: reactor.initialState.parlance)
+        avatarVoiceInputView.setData(recordings: reactor.initialState.recordings)
     }
     
     
@@ -247,7 +248,6 @@ class AvatarSettingController: UIViewController, View {
         
         reactor.state.map(\.isRecording)
             .distinctUntilChanged()
-            .observe(on: MainScheduler.instance)
             .bind { [weak self] isRecording in
                 guard let self else { return }
                 
@@ -261,6 +261,28 @@ class AvatarSettingController: UIViewController, View {
                     
                 }
             }.disposed(by: disposeBag)
+        
+        reactor.state.map(\.isPlaying)
+            .distinctUntilChanged()
+            .bind { [weak self] isPlaying in
+                guard let self else { return }
+                
+                if isPlaying == true {
+                    print("Start Playing")
+                } else {
+                    print("End Playing")
+                    
+                }
+            }.disposed(by: disposeBag)
+        
+        reactor.state.map(\.recordings)
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] recordings in
+                guard let self else { return }
+                print(recordings)
+                avatarVoiceInputView.setData(recordings: recordings)
+            }.disposed(by: disposeBag)
+        
         
         saveAvatarButton.rx.tap
             .asDriver()
@@ -348,7 +370,7 @@ extension AvatarSettingController: AvatarParlanceInputViewDelegate {
 
 // MARK: AvatarVoiceInputViewDelegate
 extension AvatarSettingController: AvatarVoiceInputViewDelegate {
-
+    
     func backButtonDidTap() {
         let viewState = avatarVoiceInputView.getViewState()
         
@@ -375,6 +397,14 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
             reactor?.action.onNext(.startRecording(recordingContents: recordingContents))
         } else {
             reactor?.action.onNext(.stopRecording)
+        }
+    }
+    
+    func playingButtonDidTap(with recording: AudioRecording) {
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == false {
+            reactor?.action.onNext(.startPlaying(recording: recording))
+        } else {
+            reactor?.action.onNext(.stopPlaying)
         }
     }
 }

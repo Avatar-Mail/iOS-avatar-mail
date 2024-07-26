@@ -10,7 +10,13 @@ import AVFoundation
 import RxSwift
 import RxCocoa
 
+protocol AudioPlayingManagerDelegate: AnyObject {
+    func didFinishPlaying(with fileURL: String?)
+}
+
 final class AudioPlayingManager: NSObject {
+    
+    weak var delegate: AudioPlayingManagerDelegate?
     
     private var audioPlayer : AVAudioPlayer?
     
@@ -20,7 +26,7 @@ final class AudioPlayingManager: NSObject {
     
     public func startPlaying(url: URL) -> Result<Void, AudioPlayingError> {
         
-        initializeRecorder()
+        initializePlayer()
         
         // AVAudioSession 설정
         let session = AVAudioSession.sharedInstance()
@@ -52,6 +58,7 @@ final class AudioPlayingManager: NSObject {
     }
     
     public func stopPlaying() -> Result<Void, AudioPlayingError> {
+        
         guard let audioPlayer else { return .failure(.audioPlayerNotFound) }
         
         audioPlayer.stop()
@@ -59,8 +66,8 @@ final class AudioPlayingManager: NSObject {
         return .success(())
     }
     
-    public func cancelRecording() {
-        initializeRecorder()
+    public func cancelPlaying() {
+        initializePlayer()
     }
     
     public func getRecordedTime(url: URL) -> Result<Double, AudioPlayingError> {
@@ -73,7 +80,7 @@ final class AudioPlayingManager: NSObject {
         }
     }
     
-    private func initializeRecorder() {
+    private func initializePlayer() {
         audioPlayer?.stop()
         audioPlayer = nil
     }
@@ -82,6 +89,7 @@ final class AudioPlayingManager: NSObject {
 
 extension AudioPlayingManager: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        delegate?.didFinishPlaying(with: player.url?.absoluteString)
         audioPlayer = nil
     }
 }
