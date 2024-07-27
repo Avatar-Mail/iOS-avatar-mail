@@ -20,22 +20,10 @@ final class AudioRecordingManager: NSObject {
     ]
     
     private var audioRecorder : AVAudioRecorder?
-    private var audioSession: AVAudioSession
     private var recording: AudioRecording?
     
     
     override init() {
-        
-        // AudioSession Setup
-        audioSession = AVAudioSession.sharedInstance()
-        
-        do {
-            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
-            try audioSession.setActive(true)
-        } catch {
-            fatalError("AudioSession Initialization Error")
-        }
-        
         super.init()
     }
     

@@ -268,7 +268,7 @@ final class AvatarVoiceInputView: UIView {
     
     public func setData(recordings: [AudioRecording]) {
         if recordings.count > 0 {
-            test.setData(recording: recordings[0])
+            test.setData(recording: recordings.last ?? recordings[0])
         }
     }
     

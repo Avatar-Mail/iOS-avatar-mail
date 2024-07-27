@@ -12,4 +12,6 @@ struct Mail: Equatable {
     var content: String
     var senderName: String
     var date: Date
+    var isSentFromUser: Bool
+    var audioRecording: AudioRecording?
 }

@@ -70,8 +70,8 @@ class AvatarSettingReactor: Reactor {
     init(
         coordinator: AvatarSettingCoordinator,
         database: RealmDatabase,
-        audioRecordingManager: AudioRecordingManager = AudioRecordingManager.shared,
-        audioPlayingManager: AudioPlayingManager = AudioPlayingManager(),
+        audioRecordingManager: AudioRecordingManager,
+        audioPlayingManager: AudioPlayingManager,
         avatar: AvatarInfo?
     ) {
         self.coordinator = coordinator

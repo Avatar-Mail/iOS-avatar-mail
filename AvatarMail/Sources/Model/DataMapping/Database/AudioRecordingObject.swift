@@ -17,6 +17,7 @@ class AudioRecordingObject: Object {
     @Persisted var contents: String                            // 파일(음성 녹음) 내용
     @Persisted var createdDate: String                         // 파일 생성 시간
     @Persisted var duration: Double                            // 녹음 시간
+    @Persisted(originProperty: "recordings") var avatar: LinkingObjects<AvatarInfoObject>
     
     convenience init(recording: AudioRecording) {
         self.init()

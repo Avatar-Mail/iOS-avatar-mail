@@ -19,20 +19,9 @@ final class AudioPlayingManager: NSObject {
     weak var delegate: AudioPlayingManagerDelegate?
     
     private var audioPlayer : AVAudioPlayer?
-    private var audioSession: AVAudioSession
     
     
     override init() {
-        
-        // AudioSession Setup
-        audioSession = AVAudioSession.sharedInstance()
-        
-        do {
-            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
-        } catch {
-            fatalError("AudioSession Initialization Error")
-        }
-        
         super.init()
     }
     

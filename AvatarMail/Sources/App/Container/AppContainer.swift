@@ -24,6 +24,14 @@ class AppContainer {
         container.register(RealmDatabase.self) {
             _ in RealmDatabase()
         }.inObjectScope(.container)
+        
+        container.register(AudioRecordingManager.self) {
+            _ in AudioRecordingManager()
+        }.inObjectScope(.container)
+        
+        container.register(AudioPlayingManager.self) {
+            _ in AudioPlayingManager()
+        }.inObjectScope(.container)
     }
 
     
@@ -33,6 +41,14 @@ class AppContainer {
     
     func getRealmDatabase() -> RealmDatabase! {
         return container.resolve(RealmDatabase.self)
+    }
+    
+    func getAudioRecordingManager() -> AudioRecordingManager! {
+        return container.resolve(AudioRecordingManager.self)
+    }
+    
+    func getAudioPlayingManager() -> AudioPlayingManager! {
+        return container.resolve(AudioPlayingManager.self)
     }
 }
 

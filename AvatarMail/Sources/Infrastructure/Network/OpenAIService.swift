@@ -107,7 +107,9 @@ final class OpenAIService: OpenAIServiceProtocol {
                         recipientName: senderName,
                         content: content,
                         senderName: recipientName,
-                        date: Date()    
+                        date: Date(),
+                        isSentFromUser: false,
+                        audioRecording: nil
                     )
                     
                     self.repliedMail?.content = returnMessage

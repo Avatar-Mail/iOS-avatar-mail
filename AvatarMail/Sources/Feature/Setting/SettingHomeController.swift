@@ -11,8 +11,8 @@ class SettingHomeController: UIViewController {
     
     var disposeBag = DisposeBag()
     
-    let recordingManager = AudioRecordingManager.shared
-    let playingManager = AudioPlayingManager()
+    let recordingManager: AudioRecordingManager
+    let playingManager: AudioPlayingManager
     
     private let pageTitleLabel = UILabel().then {
         $0.text = "설정"
@@ -198,6 +198,9 @@ class SettingHomeController: UIViewController {
     
     
     init() {
+        self.recordingManager = AppContainer.shared.getAudioRecordingManager()
+        self.playingManager = AppContainer.shared.getAudioPlayingManager()
+        
         super.init(nibName: nil, bundle: nil)
     }
     
