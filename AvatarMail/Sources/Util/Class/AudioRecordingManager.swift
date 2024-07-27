@@ -12,8 +12,6 @@ import RxCocoa
 
 final class AudioRecordingManager: NSObject {
     
-    public static let shared = AudioRecordingManager()
-    
     let settings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
         AVSampleRateKey: 12000,
@@ -26,8 +24,18 @@ final class AudioRecordingManager: NSObject {
     private var recording: AudioRecording?
     
     
-    private override init() {
+    override init() {
+        
+        // AudioSession Setup
         audioSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
+            try audioSession.setActive(true)
+        } catch {
+            fatalError("AudioSession Initialization Error")
+        }
+        
         super.init()
     }
     
@@ -36,13 +44,6 @@ final class AudioRecordingManager: NSObject {
                                with avatarName: String) -> Result<AudioRecording, AudioRecordingError> {
         
         initializeRecorder()
-        
-        do {
-            try audioSession.setCategory(.playAndRecord, mode: .default)
-            try audioSession.setActive(true)
-        } catch {
-            return .failure(.recordingSessionSetupFailure)
-        }
 
         // AudioRecording 인스턴스 생성
         // 파일 ID

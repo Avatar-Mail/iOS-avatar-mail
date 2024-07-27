@@ -19,23 +19,27 @@ final class AudioPlayingManager: NSObject {
     weak var delegate: AudioPlayingManagerDelegate?
     
     private var audioPlayer : AVAudioPlayer?
+    private var audioSession: AVAudioSession
     
     
-    override init() { }
+    override init() {
+        
+        // AudioSession Setup
+        audioSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
+        } catch {
+            fatalError("AudioSession Initialization Error")
+        }
+        
+        super.init()
+    }
     
     
     public func startPlaying(url: URL) -> Result<Void, AudioPlayingError> {
         
         initializePlayer()
-        
-        // AVAudioSession 설정
-        let session = AVAudioSession.sharedInstance()
-        
-        do {
-            try session.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
-        } catch {
-            return .failure(.playingSessionSetupFailure)
-        }
         
         do {
             // AVAudioPlayer 인스턴스 생성
