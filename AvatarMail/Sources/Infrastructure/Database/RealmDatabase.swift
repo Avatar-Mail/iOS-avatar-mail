@@ -10,14 +10,15 @@ import RealmSwift
 import RxSwift
 
 
-protocol RealmDatabaseDelegate {
+protocol RealmDatabaseProtocol {
     func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func removeAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func getAllAvatars() -> Observable<[AvatarInfoObject]>
+    func getAvatar(withName name: String) -> Observable<AvatarInfoObject>
 }
 
 
-class RealmDatabase: RealmDatabaseDelegate {
+class RealmDatabase: RealmDatabaseProtocol {
     
     init() {
         
@@ -119,7 +120,7 @@ class RealmDatabase: RealmDatabaseDelegate {
     }
     
     
-    public func getAvatar(withName name: String) -> Observable<AvatarInfoObject?> {
+    public func getAvatar(withName name: String) -> Observable<AvatarInfoObject> {
         return Observable.create { observer -> Disposable in
             do {
                 let realm = try Realm()
@@ -128,8 +129,12 @@ class RealmDatabase: RealmDatabaseDelegate {
                     $0.name == name
                 }).first
                 
-                observer.onNext(avatarInfoObject)
-                observer.onCompleted()
+                if let avatarInfoObject {
+                    observer.onNext(avatarInfoObject)
+                    observer.onCompleted()
+                } else {
+                    observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "존재하지 않는 아바타입니다."))
+                }
             } catch {
                 observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "아바타 목록을 불러오는 과정에서 문제가 발생했습니다."))
             }

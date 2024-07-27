@@ -63,13 +63,13 @@ class AvatarSettingReactor: Reactor {
     
     // MARK: - Initialization
     var coordinator: AvatarSettingCoordinator
-    var database: RealmDatabase
+    var database: RealmDatabaseProtocol
     var audioRecordingManager: AudioRecordingManager
     var audioPlayingManager: AudioPlayingManager
     
     init(
         coordinator: AvatarSettingCoordinator,
-        database: RealmDatabase,
+        database: RealmDatabaseProtocol,
         audioRecordingManager: AudioRecordingManager,
         audioPlayingManager: AudioPlayingManager,
         avatar: AvatarInfo?

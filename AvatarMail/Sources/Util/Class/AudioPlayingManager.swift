@@ -10,7 +10,7 @@ import AVFoundation
 import RxSwift
 import RxCocoa
 
-protocol AudioPlayingManagerDelegate: AnyObject {
+public protocol AudioPlayingManagerDelegate: AnyObject {
     func didFinishPlaying(with fileURL: String?)
 }
 

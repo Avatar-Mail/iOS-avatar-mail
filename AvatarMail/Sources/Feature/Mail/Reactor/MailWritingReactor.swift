@@ -85,12 +85,12 @@ class MailWritingReactor: Reactor {
     // MARK: - Initialization
     var coordinator: MailWritingCoordinatorProtocol
     var openAIService: OpenAIServiceProtocol
-    var database: RealmDatabase
+    var database: RealmDatabaseProtocol
     
     init(
         coordinator: MailWritingCoordinatorProtocol,
         openAIService: OpenAIServiceProtocol,
-        database: RealmDatabase
+        database: RealmDatabaseProtocol
     ) {
         self.coordinator = coordinator
         self.openAIService = openAIService
@@ -210,17 +210,20 @@ class MailWritingReactor: Reactor {
             .flatMap { [weak self] avatarInfoObject -> Observable<Mutation> in
                 guard let self else { return .empty() }
                 
-                let avatarInfo = avatarInfoObject?.toEntity()
+                let avatarInfo = avatarInfoObject.toEntity()
                 
-                return openAIService.sendMail(senderName: senderName,
-                                              content: content,
-                                              recipientName: recipientName,
+                let mail = Mail(recipientName: recipientName,
+                                content: content,
+                                senderName: senderName,
+                                date: Date(),
+                                isSentFromUser: true,
+                                audioRecording: nil)
+                
+                return openAIService.sendMail(mail: mail,
                                               avatarInfo: avatarInfo)
-                    .flatMap { text in
-                        Observable.of(
-                            Mutation.setIsMailSent(isSent: true),
-                            Mutation.setToastMessage(text: text)
-                        )
+                    .flatMap { openAIResponse in
+                        Mutation.setIsMailSent(isSent: false),
+                        // TODO: 네트워크 호출 로직 추가 필요
                     }
                     .catch { error in
                         print(error.localizedDescription)
