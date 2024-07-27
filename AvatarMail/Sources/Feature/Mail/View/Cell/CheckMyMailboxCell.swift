@@ -21,7 +21,7 @@ class CheckMailboxCell: UICollectionViewCell {
     
     private var disposeBag = DisposeBag()
     
-    var delegate: WriteMailCellDelegate?
+    var delegate: CheckMailboxCellDelegate?
     
     // 최상단 뷰
     private let containerView = UIView().then { cell in
@@ -140,7 +140,7 @@ class CheckMailboxCell: UICollectionViewCell {
         checkMailboxButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                delegate?.writeMailButtonDidTap()
+                delegate?.checkMailboxButtonDidTap()
             }.disposed(by: disposeBag)
     }
 }
