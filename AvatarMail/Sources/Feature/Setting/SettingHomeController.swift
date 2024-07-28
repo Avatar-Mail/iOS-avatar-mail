@@ -681,15 +681,6 @@ extension SettingHomeController {
 }
 
 
-extension Data {
-    mutating func appendString(_ string: String) {
-        if let data = string.data(using: .utf8) {
-            append(data)
-        }
-    }
-}
-
-
 extension SettingHomeController: CustomTimerDelegate {
     func timerUpdated(timerIdentifier: String, elapsedTime: Double) {
         switch timerIdentifier {

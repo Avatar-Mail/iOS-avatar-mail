@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Mail: Equatable {
+struct Mail: Equatable, Codable {
     var recipientName: String
     var content: String
     var senderName: String

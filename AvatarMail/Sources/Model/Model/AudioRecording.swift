@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct AudioRecording: Hashable {
+struct AudioRecording: Hashable, Codable {
     typealias Identifier = String
     
     let id: Identifier            // 파일 식별자
