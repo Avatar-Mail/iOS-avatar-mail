@@ -25,6 +25,29 @@ class MailListController: UIViewController, View {
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
+    
+    // 필터 확장 버튼
+    private let filterExtendButton = UIButton().then {
+        var config = UIButton.Configuration.plain()
+        
+        // AttributedString을 사용하여 타이틀 설정
+        var title = AttributedString("필터")
+        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.foregroundColor = UIColor(hex: 0x7B7B7B)
+        config.attributedTitle = title
+        config.titlePadding = 0
+        
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
+        let image = UIImage(systemName: "slider.horizontal.3", withConfiguration: imageConfiguration)
+        config.image = image
+        config.imagePadding = 3
+        config.imagePlacement = .trailing
+        
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        
+        $0.configuration = config
+        $0.tintColor = UIColor(hex: 0x7B7B7B)
+    }
 
     private let filterContainerView = UIView().then {
         $0.backgroundColor = .white
@@ -36,7 +59,7 @@ class MailListController: UIViewController, View {
         layout.minimumLineSpacing = 16
         layout.minimumInteritemSpacing = 0
         layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 32, height: 180)
-        layout.sectionInset = UIEdgeInsets(top: 16 + 60, left: 0, bottom: 16, right: 0)
+        layout.sectionInset = UIEdgeInsets(top: 16 + 54, left: 0, bottom: 16, right: 0)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(RepliedMailCell.self, forCellWithReuseIdentifier: RepliedMailCell.identifier)
         collectionView.backgroundColor = UIColor(hex: 0xEFEFEF)
@@ -61,6 +84,8 @@ class MailListController: UIViewController, View {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         reactor?.action.onNext(.getAllMails)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
 
     override func viewDidLayoutSubviews() {
@@ -70,9 +95,17 @@ class MailListController: UIViewController, View {
 
     private func makeUI() {
         view.backgroundColor = .white
-        view.addSubview(topNavigation)
-        view.addSubview(filterContainerView)
-        view.addSubview(mailCollectionView)
+        
+        view.addSubViews(
+            
+            topNavigation,
+            
+            filterContainerView.addSubViews(
+                filterExtendButton
+            ),
+            
+            mailCollectionView
+        )
 
         topNavigation.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
@@ -81,7 +114,12 @@ class MailListController: UIViewController, View {
         filterContainerView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.leading.trailing.equalToSuperview()
-            $0.height.equalTo(60)
+            $0.height.equalTo(54)
+        }
+        
+        filterExtendButton.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().offset(-20)
         }
 
         mailCollectionView.snp.makeConstraints {
@@ -93,6 +131,14 @@ class MailListController: UIViewController, View {
     }
 
     func bind(reactor: MailListReactor) {
+        filterExtendButton.rx.tap
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self = self else { return }
+                // TODO: 필터 버튼 추가
+            })
+            .disposed(by: disposeBag)
+
         reactor.state
             .map { $0.filteredMails }
             .distinctUntilChanged()
