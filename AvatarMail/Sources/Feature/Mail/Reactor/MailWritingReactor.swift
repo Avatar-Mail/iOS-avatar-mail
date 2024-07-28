@@ -86,6 +86,7 @@ class MailWritingReactor: Reactor {
     var coordinator: MailWritingCoordinatorProtocol
     var openAIService: OpenAIServiceProtocol
     var database: RealmDatabaseProtocol
+    var networkService: NetworkServiceProtocol
     
     init(
         coordinator: MailWritingCoordinatorProtocol,
@@ -95,6 +96,7 @@ class MailWritingReactor: Reactor {
         self.coordinator = coordinator
         self.openAIService = openAIService
         self.database = database
+        self.networkService = NetworkService.shared
     }
     
     
@@ -205,25 +207,105 @@ class MailWritingReactor: Reactor {
         
         let avatarName = recipientName  // 수신인 이름 -> 아바타 이름
     
-        // 주어진 recipientName으로, 해당 이름을 갖는 아바타가 있으면 해당 아바타를 가져와서 AvatarInfo를 세팅한다.
+        // (1) 주어진 recipientName으로, 해당 이름을 갖는 아바타가 있으면 해당 아바타를 가져와서 AvatarInfo를 세팅
         return database.getAvatar(withName: avatarName)
             .flatMap { [weak self] avatarInfoObject -> Observable<Mutation> in
                 guard let self else { return .empty() }
                 
                 let avatarInfo = avatarInfoObject.toEntity()
                 
-                let mail = Mail(recipientName: recipientName,
+                let mail = Mail(id: UUID().uuidString,
+                                recipientName: recipientName,
                                 content: content,
                                 senderName: senderName,
                                 date: Date(),
                                 isSentFromUser: true,
                                 audioRecording: nil)
                 
+                // (2) 메일과 아바타 정보를 OpenAI API로 넘겨 답장 편지 내용을 Response로 받음
                 return openAIService.sendMail(mail: mail,
                                               avatarInfo: avatarInfo)
                     .flatMap { openAIResponse in
-                        Mutation.setIsMailSent(isSent: false),
-                        // TODO: 네트워크 호출 로직 추가 필요
+                        
+                        let repliedMailContents = openAIResponse.content
+                        var responseMail = Mail(id: UUID().uuidString,
+                                                recipientName: senderName,
+                                                content: repliedMailContents,
+                                                senderName: recipientName,
+                                                date: Date(),
+                                                isSentFromUser: false,
+                                                audioRecording: nil)
+                        
+                        // (3) 아바타의 음성 녹음 정보가 존재하는 경우, 서버에 응답 파일과 녹음본을 보내서, 나레이션 음성 파일을 Response로 받음
+                        if let recording = avatarInfo.recordings.last {
+                            return self.networkService.getNarrationAudio(mailContents: repliedMailContents,
+                                                                         sampleVoiceURL: recording.fileURL,
+                                                                         serverURL: URL(string: "http://127.0.0.1:8000/api/tts")!)
+                            .flatMap { narrationFileURL in
+                                // 파일 ID
+                                let fileID = UUID().uuidString
+                                // 파일 이름
+                                let fileName: String = "\(recipientName)_\(fileID)"
+                                // 파일 생성 날짜
+                                let dateFormatter = DateFormatter()
+                                dateFormatter.dateFormat = "yyyy-MM-dd"
+                                let currentDate = dateFormatter.string(from: Date())
+                                
+                                
+                                let narrationRecording = AudioRecording(id: fileID,
+                                                                        fileName: fileName,
+                                                                        fileURL: narrationFileURL,
+                                                                        contents: repliedMailContents,
+                                                                        createdDate: currentDate,
+                                                                        duration: 0.0)
+
+                                responseMail.audioRecording = narrationRecording
+                                
+                                
+                                // (4) 나레이션 음성 파일을 Response로 받아 responseMail에 저장하고, 보낸 편지과 받은 편지를 모두 저장
+                                let saveMailObservable = self.database.saveMail(MailObject(mail: mail))
+                                let saveResponseMailObservable = self.database.saveMail(MailObject(mail: responseMail))
+
+                                return Observable.zip(saveMailObservable, saveResponseMailObservable)
+                                    .flatMap { _ in
+                                        Observable.of(
+                                            Mutation.setIsMailSent(isSent: true),
+                                            Mutation.setToastMessage(text: "편지가 성공적으로 전송되었습니다.")
+                                        )}
+                                    .catch { error in
+                                        print(error.localizedDescription)
+                                        return Observable.of(
+                                            Mutation.setIsMailSent(isSent: false),
+                                            Mutation.setToastMessage(text: "편지를 저장하는 과정에서 문제가 발생했습니다.")
+                                        )
+                                    }
+                            }
+                            .catch { error in
+                                print(error.localizedDescription)
+                                return Observable.of(
+                                    Mutation.setIsMailSent(isSent: false),
+                                    Mutation.setToastMessage(text: "편지의 나레이션 파일을 가져오는 과정에서 문제가 발생했습니다.")
+                                )
+                            }
+                        } else {
+                            // (5) 보낸 편지과 받은 편지(음성파일 X)을 모두 저장
+                            let saveMailObservable = self.database.saveMail(MailObject(mail: mail))
+                            let saveResponseMailObservable = self.database.saveMail(MailObject(mail: responseMail))
+
+                            return Observable.zip(saveMailObservable, saveResponseMailObservable)
+                                .flatMap { _ in
+                                    Observable.of(
+                                        Mutation.setIsMailSent(isSent: true),
+                                        Mutation.setToastMessage(text: "편지가 성공적으로 전송되었습니다.")
+                                    )}
+                                .catch { error in
+                                    print(error.localizedDescription)
+                                    return Observable.of(
+                                        Mutation.setIsMailSent(isSent: false),
+                                        Mutation.setToastMessage(text: "편지를 저장하는 과정에서 문제가 발생했습니다.")
+                                    )
+                                }
+                        }
                     }
                     .catch { error in
                         print(error.localizedDescription)
