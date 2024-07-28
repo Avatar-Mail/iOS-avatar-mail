@@ -38,7 +38,7 @@ class RepliedMailController: UIViewController, View {
         config.titlePadding = 0
         
         let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
-        let image = UIImage(systemName: "trash.fill", withConfiguration: imageConfiguration)
+        let image = UIImage(systemName: "trash", withConfiguration: imageConfiguration)
         config.image = image
         config.imagePadding = 2
         config.imagePlacement = .trailing
@@ -83,11 +83,11 @@ class RepliedMailController: UIViewController, View {
         $0.textAlignment = .left
     }
     
-    private let playAudioButton = UIImageView().then {
+    private let narrationButton = UIButton().then {
         let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 28)
         let image = UIImage(systemName: "waveform.circle", withConfiguration: imageConfiguration)
-        $0.image = image
-        $0.tintColor = UIColor(hex:0xA0A0A0)
+        $0.setImage(image, for: .normal)
+        $0.tintColor = UIColor(hex: 0xA0A0A0)
         $0.isHidden = true
         $0.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         $0.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -154,7 +154,7 @@ class RepliedMailController: UIViewController, View {
     }
     
     private func makeUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(hex: 0xEFEFEF)
         
         view.addSubViews(
             
@@ -170,8 +170,8 @@ class RepliedMailController: UIViewController, View {
                             recipientNameInputContainerView.addSubViews(
                                 recipientNameStackView.addArrangedSubViews(
                                     recipientNameLabel,
-                                    // 음성 재생 버튼
-                                    playAudioButton
+                                    // 나레이션 재신 버튼
+                                    narrationButton
                                 )
                             ),
                             
@@ -240,7 +240,7 @@ class RepliedMailController: UIViewController, View {
         }
         
         // 음성 재생 버튼
-        playAudioButton.snp.makeConstraints {
+        narrationButton.snp.makeConstraints {
             $0.size.equalTo(28)
         }
         
@@ -265,12 +265,40 @@ class RepliedMailController: UIViewController, View {
     
     
     func bind(reactor: RepliedMailReactor) {
+        
         replyButton.rx.tap
             .map { Reactor.Action.replyButtonDidTap }
             .bind(to: reactor.action)
             .disposed(by: disposeBag)
         
+        narrationButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                
+                // 나레이션 버튼 바인딩
+                if reactor.currentState.isNarrating == false {
+                    reactor.action.onNext(.startNarration)
+                } else {
+                    reactor.action.onNext(.stopNarration)
+                }
+            }
+            .disposed(by: disposeBag)
+        
         // states
+        reactor.state.map(\.isNarrating)
+            .observe(on: MainScheduler.instance)
+            .distinctUntilChanged()
+            .bind { [weak self] isNarrating in
+                guard let self else { return }
+                
+                if isNarrating {
+                    setNarrationButton(isNarrating: true)
+                } else {
+                    setNarrationButton(isNarrating: false)
+                }
+            }.disposed(by: disposeBag)
+        
+        
         reactor.state.map(\.writtenMail)
             .observe(on: MainScheduler.instance)
             .filterNil()
@@ -288,12 +316,27 @@ class RepliedMailController: UIViewController, View {
                 senderNameLabel.text = "From. \(mail.senderName)"
                 
                 if mail.isSentFromUser == false, let recording = mail.audioRecording {
-                    playAudioButton.isHidden = false
+                    narrationButton.isHidden = false
                 } else {
-                    playAudioButton.isHidden = true
+                    narrationButton.isHidden = true
                 }
                 
             }.disposed(by: disposeBag)
+                
+                reactor.pulse(\.$toastMessage)
+                    .filterNil()
+                    .bind { toastMessage in
+                        ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
+                    }.disposed(by: disposeBag)
+                
+    }
+    
+    
+    private func setNarrationButton(isNarrating: Bool) {
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 28)
+        let image = UIImage(systemName: isNarrating ? "waveform.circle.fill" : "waveform.circle", withConfiguration: imageConfiguration)
+        narrationButton.setImage(image, for: .normal)
+        narrationButton.tintColor = UIColor(hex: 0xA0A0A0)
     }
 }
 
