@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct AvatarInfo: Hashable {
+struct AvatarInfo: Hashable, Codable {
     typealias Identifier = String
     
     let name: Identifier              // 이름
@@ -19,7 +19,7 @@ struct AvatarInfo: Hashable {
 }
 
 
-struct Relationship: Hashable {
+struct Relationship: Hashable, Codable {
     let avatar: String?
     let user: String?
 }
