@@ -10,12 +10,21 @@ import RxSwift
 import RxCocoa
 
 protocol NetworkServiceProtocol {
-    func send(mail: Mail, to url: URL) -> Observable<URL>
+    func getNarrationAudio(mailContents: String,
+                           sampleVoiceURL: URL,
+                           serverURL: URL) -> Observable<URL>
 }
-final class NetworkService {
+final class NetworkService: NetworkServiceProtocol {
     
-    func send(mail: Mail,
-              to url: URL) -> Observable<URL> {
+    public static let shared = NetworkService()
+    
+    private init() {
+        
+    }
+    
+    func getNarrationAudio(mailContents: String,
+                           sampleVoiceURL: URL,
+                           serverURL: URL) -> Observable<URL> {
         
         print("[SEND MAIL START]")
         
@@ -26,17 +35,14 @@ final class NetworkService {
                 return Disposables.create()
             }
             
-            var request = URLRequest(url: url)
+            var request = URLRequest(url: serverURL)
             request.httpMethod = "POST"
             
             let boundary = UUID().uuidString
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             
-            let parameters = ["text": mail.content]
-            var paths = [URL]()
-            if let fileURL = mail.audioRecording?.fileURL {
-                paths.append(fileURL)
-            }
+            let parameters = ["text": mailContents]
+            var paths = [sampleVoiceURL]
             
             request.httpBody = createBody(with: parameters, filePathKey: "input_voice_file", paths: paths, boundary: boundary)
             

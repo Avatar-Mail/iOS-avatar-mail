@@ -87,7 +87,7 @@ final class AudioRecordingManager: NSObject {
         }
     }
     
-    private func getRecordedTime(url: URL) -> TimeInterval? {
+    public func getRecordedTime(url: URL) -> TimeInterval? {
         do {
             let audioPlayer = try AVAudioPlayer(contentsOf: url)
             let duration = audioPlayer.duration

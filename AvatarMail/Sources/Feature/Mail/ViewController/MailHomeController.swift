@@ -66,8 +66,6 @@ class MailHomeController: UIViewController, View {
         super.viewWillAppear(animated)
         
         tabBarController?.hideTabBar(isHidden: false, animated: true)
-        
-        reactor?.action.onNext(.checkRepliedMailExists)
     }
     
     override func viewDidLayoutSubviews() {
