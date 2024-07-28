@@ -1,31 +1,65 @@
 import ProjectDescription
 
+let projectSettings: Settings = .settings(
+    base: [
+        "PROJECT_BASE": "PROJECT_BASE",
+    ],
+    configurations: [
+        .debug(name: "Debug", xcconfig: "./XCConfig/DEV.xcconfig"),
+        .release(name: "Release", xcconfig: "./XCConfig/PROD.xcconfig"),
+    ]
+)
+
 let project = Project(
-    name: "IOSAvatarMail",
+    name: "AvatarMail",
     targets: [
         .target(
-            name: "IOSAvatarMail",
+            name: "AvatarMail",
             destinations: .iOS,
             product: .app,
-            bundleId: "io.tuist.IOSAvatarMail",
+            bundleId: "com.AvatarMail",
+            deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
+                    "APIKey": "$(OPEN_API_KEY)",
+                    "NSMicrophoneUsageDescription": "This app requires access to the microphone to record audio.",
+                    // FIXME: 배포할 땐 false로 바꾸자 (localhost HTTP load 허용)
+                    "NSAppTransportSecurity": [
+                        "NSExceptionDomains": [
+                            "localhost": [
+                                "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+                            ]
+                        ]
+                    ]
                 ]
             ),
-            sources: ["IOSAvatarMail/Sources/**"],
-            resources: ["IOSAvatarMail/Resources/**"],
-            dependencies: []
-        ),
-        .target(
-            name: "IOSAvatarMailTests",
-            destinations: .iOS,
-            product: .unitTests,
-            bundleId: "io.tuist.IOSAvatarMailTests",
-            infoPlist: .default,
-            sources: ["IOSAvatarMail/Tests/**"],
-            resources: [],
-            dependencies: [.target(name: "IOSAvatarMail")]
+            sources: ["AvatarMail/Sources/**"],
+            resources: ["AvatarMail/Resources/**"],
+            dependencies: [
+                // API
+                .external(name: "OpenAI", condition: .none),
+                // DB
+                .external(name: "Realm", condition: .none),
+                .external(name: "RealmSwift", condition: .none),
+                // Network
+                .external(name: "Alamofire", condition: .none),
+                // Rx
+                .external(name: "RxSwift", condition: .none),
+                .external(name: "RxCocoa", condition: .none),
+                .external(name: "RxOptional", condition: .none),
+                .external(name: "RxGesture", condition: .none),
+                // Architecture
+                .external(name: "ReactorKit", condition: .none),
+                // DI
+                .external(name: "Swinject", condition: .none),
+                // UI
+                .external(name: "SnapKit", condition: .none),
+                .external(name: "Then", condition: .none),
+                .external(name: "Toast", condition: .none),
+                .external(name: "Lottie", condition: .none)
+            ],
+            settings: projectSettings
         ),
     ]
 )

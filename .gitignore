@@ -191,4 +191,7 @@ xcuserdata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
 
+### Configuration files ###
+XCConfig
+
 # End of https://www.toptal.com/developers/gitignore/api/xcode,swift,swiftpackagemanager,carthage,cocoapods
