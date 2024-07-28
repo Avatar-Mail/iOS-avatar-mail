@@ -220,6 +220,6 @@ extension MailHomeController: WriteMailCellDelegate {
 
 extension MailHomeController: CheckMailboxCellDelegate {
     func checkMailboxButtonDidTap() {
-        reactor?.action.onNext(.showRepliedMailController)
+        reactor?.action.onNext(.showMailListController)
     }
 }

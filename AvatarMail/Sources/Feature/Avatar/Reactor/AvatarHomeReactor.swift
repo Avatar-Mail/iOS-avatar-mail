@@ -107,8 +107,8 @@ class AvatarHomeReactor: Reactor {
     
     private func getAllAvatarInfos() -> Observable<Mutation> {
         return database.getAllAvatars()
-            .map { avatarInfoObjects in
-                return .setAvatarInfos(avatarInfos: avatarInfoObjects.map { $0.toEntity() })
+            .flatMap { avatarInfoObjects in
+                return Observable.just(.setAvatarInfos(avatarInfos: avatarInfoObjects.map { $0.toEntity() }))
             }
     }
     

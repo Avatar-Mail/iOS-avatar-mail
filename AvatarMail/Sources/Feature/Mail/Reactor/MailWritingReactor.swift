@@ -247,9 +247,7 @@ class MailWritingReactor: Reactor {
                                 // 파일 이름
                                 let fileName: String = "\(recipientName)_\(fileID)"
                                 // 파일 생성 날짜
-                                let dateFormatter = DateFormatter()
-                                dateFormatter.dateFormat = "yyyy-MM-dd"
-                                let currentDate = dateFormatter.string(from: Date())
+                                let currentDate = Date()
                                 
                                 
                                 let narrationRecording = AudioRecording(id: fileID,

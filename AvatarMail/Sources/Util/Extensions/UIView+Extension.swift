@@ -97,6 +97,23 @@ extension UIView {
         layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
     }
     
+    public func applyBorder(to side: BorderSide, width: CGFloat, color: UIColor) {
+        let border = CALayer()
+        border.backgroundColor = color.cgColor
+        
+        switch side {
+        case .top:
+            border.frame = CGRect(x: 0, y: 0, width: self.frame.width, height: width)
+        case .bottom:
+            border.frame = CGRect(x: 0, y: self.frame.height - width, width: self.frame.width, height: width)
+        case .left:
+            border.frame = CGRect(x: 0, y: 0, width: width, height: self.frame.height)
+        case .right:
+            border.frame = CGRect(x: self.frame.width - width, y: 0, width: width, height: self.frame.height)
+        }
+        
+        self.layer.addSublayer(border)
+    }
     
     public func applyBorder(width: CGFloat,
                             color: UIColor) {
@@ -148,5 +165,12 @@ extension UIView {
             fatalError()
         }
         return borderLayers?.first as? CAGradientLayer
+    }
+}
+
+
+extension UIView {
+    public enum BorderSide {
+        case top, bottom, left, right
     }
 }

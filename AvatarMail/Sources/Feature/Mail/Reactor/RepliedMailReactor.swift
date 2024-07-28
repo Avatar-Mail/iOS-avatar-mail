@@ -12,21 +12,18 @@ class RepliedMailReactor: Reactor {
     
     enum Action {
         case closeRepliedMailController
-        case getRepliedMail
         case replyButtonDidTap
     }
     
     enum Mutation {
-        case setRepliedMail(mail: Mail)
+        
     }
     
     struct State {
-        var repliedMail: Mail?
+        var writtenMail: Mail?
     }
     
-    let initialState = State(
-        repliedMail: nil
-    )
+    var initialState: State
     
     
     // MARK: - Initialization
@@ -35,10 +32,12 @@ class RepliedMailReactor: Reactor {
     
     init(
         coordinator: RepliedMailCoordinatorProtocol,
-        openAIService: OpenAIServiceProtocol
+        openAIService: OpenAIServiceProtocol,
+        mail: Mail
     ) {
         self.coordinator = coordinator
         self.openAIService = openAIService
+        self.initialState = State(writtenMail: mail)
     }
     
     
@@ -46,8 +45,7 @@ class RepliedMailReactor: Reactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         // Logic
-        case .getRepliedMail:
-            return .empty()
+            
         // Navigation
         case .replyButtonDidTap:
             coordinator.showMailWritingControllerAfterClose()
@@ -64,8 +62,7 @@ class RepliedMailReactor: Reactor {
         var newState = state
         
         switch mutation {
-        case let .setRepliedMail(mail: mail):
-            newState.repliedMail = mail
+        
         }
         
         return newState
