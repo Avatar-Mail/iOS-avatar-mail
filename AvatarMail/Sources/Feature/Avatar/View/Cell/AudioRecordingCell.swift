@@ -204,6 +204,6 @@ final class AudioRecordingCell: UIView {
         self.recording = recording
         
         recordingTitleLabel.text = recording.fileName
-        recordedDateLabel.text = recording.createdDate
+        recordedDateLabel.text = CustomFormatter.shared.getMailDateString(from: recording.createdDate)
     }
 }

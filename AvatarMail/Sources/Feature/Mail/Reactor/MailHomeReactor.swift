@@ -12,7 +12,7 @@ class MailHomeReactor: Reactor {
     
     enum Action {
         case showMailWritingController
-        case showRepliedMailController
+        case showMailListController
     }
     
     enum Mutation {
@@ -50,8 +50,8 @@ class MailHomeReactor: Reactor {
         case .showMailWritingController:
             coordinator.showMailWritingController()
             return .empty()
-        case .showRepliedMailController:
-            coordinator.showRepliedMailController()
+        case .showMailListController:
+            coordinator.showMailListController()
             return .empty()
         }
     }
