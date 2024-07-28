@@ -136,8 +136,6 @@ class RepliedMailController: UIViewController, View {
         super.viewDidLoad()
         
         makeUI()
-        
-        reactor?.action.onNext(.getRepliedMail)
     }
     
     private func makeUI() {
@@ -261,18 +259,18 @@ class RepliedMailController: UIViewController, View {
             .disposed(by: disposeBag)
         
         // states
-        reactor.state.map(\.repliedMail)
+        reactor.state.map(\.writtenMail)
             .observe(on: MainScheduler.instance)
             .filterNil()
             .distinctUntilChanged()
-            .bind { [weak self] message in
+            .bind { [weak self] mail in
                 guard let self else { return }
                 
-                recipientNameLabel.text = message.recipientName
-                mailContentsView.text = message.content
-                senderNameLabel.text = message.senderName
+                recipientNameLabel.text = mail.recipientName
+                mailContentsView.text = mail.content
+                senderNameLabel.text = mail.senderName
                 
-                if message.isSentFromUser, let recording = message.audioRecording {
+                if mail.isSentFromUser, let recording = mail.audioRecording {
                     playAudioButton.isHidden = false
                 }
                 

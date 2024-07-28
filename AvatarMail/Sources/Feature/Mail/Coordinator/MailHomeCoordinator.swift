@@ -10,7 +10,7 @@ import UIKit
 
 protocol MailHomeCoordinatorProtocol: Coordinator {
     func showMailWritingController()
-    func showRepliedMailController()
+    func showMailListController()
 }
 
 class MailHomeCoordinator: MailHomeCoordinatorProtocol {
@@ -38,9 +38,9 @@ class MailHomeCoordinator: MailHomeCoordinatorProtocol {
     }
     
     
-    func showRepliedMailController() {
-        let repliedMailCoordinator = RepliedMailCoordinator(navigationController: navigationController)
-        repliedMailCoordinator.start()
+    func showMailListController() {
+        let mailListCoordinator = MailListCoordinator(navigationController: navigationController)
+        mailListCoordinator.start()
     }
 }
 

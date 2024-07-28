@@ -66,8 +66,6 @@ class MailHomeController: UIViewController, View {
         super.viewWillAppear(animated)
         
         tabBarController?.hideTabBar(isHidden: false, animated: true)
-        
-        reactor?.action.onNext(.checkRepliedMailExists)
     }
     
     override func viewDidLayoutSubviews() {
@@ -222,6 +220,6 @@ extension MailHomeController: WriteMailCellDelegate {
 
 extension MailHomeController: CheckMailboxCellDelegate {
     func checkMailboxButtonDidTap() {
-        reactor?.action.onNext(.showRepliedMailController)
+        reactor?.action.onNext(.showMailListController)
     }
 }

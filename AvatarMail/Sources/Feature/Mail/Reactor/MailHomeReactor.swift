@@ -12,8 +12,7 @@ class MailHomeReactor: Reactor {
     
     enum Action {
         case showMailWritingController
-        case showRepliedMailController
-        case checkRepliedMailExists
+        case showMailListController
     }
     
     enum Mutation {
@@ -46,14 +45,13 @@ class MailHomeReactor: Reactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
         // Logic
-        case .checkRepliedMailExists:
-            return checkRepliedMailExists()
+            
         // Navigation
         case .showMailWritingController:
             coordinator.showMailWritingController()
             return .empty()
-        case .showRepliedMailController:
-            coordinator.showRepliedMailController()
+        case .showMailListController:
+            coordinator.showMailListController()
             return .empty()
         }
     }
@@ -69,17 +67,6 @@ class MailHomeReactor: Reactor {
         }
         
         return newState
-    }
-    
-    
-    private func checkRepliedMailExists() -> Observable<Mutation> {
-        return openAIService.checkRepliedMailExists()
-            .flatMap { response in
-                return Observable.just(.setRepliedMailExists(exists: response))
-            }.catch { error in
-                print(error.localizedDescription)
-                return .empty()
-            }
     }
 }
 

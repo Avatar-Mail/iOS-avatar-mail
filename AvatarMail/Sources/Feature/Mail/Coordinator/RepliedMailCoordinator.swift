@@ -16,16 +16,26 @@ protocol RepliedMailCoordinatorProtocol: Coordinator {
 
 class RepliedMailCoordinator: RepliedMailCoordinatorProtocol {
     
+    var viewParameter: ViewParameter
+    
+    struct ViewParameter {
+        var mail: Mail
+    }
+
     var navigationController: UINavigationController?
     
-    init(navigationController: UINavigationController?) {
+    init(
+        navigationController: UINavigationController?,
+        viewParameter: ViewParameter
+    ) {
         self.navigationController = navigationController
+        self.viewParameter = viewParameter
     }
-    
     
     public func start() {
         let repliedMailReactor = RepliedMailReactor(coordinator: self,
-                                                    openAIService: AppContainer.shared.getOpenAIService())
+                                                    openAIService: AppContainer.shared.getOpenAIService(),
+                                                    mail: viewParameter.mail)
         let repliedMailController = RepliedMailController(reactor: repliedMailReactor)
         navigationController?.pushViewController(repliedMailController, animated: true)
     }

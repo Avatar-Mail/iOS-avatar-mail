@@ -7,7 +7,10 @@
 
 import Foundation
 
-struct Mail: Equatable {
+struct Mail: Equatable, Codable {
+    typealias Identifier = String
+    
+    var id: String
     var recipientName: String
     var content: String
     var senderName: String

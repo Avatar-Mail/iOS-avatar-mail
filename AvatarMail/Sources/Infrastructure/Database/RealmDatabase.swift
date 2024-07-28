@@ -11,10 +11,16 @@ import RxSwift
 
 
 protocol RealmDatabaseProtocol {
+    // avatar
     func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func removeAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func getAllAvatars() -> Observable<[AvatarInfoObject]>
     func getAvatar(withName name: String) -> Observable<AvatarInfoObject>
+    
+    // mail
+    func saveMail(_ mailObject: MailObject) -> Observable<Void>
+    func getAllMails() -> Observable<[MailObject]>
+    func removeMail(_ mailObject: MailObject) -> Observable<Void>
 }
 
 
@@ -138,6 +144,78 @@ class RealmDatabase: RealmDatabaseProtocol {
             } catch {
                 observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "아바타 목록을 불러오는 과정에서 문제가 발생했습니다."))
             }
+            return Disposables.create()
+        }
+    }
+    
+    
+    public func saveMail(_ mailObject: MailObject) -> Observable<Void> {
+        return Observable.create { observer -> Disposable in
+            do {
+                let realm = try Realm()
+                
+                try realm.write {
+                    realm.add(mailObject)
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            } catch let error as NSError {
+                print("Realm Error: \(error.localizedDescription)")
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일을 저장하는 과정에서 문제가 발생했습니다."))
+            }
+        
+            return Disposables.create()
+        }
+    }
+    
+    
+    public func getAllMails() -> Observable<[MailObject]> {
+        return Observable.create { observer -> Disposable in
+            do {
+                let realm = try Realm()
+                
+                let mailObjects = Array(realm.objects(MailObject.self))
+                
+                observer.onNext(mailObjects)
+                observer.onCompleted()
+            } catch {
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일 목록을 불러오는 과정에서 문제가 발생했습니다."))
+            }
+            return Disposables.create()
+        }
+    }
+    
+    
+    public func removeMail(_ mailObject: MailObject) -> Observable<Void> {
+        return Observable.create { observer -> Disposable in
+            do {
+                let realm = try Realm()
+                
+                try realm.write { [weak self] in
+                    guard let self else {
+                        observer.onError(RealmDatabaseError.RealmDatabaseNotInitializedError(errorMessage: "Realm DB가 초기화되지 않았습니다."))
+                        return Disposables.create()
+                    }
+                    
+                    let existingMail = realm.object(ofType: MailObject.self, forPrimaryKey: mailObject.id)
+                    
+                    // 기존에 생성된 메일 존재하는 경우
+                    if let existingMail {
+                        // DB에서 메일 정보 삭제
+                        realm.delete(existingMail)
+                        
+                        // DB 변경사항을 옵저버에게 전파 (토스트 메시지 전달)
+                        observer.onNext(())
+                        observer.onCompleted()
+                    } else {
+                        observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "이미 존재하지 않는 메일입니다."))
+                    }
+                    return Disposables.create()
+                }
+            } catch {
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일을 삭제하는 과정에서 문제가 발생했습니다."))
+            }
+            
             return Disposables.create()
         }
     }
