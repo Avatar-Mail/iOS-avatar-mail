@@ -14,7 +14,7 @@ import Then
 
 class CustomTabBarController: UITabBarController {
     
-    private let customTabBar = CustomTabBar()
+    public let customTabBar = CustomTabBar()
     
     private let disposeBag = DisposeBag()
 
@@ -44,7 +44,7 @@ class CustomTabBarController: UITabBarController {
         view.addSubview(customTabBar)
         
         customTabBar.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(15)
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
             
             // bottom safeAreaInset 존재 여부에 따라 탭바 높이를 다르게 설정

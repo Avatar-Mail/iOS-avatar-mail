@@ -14,7 +14,7 @@ import SnapKit
 
 
 protocol AvatarAgeInputViewDelegate: AnyObject {
-    func avatarAgeInputViewChipDidTap(data: String)
+    func avatarAgeInputViewInnerChipDidTap(data: String)
 }
 
 
@@ -54,7 +54,7 @@ final class AvatarAgeInputView: UIView {
         $0.showsHorizontalScrollIndicator = false
     }
     
-    private let contentView = UIView()
+    private let contentsView = UIView()
     
     private let stackView = UIStackView().then {
         $0.axis = .horizontal
@@ -87,7 +87,7 @@ final class AvatarAgeInputView: UIView {
                 
                 // scroll-view
                 scrollView.addSubViews(
-                    contentView.addSubViews(
+                    contentsView.addSubViews(
                         stackView
                     )
                 )
@@ -96,7 +96,6 @@ final class AvatarAgeInputView: UIView {
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {
@@ -111,7 +110,7 @@ final class AvatarAgeInputView: UIView {
             $0.bottom.equalToSuperview().inset(20)
         }
         
-        contentView.snp.makeConstraints {
+        contentsView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.height.equalToSuperview()
         }
@@ -173,7 +172,7 @@ extension AvatarAgeInputView: AvatarAgeChipDelegate {
         
         guard let chipData = chip.data else { return }
         
-        delegate?.avatarAgeInputViewChipDidTap(data: chipData)
+        delegate?.avatarAgeInputViewInnerChipDidTap(data: chipData)
     }
 }
 

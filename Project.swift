@@ -22,7 +22,16 @@ let project = Project(
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
-                    "APIKey": "$(OPEN_API_KEY)"
+                    "APIKey": "$(OPEN_API_KEY)",
+                    "NSMicrophoneUsageDescription": "This app requires access to the microphone to record audio.",
+                    // FIXME: 배포할 땐 false로 바꾸자 (localhost HTTP load 허용)
+                    "NSAppTransportSecurity": [
+                        "NSExceptionDomains": [
+                            "localhost": [
+                                "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+                            ]
+                        ]
+                    ]
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],
@@ -48,6 +57,7 @@ let project = Project(
                 .external(name: "SnapKit", condition: .none),
                 .external(name: "Then", condition: .none),
                 .external(name: "Toast", condition: .none),
+                .external(name: "Lottie", condition: .none)
             ],
             settings: projectSettings
         ),

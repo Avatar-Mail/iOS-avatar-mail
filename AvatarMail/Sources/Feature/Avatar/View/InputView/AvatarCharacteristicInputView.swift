@@ -1,5 +1,5 @@
 //
-//  AvatarParlanceInputView.swift
+//  AvatarCharacteristicInputView.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -12,17 +12,18 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-protocol AvatarParlanceInputViewDelegate: AnyObject {
-    func parlanceInputTextViewDidTap()
-    func parlanceInputTextDidChange(text: String)
-    func parlanceClearButtonDidTap()
+protocol AvatarCharacteristicInputViewDelegate: AnyObject {
+    func characteristicInputTextViewDidTap()
+    func characteristicInputTextDidChange(text: String)
+    func characteristicClearButtonDidTap()
 }
 
-final class AvatarParlanceInputView: UIView, ActivatableInputView {
+final class AvatarCharacteristicInputView: UIView, ActivatableInputView {
     
-    weak var delegate: AvatarParlanceInputViewDelegate?
+    weak var delegate: AvatarCharacteristicInputViewDelegate?
     
     var disposeBag = DisposeBag()
+    
     
     private let containerView = UIView().then {
         $0.backgroundColor = .white
@@ -36,12 +37,12 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
     }
     
     private let titleLabel = UILabel().then {
-        $0.text = "아바타의 말투를 입력하세요."
+        $0.text = "아바타의 성격을 입력하세요."
         $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
-        $0.text = "아바타가 어떤 말투를 가지는지, 예시 문구를 입력하세요."
+        $0.text = "e.g. 쾌활하고 밝은 성격이다."
         $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         $0.textColor = .lightGray
     }
@@ -78,8 +79,8 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
     }
     
     
-    public func setData(parlance: String?) {
-        inputTextView.text = parlance
+    public func setData(characteristic: String?) {
+        inputTextView.text = characteristic
     }
     
     
@@ -110,7 +111,6 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {
@@ -145,12 +145,12 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
         clearButton.rx.tap
             .asDriver()
             .drive(onNext: { [weak self] in
-                guard let self else { return }
+                guard let self = self else { return }
                 
                 self.inputTextView.text = ""
                 
-                self.delegate?.parlanceInputTextDidChange(text: "")
-                self.delegate?.parlanceClearButtonDidTap()
+                self.delegate?.characteristicInputTextDidChange(text: "")
+                self.delegate?.characteristicClearButtonDidTap()
                 
                 self.showClearButton(false)
             })
@@ -159,9 +159,9 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
         inputTextView.rx.didBeginEditing
             .asDriver()
             .drive(onNext: { [weak self] in
-                guard let self else { return }
+                guard let self = self else { return }
                 
-                self.delegate?.parlanceInputTextViewDidTap()
+                self.delegate?.characteristicInputTextViewDidTap()
             })
             .disposed(by: disposeBag)
         
@@ -169,11 +169,11 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
             .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
             .asDriver(onErrorJustReturn: ())
             .drive(onNext: { [weak self] in
-                guard let self else { return }
+                guard let self = self else { return }
                 
                 let text = self.inputTextView.text ?? ""
                 
-                self.delegate?.parlanceInputTextDidChange(text: text)
+                self.delegate?.characteristicInputTextDidChange(text: text)
                 
                 if !text.isEmpty {
                     self.showClearButton(true)
@@ -184,7 +184,7 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
         
         inputTextView.rx.didEndEditing
             .subscribe(onNext: { [weak self] in
-                guard let self else { return }
+                guard let self = self else { return }
                 
                 self.inputTextView.resignFirstResponder()
             })

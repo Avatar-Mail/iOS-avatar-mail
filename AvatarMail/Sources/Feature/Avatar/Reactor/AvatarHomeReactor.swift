@@ -43,11 +43,11 @@ class AvatarHomeReactor: Reactor {
     
     // MARK: - Initialization
     var coordinator: AvatarHomeCoordinatorProtocol
-    var database: RealmDatabase
+    var database: RealmDatabaseProtocol
     
     init(
         coordinator: AvatarHomeCoordinatorProtocol,
-        database: RealmDatabase
+        database: RealmDatabaseProtocol
     ) {
         self.coordinator = coordinator
         self.database = database

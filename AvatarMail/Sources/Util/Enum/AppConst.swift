@@ -14,7 +14,7 @@ public struct AppConst {
     private init() {}
     
     // 탭바
-    let tabHeight: CGFloat = 80
+    let tabHeight: CGFloat = 75
     let safeAreaInset: UIEdgeInsets? = (UIApplication.shared.connectedScenes.first
         .flatMap { ($0 as? UIWindowScene)?.windows.first }?
         .flatMap { $0.safeAreaInsets })

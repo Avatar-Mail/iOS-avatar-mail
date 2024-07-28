@@ -77,7 +77,7 @@ final class CustomItemView: UIView {
                                 size: 11,
                                 weight: .semibold)
         underlineView.backgroundColor = .white
-        underlineView.setupCornerRadius(2)
+        underlineView.applyCornerRadius(2)
         
         iconImageView.image = isSelected ? item.selectedIcon : item.icon
     }

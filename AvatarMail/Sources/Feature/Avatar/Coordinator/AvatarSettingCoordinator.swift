@@ -34,6 +34,8 @@ class AvatarSettingCoordinator: AvatarSettingCoordinatorProtocol {
     func start() {
         let avatarSettingReactor = AvatarSettingReactor(coordinator: self,
                                                         database: AppContainer.shared.getRealmDatabase(),
+                                                        audioRecordingManager: AppContainer.shared.getAudioRecordingManager(),
+                                                        audioPlayingManager: AppContainer.shared.getAudioPlayingManager(),
                                                         avatar: viewParameter.avatarInfo)
         let avatarSettingController = AvatarSettingController(reactor: avatarSettingReactor)
         navigationController?.pushViewController(avatarSettingController, animated: true)

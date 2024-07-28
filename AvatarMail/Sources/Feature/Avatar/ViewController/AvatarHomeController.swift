@@ -40,7 +40,7 @@ class AvatarHomeController: UIViewController, View {
         layout.minimumInteritemSpacing = 0
         layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 40, height: 50)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.register(AvatarInfoCell.self, forCellWithReuseIdentifier: AvatarInfoCell.identifier)
+        collectionView.register(AutoCompletedNameCell.self, forCellWithReuseIdentifier: AutoCompletedNameCell.identifier)
         collectionView.backgroundColor = .white
         collectionView.isHidden = true
         return collectionView
@@ -82,6 +82,8 @@ class AvatarHomeController: UIViewController, View {
         reactor?.action.onNext(.getAllAvatarInfos)
         
         showAvatarSearchView(false)
+        
+        tabBarController?.hideTabBar(isHidden: false, animated: true)
     }
     
     
@@ -135,7 +137,8 @@ class AvatarHomeController: UIViewController, View {
             .map { $0.filteredAvatarInfos }
             .distinctUntilChanged()
             .observe(on: MainScheduler.asyncInstance)
-            .bind(to: collectionView.rx.items(cellIdentifier: AvatarInfoCell.identifier, cellType: AvatarInfoCell.self)) { index, avatar, cell in
+            .bind(to: collectionView.rx.items(cellIdentifier: AutoCompletedNameCell.identifier,
+                                              cellType: AutoCompletedNameCell.self)) { index, avatar, cell in
                 cell.setData(cellIndex: index, avatarName: avatar.name)
                 cell.delegate = self
             }
@@ -185,8 +188,8 @@ extension AvatarHomeController: AvatarPlaceholderViewDelegate {
 }
 
 
-extension AvatarHomeController: AvatarInfoCellDelegate {
-    func avatarInfoCellDidTap(cellIndex: Int) {
+extension AvatarHomeController: AutoCompletedNameCellDelegate {
+    func autoCompletedNameCellDidTap(cellIndex: Int) {
         guard let filteredAvatars = reactor?.currentState.filteredAvatarInfos else {
             return
         }

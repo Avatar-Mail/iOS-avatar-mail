@@ -21,44 +21,27 @@ class MailHomeController: UIViewController, View {
     var disposeBag = DisposeBag()
     
     
-    private let pageTitleLabel = UILabel().then {
-        $0.text = "나만의 우편함"
-        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+    private let topNavigation = TopNavigation().then {
+        $0.setLeftLogoIcon(logoName: "white_logo_img", logoSize: CGSize(width: 25, height: 25))
+        $0.setRightSidePrimaryIcon(iconName: "bell.fill", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
+        $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
+        $0.setTopNavigationShadow(shadowHeight: 2)
     }
+
+    private lazy var  contentsCollectionView = {
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
+            $0.backgroundColor = UIColor(hex: 0xEFEFEF)
+            $0.register(WriteMailCell.self, forCellWithReuseIdentifier: WriteMailCell.identifier)
+            $0.register(CheckMailboxCell.self, forCellWithReuseIdentifier: CheckMailboxCell.identifier)
+        }
+        return collectionView
+    }()
     
-    private let mailboxImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
-    }
-    
-    private let checkMailButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xADABAB)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("메일함 확인하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
-    }
-    
-    private let writeMailButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xF8554A)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("메일 작성하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
-    }
+    private var mailHomeSections: [MailHomeSection] = [
+        MailHomeSection.writeMail,
+        MailHomeSection.checkMailbox
+    ]
     
     init(
         reactor: MailHomeReactor
@@ -66,7 +49,6 @@ class MailHomeController: UIViewController, View {
         super.init(nibName: nil, bundle: nil)
         
         self.reactor = reactor
-        
     }
     
     required init?(coder: NSCoder) {
@@ -77,81 +59,169 @@ class MailHomeController: UIViewController, View {
         super.viewDidLoad()
         
         makeUI()
+        setupCollectionView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        tabBarController?.hideTabBar(isHidden: false, animated: true)
+        
         reactor?.action.onNext(.checkRepliedMailExists)
     }
     
+    override func viewDidLayoutSubviews() {
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+    }
     
     private func makeUI() {
-        view.backgroundColor = .white
-        
         view.addSubViews(
-            pageTitleLabel,
-            mailboxImageView,
-            checkMailButton,
-            writeMailButton
+            topNavigation,
+            contentsCollectionView
         )
     
-        // title label
-        pageTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(35)
-            $0.left.equalToSuperview().inset(20)
+        // topNavigation
+        topNavigation.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
         }
         
-        // mailbox image
-        mailboxImageView.image = UIImage(named: "mailbox_img")
-        mailboxImageView.snp.makeConstraints {
-            $0.top.equalTo(pageTitleLabel.snp.bottom).offset(30)
-            $0.centerX.equalToSuperview()
-            $0.height.equalTo(490)
-            $0.width.equalTo(273)
-        }
-        
-        // write mail button
-        writeMailButton.snp.makeConstraints {
-            $0.height.equalTo(60)
-            $0.width.equalTo(273)
-            $0.bottom.equalToSuperview().offset(-(tabBarController?.tabBar.frame.height ?? 90) - 10)
-            $0.centerX.equalToSuperview()
-        }
-        
-        // check mail button
-        checkMailButton.snp.makeConstraints {
-            $0.height.equalTo(60)
-            $0.width.equalTo(273)
-            $0.bottom.equalTo(writeMailButton.snp.top).offset(-10)
-            $0.centerX.equalToSuperview()
+        // collection-view
+        contentsCollectionView.snp.makeConstraints {
+            $0.top.equalTo(topNavigation.snp.bottom)
+            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview()
         }
     }
     
     
-    func bind(reactor: MailHomeReactor) {
-        checkMailButton.rx.tap
-            .filter { [weak self] in
-                guard let self else { return false }
-                return self.reactor?.currentState.repliedMailExists == true
-            }
-            .map { Reactor.Action.showRepliedMailController }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        writeMailButton.rx.tap
-            .map { Reactor.Action.showMailWritingController }
-            .bind(to: reactor.action)
-            .disposed(by: disposeBag)
-        
-        // states
-        reactor.state.map(\.repliedMailExists)
-            .distinctUntilChanged()
-            .filter { $0 }
-            .bind { [weak self] _ in
-                guard let self else { return }
-                self.checkMailButton.backgroundColor = UIColor(hex: 0xF8554A)
-            }.disposed(by: disposeBag)
+    func bind(reactor: MailHomeReactor) {}
+    
+    
+    private func setupCollectionView() {
+        self.contentsCollectionView.dataSource = self
+        // self.contentsCollectionView.delegate = self
     }
 }
 
+
+extension MailHomeController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return mailHomeSections.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        switch mailHomeSections[section] {
+        case .writeMail:
+            return 1
+        case .checkMailbox:
+            return 1
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        switch mailHomeSections[indexPath.section] {
+        case .writeMail:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: WriteMailCell.identifier, for: indexPath) as! WriteMailCell
+            cell.delegate = self
+            return cell
+        case .checkMailbox:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CheckMailboxCell.identifier, for: indexPath) as! CheckMailboxCell
+            cell.delegate = self
+            return cell
+        }
+    }
+}
+
+
+extension MailHomeController {
+    private func makeFlowLayout() -> UICollectionViewCompositionalLayout {
+        return UICollectionViewCompositionalLayout { section, ev -> NSCollectionLayoutSection? in
+            // section에 따라 서로 다른 layout 구성
+            switch self.mailHomeSections[section] {
+            case .writeMail:
+                return self.makeWriteMailSectionLayout()
+            case .checkMailbox:
+                return self.makeCheckMailboxSectionLayout()
+            }
+        }
+    }
+    
+    // '편지 작성하기' 섹션 레이아웃 생성
+    private func makeWriteMailSectionLayout() -> NSCollectionLayoutSection? {
+        // Item
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                              heightDimension: .estimated(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0,
+                                                     leading: 16,
+                                                     bottom: 0,
+                                                     trailing: 16)
+        
+        // Group
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                               heightDimension: .estimated(1))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        // Section
+        let section = NSCollectionLayoutSection(group: group)
+        // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16,
+                                                        leading: 0,
+                                                        bottom: 0,
+                                                        trailing: 0)
+        
+        return section
+    }
+    
+    // '편지함 확인하기' 섹션 레이아웃 생성
+    private func makeCheckMailboxSectionLayout() -> NSCollectionLayoutSection? {
+        // Item
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                              heightDimension: .estimated(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0,
+                                                     leading: 16,
+                                                     bottom: 0,
+                                                     trailing: 16)
+        
+        // Group
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                               heightDimension: .estimated(1))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        // collection-view last cell bottom inset
+        var collectionViewBottomInset: CGFloat
+        let tabHeight = AppConst.shared.tabHeight
+        
+        if let safeAreaBottomInset = AppConst.shared.safeAreaInset?.bottom {
+            collectionViewBottomInset = (safeAreaBottomInset + tabHeight - 20) - 16
+        } else {
+            collectionViewBottomInset = tabHeight - 16
+        }
+        
+        // Section
+        let section = NSCollectionLayoutSection(group: group)
+        // section.orthogonalScrollingBehavior = .continuous // Horizontal scrolling
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16,
+                                                        leading: 0,
+                                                        bottom: collectionViewBottomInset,
+                                                        trailing: 0)
+        
+        return section
+    }
+}
+
+
+extension MailHomeController: WriteMailCellDelegate {
+    func writeMailButtonDidTap() {
+        reactor?.action.onNext(.showMailWritingController)
+    }
+}
+
+
+extension MailHomeController: CheckMailboxCellDelegate {
+    func checkMailboxButtonDidTap() {
+        reactor?.action.onNext(.showRepliedMailController)
+    }
+}

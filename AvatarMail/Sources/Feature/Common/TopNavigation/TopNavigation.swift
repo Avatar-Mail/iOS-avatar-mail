@@ -189,8 +189,8 @@ public final class TopNavigation: UIView {
     /// - Parameters:
     ///   - colors: 배경 그라디언트 적용할 탑 네비게이션 색상 리스트
     public func setTopNavigationBackgroundGradientColor(colors: [UIColor]) {
-        topSafetyAreaView.applyGradientBackground(colors: colors)
-        containerView.applyGradientBackground(colors: colors)
+        topSafetyAreaView.applyGradientBackground(colors: colors, isHorizontal: true)
+        containerView.applyGradientBackground(colors: colors, isHorizontal: true)
     }
     
     /// TopNavigation 중앙 타이틀 세팅 (topSafetyArea 포함)

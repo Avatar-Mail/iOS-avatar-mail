@@ -181,7 +181,6 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {

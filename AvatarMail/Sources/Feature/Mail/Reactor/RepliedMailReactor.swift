@@ -47,7 +47,7 @@ class RepliedMailReactor: Reactor {
         switch action {
         // Logic
         case .getRepliedMail:
-            return getRepliedMail()
+            return .empty()
         // Navigation
         case .replyButtonDidTap:
             coordinator.showMailWritingControllerAfterClose()
@@ -69,18 +69,6 @@ class RepliedMailReactor: Reactor {
         }
         
         return newState
-    }
-    
-    
-    private func getRepliedMail() -> Observable<Mutation> {
-        return openAIService.getRepliedMail()
-            .flatMap { response in
-                guard let response else { return Observable<Mutation>.empty() }
-                return Observable.just(.setRepliedMail(mail: response))
-            }.catch { error in
-                print(error.localizedDescription)
-                return .empty()
-            }
     }
 }
 

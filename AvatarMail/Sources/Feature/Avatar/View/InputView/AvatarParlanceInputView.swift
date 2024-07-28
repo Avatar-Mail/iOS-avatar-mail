@@ -1,5 +1,5 @@
 //
-//  AvatarNameInputView.swift
+//  AvatarParlanceInputView.swift
 //  AvatarMail
 //
 //  Created by 최지석 on 6/16/24.
@@ -12,17 +12,15 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-
-protocol AvatarNameInputViewDelegate: AnyObject {
-    func nameInputTextFieldDidTap()
-    func nameInputTextDidChange(text: String)
-    func nameClearButtonDidTap()
+protocol AvatarParlanceInputViewDelegate: AnyObject {
+    func parlanceInputTextViewDidTap()
+    func parlanceInputTextDidChange(text: String)
+    func parlanceClearButtonDidTap()
 }
 
-
-final class AvatarNameInputView: UIView, ActivatableInputView {
+final class AvatarParlanceInputView: UIView, ActivatableInputView {
     
-    weak var delegate: AvatarNameInputViewDelegate?
+    weak var delegate: AvatarParlanceInputViewDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -31,7 +29,6 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
         $0.backgroundColor = .white
         $0.layer.cornerRadius = 20
         $0.clipsToBounds = true
-        
         $0.layer.shadowColor = UIColor.black.cgColor
         $0.layer.shadowOffset = CGSize(width: 0, height: 2)
         $0.layer.shadowOpacity = 0.5
@@ -40,40 +37,39 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
     }
     
     private let titleLabel = UILabel().then {
-        $0.text = "아바타의 이름을 입력하세요."
+        $0.text = "아바타의 말투를 입력하세요."
         $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
-        $0.text = "아바타의 이름은 최대 13자까지 가능합니다."
+        $0.text = "아바타가 어떤 말투를 가지는지, 예시 문구를 입력하세요."
         $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         $0.textColor = .lightGray
     }
     
-    private let textFieldContainerView = UIView().then {
+    private let textViewContainerView = UIView().then {
         $0.backgroundColor = .white
         $0.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
         $0.layer.borderWidth = 2
         $0.layer.cornerRadius = 10
     }
     
-    private let inputTextField = UITextField().then {
-        $0.backgroundColor = .white
-        $0.placeholder = "아바타 이름"
+    private let inputTextView = UITextView().then {
+        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.isScrollEnabled = false  // 스크롤을 비활성화하여 높이 자동 조정을 가능하게 함
     }
     
     private let clearButton = UIButton().then {
         $0.backgroundColor = .clear
-        $0.setTitle("지우기", for: .normal)
+        $0.setTitle("모두 지우기", for: .normal)
         $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         $0.setTitleColor(UIColor(hex: 0xF8554A), for: .normal)
         $0.isHidden = true
     }
     
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
         makeUI()
         bindUI()
     }
@@ -83,16 +79,16 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
     }
     
     
-    public func setData(name: String?) {
-        inputTextField.text = name
+    public func setData(parlance: String?) {
+        inputTextView.text = parlance
     }
     
     
     public func activateInputView(_ shouldActivate: Bool) {
         if shouldActivate {
-            textFieldContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
+            textViewContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
         } else {
-            textFieldContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
+            textViewContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
         }
     }
     
@@ -102,21 +98,19 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
             containerView.addSubViews(
                 // title
                 titleLabel,
+                clearButton,
+                
                 subTitleLabel,
                 
                 // text field
-                textFieldContainerView.addSubViews(
-                    inputTextField
-                ),
-                
-                clearButton
+                textViewContainerView.addSubViews(
+                    inputTextView
+                )
             )
         )
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.height.equalTo(144)
-            $0.width.equalTo(UIScreen.main.bounds.width - 20)
         }
         
         titleLabel.snp.makeConstraints {
@@ -124,28 +118,25 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
             $0.leading.equalToSuperview().inset(20)
         }
         
+        clearButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(20)
+            $0.centerY.equalTo(titleLabel)
+        }
+        
         subTitleLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(5)
             $0.leading.equalToSuperview().inset(25)
         }
         
-        textFieldContainerView.snp.makeConstraints {
-            $0.top.greaterThanOrEqualTo(subTitleLabel.snp.bottom).offset(15)
+        textViewContainerView.snp.makeConstraints {
+            $0.top.equalTo(subTitleLabel.snp.bottom).offset(15)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.equalTo(45)
             $0.bottom.equalToSuperview().inset(20)
+            $0.height.greaterThanOrEqualTo(60)
         }
         
-        inputTextField.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(15)
-            $0.top.bottom.equalToSuperview()
-            $0.trailing.equalToSuperview().inset(15)
-        }
-        
-        clearButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().inset(15)
-            $0.centerY.equalTo(textFieldContainerView)
-            $0.width.equalTo(45)
+        inputTextView.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(10)
         }
     }
     
@@ -154,36 +145,35 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
         clearButton.rx.tap
             .asDriver()
             .drive(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
-                self.inputTextField.text = ""
+                self.inputTextView.text = ""
                 
-                self.delegate?.nameInputTextDidChange(text: "")
-                self.delegate?.nameClearButtonDidTap()
+                self.delegate?.parlanceInputTextDidChange(text: "")
+                self.delegate?.parlanceClearButtonDidTap()
                 
                 self.showClearButton(false)
             })
             .disposed(by: disposeBag)
         
-        
-        inputTextField.rx.controlEvent([.editingDidBegin])
+        inputTextView.rx.didBeginEditing
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self else { return }
                 
-                self.delegate?.nameInputTextFieldDidTap()
+                self.delegate?.parlanceInputTextViewDidTap()
             })
             .disposed(by: disposeBag)
         
-        
-        inputTextField.rx.controlEvent([.editingChanged])
+        inputTextView.rx.didChange
             .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
             .asDriver(onErrorJustReturn: ())
             .drive(onNext: { [weak self] in
-                guard let self = self else { return }
+                guard let self else { return }
                 
-                let text = self.inputTextField.text ?? ""
-                self.delegate?.nameInputTextDidChange(text: text)
+                let text = self.inputTextView.text ?? ""
+                
+                self.delegate?.parlanceInputTextDidChange(text: text)
                 
                 if !text.isEmpty {
                     self.showClearButton(true)
@@ -192,47 +182,21 @@ final class AvatarNameInputView: UIView, ActivatableInputView {
                 }
             }).disposed(by: disposeBag)
         
-        
-        inputTextField.rx.controlEvent(.editingDidEndOnExit)
+        inputTextView.rx.didEndEditing
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
                 
-                self.inputTextField.resignFirstResponder()
+                self.inputTextView.resignFirstResponder()
             })
             .disposed(by: disposeBag)
     }
     
     
     private func showClearButton(_ shouldShowClearButton: Bool) {
-        if shouldShowClearButton {
-            clearButton.isHidden = false
-             
-            textFieldContainerView.snp.remakeConstraints {
-                $0.top.greaterThanOrEqualTo(subTitleLabel.snp.bottom).offset(15)
-                $0.leading.equalToSuperview().inset(20)
-                $0.trailing.equalTo(clearButton.snp.leading).offset(-5)
-                $0.height.equalTo(45)
-                $0.bottom.equalToSuperview().inset(20)
-            }
-        } else {
-            clearButton.isHidden = true
-            
-            textFieldContainerView.snp.remakeConstraints {
-                $0.top.greaterThanOrEqualTo(subTitleLabel.snp.bottom).offset(15)
-                $0.leading.trailing.equalToSuperview().inset(20)
-                $0.height.equalTo(45)
-                $0.bottom.equalToSuperview().inset(20)
-            }
-        }
-        
-        // 애니메이션 적용
+        clearButton.isHidden = !shouldShowClearButton
         UIView.animate(withDuration: 0.2) { [weak self] in
-            guard let self = self else { return }
-            self.layoutIfNeeded()
+            self?.layoutIfNeeded()
         }
     }
 }
-
-
-
 

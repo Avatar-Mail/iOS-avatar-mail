@@ -10,59 +10,63 @@ import RealmSwift
 import RxSwift
 
 
-protocol RealmDatabaseDelegate {
+protocol RealmDatabaseProtocol {
     func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func removeAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String>
     func getAllAvatars() -> Observable<[AvatarInfoObject]>
+    func getAvatar(withName name: String) -> Observable<AvatarInfoObject>
 }
 
 
-class RealmDatabase: RealmDatabaseDelegate {
+class RealmDatabase: RealmDatabaseProtocol {
     
     init() {
         
     }
     
+    
     public func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String> {
+        
         return Observable.create { observer -> Disposable in
             do {
                 let realm = try Realm()
                 
-                try realm.write { [weak self] in
-                    guard let self else {
-                        observer.onError(RealmDatabaseError.RealmDatabaseNotInitializedError(errorMessage: "Realm DB가 초기화되지 않았습니다."))
-                        return Disposables.create()
-                    }
-                    
+                try realm.write {
                     let existingAvatar = realm.object(ofType: AvatarInfoObject.self, forPrimaryKey: avatarInfoObject.name)
                     
                     // 기존에 생성된 아바타가 존재하는 경우
                     if let existingAvatar {
-                        // DB에 아바타 정보 업데이트
-                        realm.add(avatarInfoObject, update: .modified)
+                        // 기존 아바타의 필드 업데이트
+                        existingAvatar.ageGroup = avatarInfoObject.ageGroup
+                        existingAvatar.avatarRole = avatarInfoObject.avatarRole
+                        existingAvatar.userRole = avatarInfoObject.userRole
+                        existingAvatar.characteristic = avatarInfoObject.characteristic
+                        existingAvatar.parlance = avatarInfoObject.parlance
                         
-                        // DB 변경사항을 옵저버에게 전파 (토스트 메시지 전달)
+                        // 기존 녹음 파일 삭제 후 새로 추가
+                        existingAvatar.recordings.removeAll()
+                        existingAvatar.recordings.append(objectsIn: avatarInfoObject.recordings)
+                        
+                        // DB에 아바타 정보 업데이트
+                        realm.add(existingAvatar, update: .modified)
+                        
                         observer.onNext("아바타를 업데이트했습니다.")
-                        observer.onCompleted()
                     } else {
                         // DB에 아바타 정보 추가
                         realm.add(avatarInfoObject)
-                        
-                        // DB 변경사항을 옵저버에게 전파 (토스트 메시지 전달)
                         observer.onNext("새로운 아바타를 추가했습니다.")
-                        observer.onCompleted()
                     }
-                    return Disposables.create()
+                    observer.onCompleted()
                 }
-                
-                return Disposables.create()
-            } catch {
+            } catch let error as NSError {
+                print("Realm Error: \(error.localizedDescription), \(error.userInfo)")
                 observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "아바타를 추가/업데이트하는 과정에서 문제가 발생했습니다."))
             }
             
             return Disposables.create()
         }
     }
+
     
     public func removeAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String> {
         return Observable.create { observer -> Disposable in
@@ -116,7 +120,7 @@ class RealmDatabase: RealmDatabaseDelegate {
     }
     
     
-    public func getAvatar(withName name: String) -> Observable<AvatarInfoObject?> {
+    public func getAvatar(withName name: String) -> Observable<AvatarInfoObject> {
         return Observable.create { observer -> Disposable in
             do {
                 let realm = try Realm()
@@ -125,8 +129,12 @@ class RealmDatabase: RealmDatabaseDelegate {
                     $0.name == name
                 }).first
                 
-                observer.onNext(avatarInfoObject)
-                observer.onCompleted()
+                if let avatarInfoObject {
+                    observer.onNext(avatarInfoObject)
+                    observer.onCompleted()
+                } else {
+                    observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "존재하지 않는 아바타입니다."))
+                }
             } catch {
                 observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "아바타 목록을 불러오는 과정에서 문제가 발생했습니다."))
             }
