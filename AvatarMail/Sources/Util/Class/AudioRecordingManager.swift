@@ -37,10 +37,10 @@ final class AudioRecordingManager: NSObject {
         // 파일 ID
         let fileID = UUID().uuidString
         // 파일 이름
-        let fileName: String = "\(avatarName)_\(fileID)"
+        let fileName: String = "\(avatarName)_\(fileID).m4a"
         // 파일 경로
         let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fileURL = documentPath.appendingPathComponent("\(fileName).m4a")
+        let fileURL = documentPath.appendingPathComponent("\(fileName)")
         // 파일 생성 날짜
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
