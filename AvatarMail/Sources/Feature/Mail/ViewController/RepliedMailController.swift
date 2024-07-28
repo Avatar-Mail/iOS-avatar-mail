@@ -22,7 +22,6 @@ class RepliedMailController: UIViewController, View {
         $0.setTitle(titleText: "메일 작성하기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
         $0.setTitleIsHidden(true)
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
-        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
@@ -32,14 +31,14 @@ class RepliedMailController: UIViewController, View {
         var config = UIButton.Configuration.plain()
         
         // AttributedString을 사용하여 타이틀 설정
-        var title = AttributedString("초기화")
+        var title = AttributedString("편지 삭제하기")
         title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         title.foregroundColor = UIColor(hex: 0x7B7B7B)
         config.attributedTitle = title
         config.titlePadding = 0
         
         let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
-        let image = UIImage(systemName: "arrow.counterclockwise", withConfiguration: imageConfiguration)
+        let image = UIImage(systemName: "trash.fill", withConfiguration: imageConfiguration)
         config.image = image
         config.imagePadding = 2
         config.imagePlacement = .trailing
@@ -80,14 +79,18 @@ class RepliedMailController: UIViewController, View {
         $0.alignment = .center
     }
     
-    private let recipientNameLabel = UILabel()
+    private let recipientNameLabel = UILabel().then {
+        $0.textAlignment = .left
+    }
     
     private let playAudioButton = UIImageView().then {
-        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 16)
-        let image = UIImage(systemName: "waveform", withConfiguration: imageConfiguration)
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 28)
+        let image = UIImage(systemName: "waveform.circle", withConfiguration: imageConfiguration)
         $0.image = image
         $0.tintColor = UIColor(hex:0xA0A0A0)
         $0.isHidden = true
+        $0.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
     
     private let mailContentsView = UILabel().then {
@@ -102,21 +105,19 @@ class RepliedMailController: UIViewController, View {
         $0.spacing = 3
     }
     
-    private let senderNameLabel = UILabel()
+    private let senderNameLabel = UILabel().then {
+        $0.textAlignment = .right
+    }
     
     private let replyButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xF8554A)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("답장 작성하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
+        $0.setButtonTitle(title: "답장 편지 작성하기",
+                          color: .white,
+                          fontSize: 20,
+                          fontWeight: .bold)
+        $0.applyCornerRadius(20)
+        $0.applyShadow(shadowRadius: 4,
+                       shadowOffset: CGSize(width: 0, height: 2),
+                       shadowOpacity: 0.5)
     }
     
     init(
@@ -131,11 +132,25 @@ class RepliedMailController: UIViewController, View {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         makeUI()
+        
+        topNavigation.delegate = self
+    }
+    
+    override func viewDidLayoutSubviews() {
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+        replyButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE), UIColor(hex: 0x4C5BDF)],
+                                            isHorizontal: true)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
     private func makeUI() {
@@ -182,15 +197,14 @@ class RepliedMailController: UIViewController, View {
         }
         
         replyButton.snp.makeConstraints {
-            $0.bottom.equalToSuperview().offset(-120)
-            $0.horizontalEdges.equalToSuperview().inset(50)
-            $0.height.equalTo(60)
+            $0.bottom.equalToSuperview().offset(-((AppConst.shared.safeAreaInset?.bottom ?? 0) + 16))
+            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.height.equalTo(72)
         }
         
         letterContainerView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom).offset(60)
-            $0.bottom.lessThanOrEqualTo(replyButton.snp.top).offset(-50).priority(999)
-            $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-50).priority(1)
+            $0.bottom.equalTo(replyButton.snp.top).offset(-40)
             $0.horizontalEdges.equalToSuperview().inset(28)
         }
         
@@ -222,19 +236,18 @@ class RepliedMailController: UIViewController, View {
         }
         
         recipientNameStackView.snp.makeConstraints {
-            $0.leading.equalToSuperview()
-            $0.centerY.equalToSuperview()
+            $0.edges.equalToSuperview()
         }
         
         // 음성 재생 버튼
         playAudioButton.snp.makeConstraints {
-            $0.size.equalTo(18)
+            $0.size.equalTo(28)
         }
         
         // 편지 내용
         mailContentsView.snp.makeConstraints {
             $0.top.equalTo(recipientNameInputContainerView.snp.bottom).offset(10)
-            $0.bottom.equalTo(senderNameInputContainerView.snp.top).offset(-10)
+            $0.bottom.lessThanOrEqualTo(senderNameInputContainerView.snp.top).offset(-10)
             $0.horizontalEdges.equalToSuperview()
         }
         
@@ -246,8 +259,7 @@ class RepliedMailController: UIViewController, View {
         }
         
         senderNameStackView.snp.makeConstraints {
-            $0.trailing.equalToSuperview()
-            $0.centerY.equalToSuperview()
+            $0.edges.equalToSuperview()
         }
     }
     
@@ -266,14 +278,40 @@ class RepliedMailController: UIViewController, View {
             .bind { [weak self] mail in
                 guard let self else { return }
                 
-                recipientNameLabel.text = mail.recipientName
-                mailContentsView.text = mail.content
-                senderNameLabel.text = mail.senderName
+                topNavigation.setTitle(titleText: mail.isSentFromUser ? "보낸 메일" : "받은 메일",
+                                       titleColor: .white,
+                                       fontSize: 18,
+                                       fontWeight: .semibold)
                 
-                if mail.isSentFromUser, let recording = mail.audioRecording {
+                recipientNameLabel.text = "To. \(mail.recipientName)"
+                mailContentsView.text = mail.content
+                senderNameLabel.text = "From. \(mail.senderName)"
+                
+                if mail.isSentFromUser == false, let recording = mail.audioRecording {
                     playAudioButton.isHidden = false
+                } else {
+                    playAudioButton.isHidden = true
                 }
                 
             }.disposed(by: disposeBag)
+    }
+}
+
+
+extension RepliedMailController: TopNavigationDelegate {
+    func topNavigationLeftSideIconDidTap() {
+        reactor?.action.onNext(.closeRepliedMailController)
+    }
+    
+    func topNavigationRightSidePrimaryIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSideSecondaryIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSideTextButtonDidTap() {
+        
     }
 }

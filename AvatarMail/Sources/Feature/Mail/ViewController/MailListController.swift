@@ -61,6 +61,8 @@ class MailListController: UIViewController, View {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         reactor?.action.onNext(.getAllMails)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
 
     override func viewDidLayoutSubviews() {

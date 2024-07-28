@@ -8,6 +8,7 @@
 import UIKit
 
 extension UITabBarController {
+    
     func hideTabBar(isHidden: Bool, animated: Bool) {
         if let customTabBarController = self as? CustomTabBarController {
             guard customTabBarController.customTabBar.isHidden != isHidden else { return }
@@ -23,7 +24,6 @@ extension UITabBarController {
                 })
             } else {
                 tabBar.isHidden = false
-                tabBar.frame.origin.y += tabBarHeight
                 UIView.animate(withDuration: duration, animations: {
                     tabBar.frame.origin.y -= tabBarHeight
                 })
@@ -42,7 +42,6 @@ extension UITabBarController {
                 })
             } else {
                 tabBar.isHidden = false
-                tabBar.frame.origin.y += tabBarHeight
                 UIView.animate(withDuration: duration, animations: {
                     tabBar.frame.origin.y -= tabBarHeight
                 })
