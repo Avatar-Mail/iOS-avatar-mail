@@ -19,14 +19,14 @@ class RepliedMailController: UIViewController, View {
     
     
     private let topNavigation = TopNavigation().then {
-        $0.setTitle(titleText: "메일 작성하기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTitle(titleText: "편지 작성하기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
         $0.setTitleIsHidden(true)
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
-    // 상단 메일 삭제하기 버튼
+    // 상단 편지 삭제하기 버튼
     private let deleteMailButton = UIButton().then {
         var config = UIButton.Configuration.plain()
         
@@ -307,7 +307,7 @@ class RepliedMailController: UIViewController, View {
             .bind { [weak self] mail in
                 guard let self else { return }
                 
-                topNavigation.setTitle(titleText: mail.isSentFromUser ? "보낸 메일" : "받은 메일",
+                topNavigation.setTitle(titleText: mail.isSentFromUser ? "보낸 편지" : "받은 편지",
                                        titleColor: .white,
                                        fontSize: 18,
                                        fontWeight: .semibold)
