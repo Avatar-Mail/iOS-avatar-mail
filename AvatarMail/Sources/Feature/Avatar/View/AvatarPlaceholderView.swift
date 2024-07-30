@@ -75,7 +75,7 @@ final class AvatarPlaceholderView: UIView {
         super.layoutSubviews()
         createAvatarButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
                                                             UIColor(hex: 0x4C5BDF)],
-                                               isHorizontal: true)
+                                                   isHorizontal: true)
     }
     
     

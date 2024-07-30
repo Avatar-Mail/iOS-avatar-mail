@@ -95,6 +95,7 @@ class RepliedMailController: UIViewController, View {
     
     private let mailContentsView = UILabel().then {
         $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.numberOfLines = 0
     }
     
     // 발신인 (From.) 영역 뷰

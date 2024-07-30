@@ -119,7 +119,7 @@ final class AudioRecordingCell: UIView {
         }
         
         removeButton.snp.makeConstraints {
-            $0.bottom.equalToSuperview().offset(-10)
+            $0.bottom.equalToSuperview().offset(-12)
             $0.leading.equalToSuperview().offset(20)
             $0.size.equalTo(18)
         }
