@@ -49,6 +49,7 @@ class RealmDatabase: RealmDatabaseProtocol {
                         existingAvatar.characteristic = avatarInfoObject.characteristic
                         existingAvatar.parlance = avatarInfoObject.parlance
                         
+                        // FIXME: recordings primarykey 중복됨
                         // 기존 녹음 파일 삭제 후 새로 추가
                         existingAvatar.recordings.removeAll()
                         existingAvatar.recordings.append(objectsIn: avatarInfoObject.recordings)
