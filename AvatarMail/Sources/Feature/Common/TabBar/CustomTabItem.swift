@@ -47,7 +47,7 @@ extension CustomTabItem {
     var name: String {
         switch self {
         case .mail:
-            return "메일함"
+            return "편지함"
         case .avatar:
             return "아바타"
         case .setting:

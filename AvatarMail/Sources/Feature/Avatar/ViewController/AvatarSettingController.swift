@@ -75,18 +75,14 @@ class AvatarSettingController: UIViewController, View {
     }
     
     private let saveAvatarButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xF8554A)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 20
-        $0.setTitle("아바타 설정하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
+        $0.setButtonTitle(title: "아바타 설정하기",
+                          color: .white,
+                          fontSize: 20,
+                          fontWeight: .bold)
+        $0.applyCornerRadius(20)
+        $0.applyShadow(shadowRadius: 4,
+                       shadowOffset: CGSize(width: 0, height: 2),
+                       shadowOpacity: 0.5)
     }
 
     private var isSaveButtonContainerHidden = false
@@ -110,6 +106,16 @@ class AvatarSettingController: UIViewController, View {
         setDelegates()
         
         tabBarController?.hideTabBar(isHidden: true, animated: true)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+        saveAvatarButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
+                                                            UIColor(hex: 0x4C5BDF)],
+                                                 isHorizontal: true)
     }
     
     
@@ -209,7 +215,7 @@ class AvatarSettingController: UIViewController, View {
         }
         
         saveAvatarButton.snp.makeConstraints {
-            $0.horizontalEdges.equalToSuperview().inset(20)
+            $0.horizontalEdges.equalToSuperview().inset(16)
             $0.top.equalToSuperview().offset(20)
             $0.height.equalTo(72)
         }

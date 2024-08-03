@@ -399,7 +399,7 @@ class MailWritingController: UIViewController, View {
             .asDriver()
             .drive(onNext: {
                 reactor.action.onNext(.sendButtonDipTap)
-                GlobalIndicator.shared.show("mail_indicator", with: "메일을 보내는 중입니다...")
+                GlobalIndicator.shared.show("mail_indicator", with: "편지를 보내는 중입니다...")
             })
             .disposed(by: disposeBag)
         
