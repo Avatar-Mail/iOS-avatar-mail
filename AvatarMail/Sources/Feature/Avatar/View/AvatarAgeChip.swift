@@ -133,7 +133,7 @@ enum AvatarAgeChipState {
     
     func chipBackgroundColor() -> UIColor {
         switch self {
-        case .selected: return UIColor(hex: 0xF8554A)
+        case .selected: return UIColor(hex: 0x6878F6)
         case .unSelected: return .white
         }
     }
@@ -147,7 +147,7 @@ enum AvatarAgeChipState {
     
     func chipBorderColor() -> UIColor {
         switch self {
-        case .selected: return UIColor(hex: 0xF8554A)
+        case .selected: return UIColor(hex: 0x6878F6)
         case .unSelected: return UIColor(hex: 0xCACACA)
         }
     }

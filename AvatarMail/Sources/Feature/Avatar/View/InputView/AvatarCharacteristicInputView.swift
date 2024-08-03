@@ -63,7 +63,7 @@ final class AvatarCharacteristicInputView: UIView, ActivatableInputView {
         $0.backgroundColor = .clear
         $0.setTitle("모두 지우기", for: .normal)
         $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        $0.setTitleColor(UIColor(hex: 0xF8554A), for: .normal)
+        $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }
     
@@ -86,7 +86,7 @@ final class AvatarCharacteristicInputView: UIView, ActivatableInputView {
     
     public func activateInputView(_ shouldActivate: Bool) {
         if shouldActivate {
-            textViewContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
+            textViewContainerView.layer.borderColor = UIColor(hex: 0x6878F6).cgColor
         } else {
             textViewContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
         }

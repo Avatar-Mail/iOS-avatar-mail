@@ -32,7 +32,6 @@ class RealmDatabase: RealmDatabaseProtocol {
     
     
     public func saveAvatar(_ avatarInfoObject: AvatarInfoObject) -> Observable<String> {
-        
         return Observable.create { observer -> Disposable in
             do {
                 let realm = try Realm()
@@ -40,8 +39,10 @@ class RealmDatabase: RealmDatabaseProtocol {
                 try realm.write {
                     let existingAvatar = realm.object(ofType: AvatarInfoObject.self, forPrimaryKey: avatarInfoObject.name)
                     
-                    // 기존에 생성된 아바타가 존재하는 경우
                     if let existingAvatar {
+                        // 기존 녹음 파일 삭제
+                        existingAvatar.recordings.removeAll()
+                        
                         // 기존 아바타의 필드 업데이트
                         existingAvatar.ageGroup = avatarInfoObject.ageGroup
                         existingAvatar.avatarRole = avatarInfoObject.avatarRole
@@ -49,13 +50,11 @@ class RealmDatabase: RealmDatabaseProtocol {
                         existingAvatar.characteristic = avatarInfoObject.characteristic
                         existingAvatar.parlance = avatarInfoObject.parlance
                         
-                        // 기존 녹음 파일 삭제 후 새로 추가
-                        existingAvatar.recordings.removeAll()
+                        // 새 녹음 파일 추가
                         existingAvatar.recordings.append(objectsIn: avatarInfoObject.recordings)
                         
                         // DB에 아바타 정보 업데이트
                         realm.add(existingAvatar, update: .modified)
-                        
                         observer.onNext("아바타를 업데이트했습니다.")
                     } else {
                         // DB에 아바타 정보 추가
@@ -161,7 +160,7 @@ class RealmDatabase: RealmDatabaseProtocol {
                 }
             } catch let error as NSError {
                 print("Realm Error: \(error.localizedDescription)")
-                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일을 저장하는 과정에서 문제가 발생했습니다."))
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "편지를 저장하는 과정에서 문제가 발생했습니다."))
             }
         
             return Disposables.create()
@@ -179,7 +178,7 @@ class RealmDatabase: RealmDatabaseProtocol {
                 observer.onNext(mailObjects)
                 observer.onCompleted()
             } catch {
-                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일 목록을 불러오는 과정에서 문제가 발생했습니다."))
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "편지 목록을 불러오는 과정에서 문제가 발생했습니다."))
             }
             return Disposables.create()
         }
@@ -199,21 +198,21 @@ class RealmDatabase: RealmDatabaseProtocol {
                     
                     let existingMail = realm.object(ofType: MailObject.self, forPrimaryKey: mailObject.id)
                     
-                    // 기존에 생성된 메일 존재하는 경우
+                    // 기존에 생성된 편지가 존재하는 경우
                     if let existingMail {
-                        // DB에서 메일 정보 삭제
+                        // DB에서 편지 정보 삭제
                         realm.delete(existingMail)
                         
                         // DB 변경사항을 옵저버에게 전파 (토스트 메시지 전달)
                         observer.onNext(())
                         observer.onCompleted()
                     } else {
-                        observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "이미 존재하지 않는 메일입니다."))
+                        observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "이미 존재하지 않는 편지입니다."))
                     }
                     return Disposables.create()
                 }
             } catch {
-                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "메일을 삭제하는 과정에서 문제가 발생했습니다."))
+                observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "편지를 삭제하는 과정에서 문제가 발생했습니다."))
             }
             
             return Disposables.create()

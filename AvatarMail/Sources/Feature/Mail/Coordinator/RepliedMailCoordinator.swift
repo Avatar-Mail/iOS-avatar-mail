@@ -35,6 +35,7 @@ class RepliedMailCoordinator: RepliedMailCoordinatorProtocol {
     public func start() {
         let repliedMailReactor = RepliedMailReactor(coordinator: self,
                                                     openAIService: AppContainer.shared.getOpenAIService(),
+                                                    audioPlayingManager: AppContainer.shared.getAudioPlayingManager(),
                                                     mail: viewParameter.mail)
         let repliedMailController = RepliedMailController(reactor: repliedMailReactor)
         navigationController?.pushViewController(repliedMailController, animated: true)

@@ -11,6 +11,7 @@ import Then
 import RxSwift
 import RxCocoa
 import SnapKit
+import Lottie
 
 
 protocol AvatarPlaceholderViewDelegate: AnyObject {
@@ -24,34 +25,38 @@ final class AvatarPlaceholderView: UIView {
     
     var disposeBag = DisposeBag()
     
-    
-    private let avatarImageView = UIImageView().then {
+    let avatarAnimationView = LottieAnimationView(name: "avatar_setting_main").then {
+        $0.loopMode = .loop
         $0.contentMode = .scaleAspectFit
-        $0.image = UIImage(named: "avatar_img")
-
-        // 이미지 뷰의 프레임을 화면의 절반으로 설정
-        $0.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width / 2, height: 0)
     }
     
     private let titleLabel = UILabel().then {
-        $0.text = "편지를 쓸 아바타를 생성하거나 수정해보세요."
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .light)
-        $0.textColor = .lightGray
+        $0.attributedText = .makeAttributedString(text: "당신만의 아바타를 만들어보세요",
+                                                  color: UIColor(hex:0x535353),
+                                                  fontSize: 20,
+                                                  fontWeight: .bold,
+                                                  lineBreakMode: .byTruncatingTail)
+        $0.textAlignment = .center
+    }
+    
+    private let subtitleLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "이름, 성격, 나이, 말투, 그리고 목소리까지 설정해보세요.",
+                                                  color: UIColor(hex:0x9A9A9A),
+                                                  fontSize: 14,
+                                                  fontWeight: .light,
+                                                  lineBreakMode: .byTruncatingTail)
+        $0.textAlignment = .center
     }
     
     private let createAvatarButton = UIButton().then {
-        $0.backgroundColor = UIColor(hex: 0xF8554A)
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 10
-        $0.setTitle("새로운 아바타 생성하기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        $0.tintColor = .white
-        
-        $0.layer.shadowColor = UIColor.black.cgColor
-        $0.layer.shadowOffset = CGSize(width: 0, height: 2)
-        $0.layer.shadowOpacity = 0.5
-        $0.layer.shadowRadius = 4
-        $0.layer.masksToBounds = false
+        $0.setButtonTitle(title: "새로운 아바타 생성하기",
+                          color: .white,
+                          fontSize: 20,
+                          fontWeight: .bold)
+        $0.applyCornerRadius(20)
+        $0.applyShadow(shadowRadius: 4,
+                       shadowOffset: CGSize(width: 0, height: 2),
+                       shadowOpacity: 0.5)
     }
     
     
@@ -66,31 +71,46 @@ final class AvatarPlaceholderView: UIView {
         super.init(coder: coder)
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        createAvatarButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
+                                                            UIColor(hex: 0x4C5BDF)],
+                                                   isHorizontal: true)
+    }
+    
     
     private func makeUI() {
         addSubViews(
-            avatarImageView,
+            avatarAnimationView,
             titleLabel,
+            subtitleLabel,
             createAvatarButton
         )
         
-        avatarImageView.snp.makeConstraints {
+        avatarAnimationView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.centerY.equalToSuperview().offset(-60)
+            $0.centerY.equalToSuperview().offset(-100)
             $0.size.equalTo(UIScreen.main.bounds.height / 3)
         }
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(avatarImageView.snp.bottom).offset(-5)
-            $0.centerX.equalToSuperview()
+            $0.top.equalTo(avatarAnimationView.snp.bottom).offset(5)
+            $0.horizontalEdges.equalToSuperview().inset(20)
+        }
+        
+        subtitleLabel.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
         createAvatarButton.snp.makeConstraints {
-            $0.height.equalTo(60)
-            $0.width.equalTo(273)
-            $0.bottom.equalToSuperview().offset(-10)
+            $0.height.equalTo(72)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.bottom.equalToSuperview().offset(-30)
             $0.centerX.equalToSuperview()
         }
+        
+        avatarAnimationView.play()
     }
     
     

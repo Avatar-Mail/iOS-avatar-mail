@@ -31,7 +31,7 @@ enum TabBarPage: String, CaseIterable {
     /// TabBarPage 형을 매칭되는 한글명으로 변환
     func pageName() -> String {
         switch self {
-        case .mail: return "메일함"
+        case .mail: return "편지함"
         case .avatar: return "아바타 설정"
         }
     }

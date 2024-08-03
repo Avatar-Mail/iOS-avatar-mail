@@ -78,7 +78,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
         $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        $0.setTitleColor(UIColor(hex: 0xF8554A), for: .normal)
+        $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }
     
@@ -105,7 +105,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
         $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        $0.setTitleColor(UIColor(hex: 0xF8554A), for: .normal)
+        $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }
     
@@ -137,7 +137,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     private func activateAvatarRoleInputView(_ shouldActivate: Bool) {
         if shouldActivate {
             avatarRoleTitleLabel.textColor = .black
-            avatarRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
+            avatarRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0x6878F6).cgColor
         } else {
             avatarRoleTitleLabel.textColor = .lightGray
             avatarRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
@@ -148,7 +148,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     private func activateUserRoleInputView(_ shouldActivate: Bool) {
         if shouldActivate {
             userRoleTitleLabel.textColor = .black
-            userRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
+            userRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0x6878F6).cgColor
         } else {
             userRoleTitleLabel.textColor = .lightGray
             userRoleInputTextFieldContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor

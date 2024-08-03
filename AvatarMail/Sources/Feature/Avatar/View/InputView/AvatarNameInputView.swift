@@ -66,7 +66,7 @@ class AvatarNameInputView: UIView, ActivatableInputView {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
         $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        $0.setTitleColor(UIColor(hex: 0xF8554A), for: .normal)
+        $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }
     
@@ -90,7 +90,7 @@ class AvatarNameInputView: UIView, ActivatableInputView {
     
     public func activateInputView(_ shouldActivate: Bool) {
         if shouldActivate {
-            textFieldContainerView.layer.borderColor = UIColor(hex: 0xF8554A).cgColor
+            textFieldContainerView.layer.borderColor = UIColor(hex: 0x6878F6).cgColor
         } else {
             textFieldContainerView.layer.borderColor = UIColor(hex: 0xCACACA).cgColor
         }
