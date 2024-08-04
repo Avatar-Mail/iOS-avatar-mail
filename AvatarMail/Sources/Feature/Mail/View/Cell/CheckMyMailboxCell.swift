@@ -38,8 +38,7 @@ class CheckMailboxCell: UICollectionViewCell {
     private let titleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "편지함 확인하기",
                                                   color: .black,
-                                                  fontSize: 24,
-                                                  fontWeight: .bold,
+                                                  font: .content(size: 24, weight: .bold),
                                                   textAlignment: .left)
     }
     
@@ -47,8 +46,7 @@ class CheckMailboxCell: UICollectionViewCell {
     private let descriptionLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "당신 앞으로 전달된 편지들을 확인해보세요.",
                                                   color: UIColor(hex: 0x777777),
-                                                  fontSize: 16,
-                                                  fontWeight: .regular,
+                                                  font: .content(size: 16, weight: .regular),
                                                   textAlignment: .left)
         $0.numberOfLines = 0
     }
@@ -62,8 +60,7 @@ class CheckMailboxCell: UICollectionViewCell {
     private let checkMailboxButton = UIButton().then {
         $0.setButtonTitle(title: "편지함 확인하기",
                           color: .white,
-                          fontSize: 20,
-                          fontWeight: .bold)
+                          font: .content(size: 20, weight: .bold))
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),

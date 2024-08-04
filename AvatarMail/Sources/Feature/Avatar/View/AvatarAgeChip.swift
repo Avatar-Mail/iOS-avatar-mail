@@ -43,7 +43,7 @@ final class AvatarAgeChip: UIView {
     }
     
     private let titleLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        $0.font = UIFont.content(size: 16, weight: .medium)
         $0.textAlignment = .center
     }
     

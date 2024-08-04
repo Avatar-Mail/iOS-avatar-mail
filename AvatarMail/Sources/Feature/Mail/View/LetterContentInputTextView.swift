@@ -28,9 +28,7 @@ final class LetterContentInputTextView: UIView {
     
     let containerView = UIView()
     
-    private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-    }
+    private let inputTextView = UITextView()
     
     private let placeholderView = UIView().then {
         $0.backgroundColor = UIColor(hex:0xFCFCFC)
@@ -41,8 +39,7 @@ final class LetterContentInputTextView: UIView {
     private let placeholderLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "편지의 내용을 입력하세요.", 
                                                   color: UIColor(hex: 0x7B7B7B),
-                                                  fontSize: 14,
-                                                  fontWeight: .regular)
+                                                  font: .content(size: 14, weight: .regular))
     }
     
     override init(frame: CGRect) {
@@ -133,7 +130,10 @@ final class LetterContentInputTextView: UIView {
     
     
     public func setInputText(text: String) {
-        inputTextView.text = text
+        inputTextView.attributedText = .makeAttributedString(text: text,
+                                                             color: .black,
+                                                             font: .letter(size: 16, weight: .medium),
+                                                             lineHeightMultiple: 1.6)
     }
     
     

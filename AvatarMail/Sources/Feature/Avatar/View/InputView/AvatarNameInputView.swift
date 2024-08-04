@@ -41,12 +41,12 @@ class AvatarNameInputView: UIView, ActivatableInputView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타의 이름을 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.text = "아바타의 이름은 최대 13자까지 가능합니다."
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
     }
     
@@ -65,7 +65,7 @@ class AvatarNameInputView: UIView, ActivatableInputView {
     private let clearButton = UIButton().then {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        $0.titleLabel?.font = UIFont.content(size: 16, weight: .medium)
         $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }

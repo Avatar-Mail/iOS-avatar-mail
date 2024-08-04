@@ -31,11 +31,29 @@ let project = Project(
                                 "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
                             ]
                         ]
+                    ],
+                    "UIAppFonts": [
+                        "ChosunKm.TTF",
+                        "ChosunNm.ttf",
+                        "ChosunSm.TTF",
+                        
+                        "Pretendard-Black.otf",
+                        "Pretendard-ExtraBold.otf",
+                        "Pretendard-Bold.otf",
+                        "Pretendard-SemiBold.otf",
+                        "Pretendard-Medium.otf",
+                        "Pretendard-Regular.otf",
+                        "Pretendard-Light.otf",
+                        "Pretendard-ExtraLight.otf",
+                        "Pretendard-Thin.otf"
                     ]
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],
-            resources: ["AvatarMail/Resources/**"],
+            resources: [
+                "AvatarMail/Resources/**",
+                "AvatarMail/Resources/Fonts/*.ttf"
+            ],
             dependencies: [
                 // API
                 .external(name: "OpenAI", condition: .none),

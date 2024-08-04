@@ -41,13 +41,13 @@ final class AudioRecordingCell: UIView {
     
     private let recordingTitleLabel = UILabel().then {
         $0.text = "Hello world"
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        $0.font = UIFont.content(size: 18, weight: .semibold)
         $0.textColor = .black
     }
     
     private let recordedDateLabel = UILabel().then {
         $0.text = "Hello world"
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        $0.font = UIFont.content(size: 14, weight: .semibold)
         $0.textColor = UIColor(hex:0xA4A4A4)
     }
     

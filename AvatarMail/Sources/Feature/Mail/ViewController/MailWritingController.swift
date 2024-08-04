@@ -20,7 +20,7 @@ class MailWritingController: UIViewController, View {
     var disposeBag = DisposeBag()
     
     private let topNavigation = TopNavigation().then {
-        $0.setTitle(titleText: "편지 작성하기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTitle(titleText: "편지 작성하기", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setTitleIsHidden(true)
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
@@ -44,7 +44,7 @@ class MailWritingController: UIViewController, View {
         
         // AttributedString을 사용하여 타이틀 설정
         var title = AttributedString("초기화")
-        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.font = UIFont.content(size: 16, weight: .regular)
         title.foregroundColor = UIColor(hex: 0x7B7B7B)
         config.attributedTitle = title
         config.titlePadding = 0
@@ -90,8 +90,7 @@ class MailWritingController: UIViewController, View {
     private let recipientNameSearchBar = SearchBar().then {
         $0.setPlaceholderText(placeholderText: "편지를 받을 아바타를 찾아보세요.",
                               color: UIColor(hex: 0x7B7B7B),
-                              fontSize: 14,
-                              fontWeight: .regular)
+                              font: .content(size: 14, weight: .regular))
         $0.setLeftIcon(iconName: "magnifyingglass",
                        iconSize: CGSize(width: 16, height: 16),
                        iconColor: UIColor(hex:0x7B7B7B),
@@ -144,8 +143,7 @@ class MailWritingController: UIViewController, View {
     private let senderNameInputTextfield = SenderNameInputTextfield().then {
         $0.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
                               color: UIColor(hex: 0x7B7B7B),
-                              fontSize: 14,
-                              fontWeight: .regular)
+                              font: .content(size: 14, weight: .regular))
         $0.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
         $0.setBorder(width: 0, colors: [])
     }
@@ -168,7 +166,7 @@ class MailWritingController: UIViewController, View {
     // 하단 글자수 레이블
     private let textCountLabel = UILabel().then {
         $0.text = "0 | 300자"
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex:0x7B7B7B)
         
         $0.isHidden = true
@@ -177,8 +175,7 @@ class MailWritingController: UIViewController, View {
     private let sendMailButton = UIButton().then {
         $0.setButtonTitle(title: "편지 보내기",
                           color: .white,
-                          fontSize: 20,
-                          fontWeight: .bold)
+                          font: .content(size: 20, weight: .bold))
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -417,8 +414,7 @@ class MailWritingController: UIViewController, View {
                 recipientNameSearchBar.showKeyboard(false)
                 recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 보낼 아바타를 찾아보세요.",
                                                           color: UIColor(hex: 0x7B7B7B),
-                                                          fontSize: 14,
-                                                          fontWeight: .regular)
+                                                          font: .content(size: 14, weight: .regular))
                 showRecipientSearchBar(true)
                 reactor.action.onNext(.initializeRecipientStates)
                 
@@ -512,7 +508,7 @@ class MailWritingController: UIViewController, View {
         if reactor?.currentState.isTooltipHidden == false {
             reactor?.action.onNext(.hideToolTip)
         }
-        topNavigation.setTitle(titleText: "편지 작성하기", titleColor: .white, fontSize: 20, fontWeight: .semibold)
+        topNavigation.setTitleIsHidden(false)
     }
     
     
@@ -612,8 +608,7 @@ extension MailWritingController: SearchBarDelegate {
             recipientNameSearchBar.showKeyboard(false)
             recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 보낼 아바타를 찾아보세요.",
                                                       color: UIColor(hex: 0x7B7B7B),
-                                                      fontSize: 14,
-                                                      fontWeight: .regular)
+                                                      font: .content(size: 14, weight: .regular))
         } else {
             recipientNameSearchBar.showCancelButton(false)
         }
@@ -645,8 +640,7 @@ extension MailWritingController: SearchBarDelegate {
             recipientNameSearchBar.showKeyboard(false)
             recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 받을 아바타를 찾아보세요.",
                                                       color: UIColor(hex: 0x7B7B7B),
-                                                      fontSize: 14,
-                                                      fontWeight: .regular)
+                                                      font: .content(size: 14, weight: .regular))
             showRecipientNameAutoCompleteContainerView(false)
         }
     }
@@ -676,8 +670,7 @@ extension MailWritingController: SenderNameInputTextfieldDelegate {
             senderNameInputTextfield.showKeyboard(false)
             senderNameInputTextfield.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
                                                         color: UIColor(hex: 0x7B7B7B),
-                                                        fontSize: 14,
-                                                        fontWeight: .regular)
+                                                        font: .content(size: 14, weight: .regular))
         }
     }
     
@@ -689,8 +682,7 @@ extension MailWritingController: SenderNameInputTextfieldDelegate {
             
             senderNameLabel.attributedText = .makeAttributedString(text: "From. \(inputText)",
                                                                    color: .black,
-                                                                   fontSize: 16,
-                                                                   fontWeight: .regular)
+                                                                   font: .letter(size: 16, weight: .bold))
             showSenderInputTextfield(false)
         }
     }
@@ -712,8 +704,7 @@ extension MailWritingController: SenderNameInputTextfieldDelegate {
             senderNameInputTextfield.showKeyboard(false)
             senderNameInputTextfield.setPlaceholderText(placeholderText: "편지를 보내는 사람의 이름을 입력하세요.",
                                                         color: UIColor(hex: 0x7B7B7B),
-                                                        fontSize: 14,
-                                                        fontWeight: .regular)
+                                                        font: UIFont.content(size: 14, weight: .regular))
         } else {
             showSenderInputTextfield(false)
         }
@@ -768,8 +759,7 @@ extension MailWritingController: AutoCompletedNameCellDelegate {
         
         recipientNameLabel.attributedText = .makeAttributedString(text: "To. \(selectedAvatar.name)",
                                                                   color: .black,
-                                                                  fontSize: 16,
-                                                                  fontWeight: .regular)
+                                                                  font: .letter(size: 16, weight: .bold))
         showRecipientSearchBar(false)
     }
 }

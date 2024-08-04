@@ -58,7 +58,7 @@ final class AvatarVoiceInputView: UIView {
                 
                 contentsTextLabel.attributedText = .makeAttributedString(text: "\"\(recordingContents)\"",
                                                                          color: .black,
-                                                                         fontSize: 20)
+                                                                         font: .content(size: 20, weight: .medium))
                 contentsTextLabel.textAlignment = .center
             }
         }
@@ -80,13 +80,13 @@ final class AvatarVoiceInputView: UIView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타의 목소리를 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.numberOfLines = 0
         $0.text = "음성 녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요. 샘플 문장과 음성을 모두 입력해야 합니다."
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
         $0.lineBreakMode = .byCharWrapping
     }
@@ -116,8 +116,7 @@ final class AvatarVoiceInputView: UIView {
     private let initialAvatarVoiceRecordButton = UIButton().then {
         $0.setButtonTitle(title: "목소리 녹음하기",
                           color: .white,
-                          fontSize: 16,
-                          fontWeight: .bold)
+                          font: .content(size: 16, weight: .bold))
         $0.applyCornerRadius(15)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -137,7 +136,7 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.font = UIFont.content(size: 18, weight: .regular)
         $0.isScrollEnabled = false  // 스크롤을 비활성화하여 높이 자동 조정을 가능하게 함
     }
     
@@ -145,16 +144,14 @@ final class AvatarVoiceInputView: UIView {
     private let textCountLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "0 | 60자",
                                                   color: UIColor(hex:0x7B7B7B),
-                                                  fontSize: 16,
-                                                  fontWeight: .regular)
+                                                  font: .content(size: 16, weight: .regular))
     }
     
     // 문장으로 녹음 시작 버튼
     private let startRecordingTextButton = UIButton().then {
         $0.setButtonTitle(title: "위 문장으로 녹음하기",
                           color: .white,
-                          fontSize: 16,
-                          fontWeight: .bold)
+                          font: .content(size: 16, weight: .bold))
         $0.applyCornerRadius(15)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -178,33 +175,33 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private let minutesLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let firstColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let secondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let secondColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let millisecondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
@@ -497,8 +494,7 @@ final class AvatarVoiceInputView: UIView {
                 
                 textCountLabel.attributedText = .makeAttributedString(text: "\(recordingContents.count) | 60자",
                                                                       color: UIColor(hex:0x7B7B7B),
-                                                                      fontSize: 16,
-                                                                      fontWeight: .regular)
+                                                                      font: .content(size: 16, weight: .regular))
             })
             .disposed(by: disposeBag)
         

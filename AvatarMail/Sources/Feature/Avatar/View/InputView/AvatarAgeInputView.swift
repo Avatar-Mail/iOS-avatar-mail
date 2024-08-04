@@ -39,12 +39,12 @@ final class AvatarAgeInputView: UIView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타의 나이대를 선택하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.text = "아바타의 나이대는"
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
     }
     

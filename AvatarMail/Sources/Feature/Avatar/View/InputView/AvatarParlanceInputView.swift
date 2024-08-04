@@ -38,12 +38,12 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타의 말투를 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.text = "아바타가 어떤 말투를 가지는지, 예시 문구를 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
     }
     
@@ -55,14 +55,14 @@ final class AvatarParlanceInputView: UIView, ActivatableInputView {
     }
     
     private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.font = UIFont.content(size: 18, weight: .regular)
         $0.isScrollEnabled = false  // 스크롤을 비활성화하여 높이 자동 조정을 가능하게 함
     }
     
     private let clearButton = UIButton().then {
         $0.backgroundColor = .clear
         $0.setTitle("모두 지우기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        $0.titleLabel?.font = UIFont.content(size: 16, weight: .medium)
         $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }

@@ -33,8 +33,7 @@ final class AvatarPlaceholderView: UIView {
     private let titleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "당신만의 아바타를 만들어보세요",
                                                   color: UIColor(hex:0x535353),
-                                                  fontSize: 20,
-                                                  fontWeight: .bold,
+                                                  font: .content(size: 20, weight: .bold),
                                                   lineBreakMode: .byTruncatingTail)
         $0.textAlignment = .center
     }
@@ -42,8 +41,7 @@ final class AvatarPlaceholderView: UIView {
     private let subtitleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "이름, 성격, 나이, 말투, 그리고 목소리까지 설정해보세요.",
                                                   color: UIColor(hex:0x9A9A9A),
-                                                  fontSize: 14,
-                                                  fontWeight: .light,
+                                                  font: .content(size: 14, weight: .light),
                                                   lineBreakMode: .byTruncatingTail)
         $0.textAlignment = .center
     }
@@ -51,8 +49,7 @@ final class AvatarPlaceholderView: UIView {
     private let createAvatarButton = UIButton().then {
         $0.setButtonTitle(title: "새로운 아바타 생성하기",
                           color: .white,
-                          fontSize: 20,
-                          fontWeight: .bold)
+                          font: .content(size: 20, weight: .bold))
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
