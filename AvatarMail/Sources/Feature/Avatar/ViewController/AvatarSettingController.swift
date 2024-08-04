@@ -284,7 +284,6 @@ class AvatarSettingController: UIViewController, View {
             .observe(on: MainScheduler.instance)
             .bind { [weak self] recordings in
                 guard let self else { return }
-                print(recordings)
                 avatarVoiceInputView.setData(recordings: recordings)
             }.disposed(by: disposeBag)
         

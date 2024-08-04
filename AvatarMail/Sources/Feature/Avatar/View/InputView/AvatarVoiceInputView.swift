@@ -40,7 +40,7 @@ final class AvatarVoiceInputView: UIView {
     private struct CollectionViewSetting {
         static let cellHeight: CGFloat = 116
         static let singleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16)
-        static let multipleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16) + 16
+        static let multipleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16) - 16
         static let spacingBetweenCells: CGFloat = 10
     }
     
@@ -54,7 +54,7 @@ final class AvatarVoiceInputView: UIView {
             case .initial:
                 showBackButton(false)
                 titleLabel.text = "아바타의 목소리를 입력하세요."
-                subTitleLabel.text = "음성 녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요. 샘플 문장과 음성을 모두 입력해야 합니다."
+                subTitleLabel.text = "녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요."
             case .inputText:
                 showBackButton(true)
                 titleLabel.text = "문장 입력"
@@ -128,16 +128,16 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private lazy var recordingsCollectionView = UICollectionView(frame: .zero,
-                                                                   collectionViewLayout: self.recordingsCollectionViewFlowLayout).then {
+                                                                 collectionViewLayout: self.recordingsCollectionViewFlowLayout).then {
         $0.isScrollEnabled = true
-        $0.showsHorizontalScrollIndicator = true
+        $0.showsHorizontalScrollIndicator = false
         $0.showsVerticalScrollIndicator = false
         $0.backgroundColor = .clear
         $0.clipsToBounds = true
         $0.register(AudioRecordingCell.self, forCellWithReuseIdentifier: AudioRecordingCell.identifier)
         $0.isPrefetchingEnabled = false
         $0.contentInsetAdjustmentBehavior = .never
-        $0.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        $0.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         $0.decelerationRate = .fast
         $0.translatesAutoresizingMaskIntoConstraints = false
     }
@@ -265,6 +265,8 @@ final class AvatarVoiceInputView: UIView {
         bindUI()
         
         timer.delegate = self
+        recordingsCollectionView.delegate = self
+        recordingsCollectionView.dataSource = self
     }
     
     required init?(coder: NSCoder) {
@@ -301,6 +303,11 @@ final class AvatarVoiceInputView: UIView {
         
         recordingList = recordings
         
+        for subview in recordingsContainerView.subviews {
+            subview.removeConstraints(subview.constraints)
+            subview.removeFromSuperview()
+        }
+        
         // 녹음 파일이 없는 경우
         if recordings.isEmpty {
             // 플레이스 홀더 노출
@@ -326,11 +333,28 @@ final class AvatarVoiceInputView: UIView {
             }
         // 녹음 파일이 여러 개인 경우
         } else {
+            let multipleRecordingsCollectionViewFloatLayout = UICollectionViewFlowLayout().then {
+                $0.scrollDirection = .horizontal
+                $0.itemSize = CGSize(width: CollectionViewSetting.multipleCellWidth,
+                                     height: CollectionViewSetting.cellHeight)
+                $0.minimumLineSpacing = CollectionViewSetting.spacingBetweenCells
+                $0.minimumInteritemSpacing = 0
+            }
+            
+            recordingsCollectionView.collectionViewLayout = multipleRecordingsCollectionViewFloatLayout
+            
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+            
             recordingsContainerView.addSubview(recordingsCollectionView)
             recordingsCollectionView.snp.makeConstraints {
                 $0.edges.equalToSuperview()
             }
         }
+        
+        recordingsCollectionView.reloadData()
     }
     
     
@@ -659,5 +683,39 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
         }
         cell.setData(recording: recordingList[indexPath.row])
         return cell
+    }
+}
+
+
+extension AvatarVoiceInputView: UICollectionViewDelegateFlowLayout {
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, 
+                                   withVelocity velocity: CGPoint,
+                                   targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        
+        let cellWidthIncludingSpacing = CollectionViewSetting.multipleCellWidth + CollectionViewSetting.spacingBetweenCells
+        
+        // targetContentOffset을 이용하여 x좌표가 얼마나 이동했는지 확인
+        // 이동한 x좌표 값과 item의 크기를 비교하여 얼마나 페이징이 될 것인지를 계산
+        var offset = targetContentOffset.pointee
+        let index = (offset.x + recordingsCollectionView.contentInset.left) / cellWidthIncludingSpacing
+        var roundedIndex = round(index)
+        
+        // scrollView, targetContentOffset의 좌표값으로 스크롤 방향을 알 수 있다.
+        // index를 반올림하여 사용하면 item의 절반 사이즈만큼 스크롤을 해야지만 페이징 된다.
+        
+        // 셀 스크롤에 대한 예외 처리 (스크롤 시 셀이 반만 걸쳐있는 경우)
+        if recordingsCollectionView.contentOffset.x > recordingsCollectionView.contentSize.width - frame.width {
+            roundedIndex = ceil(index)
+        } else if recordingsCollectionView.contentOffset.x > targetContentOffset.pointee.x {
+            roundedIndex = floor(index)
+        } else if recordingsCollectionView.contentOffset.x > targetContentOffset.pointee.x {
+            roundedIndex = ceil(index)
+        } else {
+            roundedIndex = round(index)
+        }
+        
+        offset = CGPoint(x: roundedIndex * cellWidthIncludingSpacing - recordingsCollectionView.contentInset.left, y: .zero)
+        targetContentOffset.pointee = offset
     }
 }
