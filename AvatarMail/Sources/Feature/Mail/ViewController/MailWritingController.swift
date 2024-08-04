@@ -80,7 +80,9 @@ class MailWritingController: UIViewController, View {
         $0.layer.borderColor = UIColor(hex: 0xE6E6E6).cgColor
     }
     
-    private let letterScrollView = UIScrollView()
+    private let letterScrollView = UIScrollView().then {
+        $0.showsVerticalScrollIndicator = false
+    }
     
     private let scrollContentView = UIView()
     
