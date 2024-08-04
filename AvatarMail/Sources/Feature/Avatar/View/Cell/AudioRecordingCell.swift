@@ -16,7 +16,7 @@ protocol AudioRecordingCellDelegate: AnyObject {
     func playingButtonDidTap(with recording: AudioRecording)
 }
 
-final class AudioRecordingCell: UIView {
+final class AudioRecordingCell: UICollectionViewCell {
     
     static let identifier = "AudioRecordingCell"
     
@@ -28,11 +28,6 @@ final class AudioRecordingCell: UIView {
         case triangle
         case rectangle
     }
-    
-//    private let cellHeight = 108
-//    private let multipleCellWidth = UIScreen.main.bounds.size.width - 64 - 16
-//    private let singleCellWidth = UIScreen.main.bounds.size.width - 64
-//    private var spacingBetweenCells = 10
     
     private let containerView = UIView().then {
         $0.applyCornerRadius(10)
@@ -84,9 +79,9 @@ final class AudioRecordingCell: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-//    override func prepareForReuse() {
-//        super.prepareForReuse()
-//    }
+    override func prepareForReuse() {
+        super.prepareForReuse()
+    }
     
     
     private func makeUI() {

@@ -37,6 +37,13 @@ final class AvatarVoiceInputView: UIView {
         case rectangle
     }
     
+    private struct CollectionViewSetting {
+        static let cellHeight: CGFloat = 116
+        static let singleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16)
+        static let multipleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16) + 16
+        static let spacingBetweenCells: CGFloat = 10
+    }
+    
     private var viewState: AvatarVoiceInputViewState = .initial {
         didSet {
             showInitialStateView(viewState == .initial ? true : false)
@@ -64,6 +71,7 @@ final class AvatarVoiceInputView: UIView {
         }
     }
     
+    private var recordingList: [AudioRecording] = []  // 음성 녹음 파일 리스트
     private var recordingContents: String = ""
     
     
@@ -112,6 +120,35 @@ final class AvatarVoiceInputView: UIView {
     
     // 1. 최초 state 뷰
     private let initialStateContainerView = UIView()
+    
+    private let recordingsContainerView = UIView()
+    
+    private let recordingsPlaceHolderView = UIView().then {
+        $0.backgroundColor = .systemBlue
+    }
+    
+    private lazy var recordingsCollectionView = UICollectionView(frame: .zero,
+                                                                   collectionViewLayout: self.recordingsCollectionViewFlowLayout).then {
+        $0.isScrollEnabled = true
+        $0.showsHorizontalScrollIndicator = true
+        $0.showsVerticalScrollIndicator = false
+        $0.backgroundColor = .clear
+        $0.clipsToBounds = true
+        $0.register(AudioRecordingCell.self, forCellWithReuseIdentifier: AudioRecordingCell.identifier)
+        $0.isPrefetchingEnabled = false
+        $0.contentInsetAdjustmentBehavior = .never
+        $0.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        $0.decelerationRate = .fast
+        $0.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private lazy var recordingsCollectionViewFlowLayout = UICollectionViewFlowLayout().then {
+        $0.scrollDirection = .horizontal
+        $0.itemSize = CGSize(width: CollectionViewSetting.multipleCellWidth,
+                             height: CollectionViewSetting.cellHeight)
+        $0.minimumLineSpacing = CollectionViewSetting.spacingBetweenCells
+        $0.minimumInteritemSpacing = 0
+    }
     
     private let initialAvatarVoiceRecordButton = UIButton().then {
         $0.setButtonTitle(title: "목소리 녹음하기",
@@ -211,8 +248,6 @@ final class AvatarVoiceInputView: UIView {
         $0.backgroundColor = UIColor(hex:0x6878F6)
     }
     
-    let test = AudioRecordingCell()
-    
     private let recordingButton = UIButton().then {
         $0.applyCornerRadius(34)
         $0.applyBorder(width: 2, color: UIColor(hex:0xC9C9C9))
@@ -230,7 +265,6 @@ final class AvatarVoiceInputView: UIView {
         bindUI()
         
         timer.delegate = self
-        test.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -264,8 +298,38 @@ final class AvatarVoiceInputView: UIView {
     }
     
     public func setData(recordings: [AudioRecording]) {
-        if recordings.count > 0 {
-            test.setData(recording: recordings.last ?? recordings[0])
+        
+        recordingList = recordings
+        
+        // 녹음 파일이 없는 경우
+        if recordings.isEmpty {
+            // 플레이스 홀더 노출
+            recordingsContainerView.addSubview(recordingsPlaceHolderView)
+            recordingsPlaceHolderView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        }
+        // 녹음 파일이 1개인 경우
+        else if recordings.count == 1 {
+            // 셀의 크기를 (Screen.width - 좌우 패딩) 값으로 수정
+            let singleRecordingCollectionViewFloatLayout = UICollectionViewFlowLayout().then {
+                $0.itemSize = CGSize(width: CollectionViewSetting.singleCellWidth,
+                                     height: CollectionViewSetting.cellHeight)
+                $0.minimumLineSpacing = 0
+                $0.minimumInteritemSpacing = 0
+            }
+            recordingsCollectionView.collectionViewLayout = singleRecordingCollectionViewFloatLayout
+            
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        // 녹음 파일이 여러 개인 경우
+        } else {
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
         }
     }
     
@@ -283,7 +347,7 @@ final class AvatarVoiceInputView: UIView {
                     
                     // initial-state 뷰
                     initialStateContainerView.addSubViews(
-                        test,
+                        recordingsContainerView,
                         initialAvatarVoiceRecordButton
                     ),
                     
@@ -353,9 +417,9 @@ final class AvatarVoiceInputView: UIView {
             $0.height.equalTo(200)
         }
         
-        test.snp.makeConstraints {
+        recordingsContainerView.snp.makeConstraints {
             $0.left.top.right.equalToSuperview()
-            $0.height.equalTo(108)
+            $0.height.equalTo(116)
         }
         
         initialAvatarVoiceRecordButton.snp.makeConstraints {
@@ -580,5 +644,20 @@ extension AvatarVoiceInputView: CustomTimerDelegate {
 extension AvatarVoiceInputView: AudioRecordingCellDelegate {
     func playingButtonDidTap(with recording: AudioRecording) {
         delegate?.playingButtonDidTap(with: recording)
+    }
+}
+
+
+extension AvatarVoiceInputView: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        recordingList.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioRecordingCell.identifier, for: indexPath) as? AudioRecordingCell else {
+            return UICollectionViewCell()
+        }
+        cell.setData(recording: recordingList[indexPath.row])
+        return cell
     }
 }
