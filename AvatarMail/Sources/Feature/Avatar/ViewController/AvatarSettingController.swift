@@ -246,6 +246,7 @@ class AvatarSettingController: UIViewController, View {
             }.disposed(by: disposeBag)
         
         reactor.pulse(\.$toastMessage)
+            .observe(on: MainScheduler.instance)
             .filterNil()
             .bind { toastMessage in
                 ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)

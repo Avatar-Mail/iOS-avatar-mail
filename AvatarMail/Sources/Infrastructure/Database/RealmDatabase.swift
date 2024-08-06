@@ -40,8 +40,8 @@ class RealmDatabase: RealmDatabaseProtocol {
                     $0.name == avatarInfoObject.name
                 }).first
                 
-                // 이미 동일한 이름을 갖는 아바타가 존재하는 경우
-                if let avatarInfoObjectWithSameName {
+                // 이미 동일한 이름을 갖는 아바타가 존재하는 경우 (ID는 서로 달라야 함)
+                if let avatarInfoObjectWithSameName, avatarInfoObjectWithSameName.id != avatarInfoObject.id {
                     observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "동일한 이름을 가진 아바타가 존재합니다."))
                     observer.onCompleted()
                     return Disposables.create()

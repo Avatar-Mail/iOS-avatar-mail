@@ -238,7 +238,8 @@ class MailWritingReactor: Reactor {
                         
                         // (3) 아바타의 음성 녹음 정보가 존재하는 경우, 서버에 응답 파일과 녹음본을 보내서, 나레이션 음성 파일을 Response로 받음
                         if let recording = avatarInfo.recordings.last {
-                            return self.networkService.getNarrationAudio(mailContents: repliedMailContents,
+                            return self.networkService.getNarrationAudio(avatarID: avatarInfo.id,
+                                                                         mailContents: repliedMailContents,
                                                                          sampleVoiceURL: recording.fileURL,
                                                                          serverURL: URL(string: "http://127.0.0.1:8000/api/tts")!)
                             .flatMap { narrationFileURL in
