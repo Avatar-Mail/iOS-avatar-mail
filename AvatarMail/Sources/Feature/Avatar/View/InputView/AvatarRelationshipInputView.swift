@@ -46,19 +46,19 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타와 나와의 관계를 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.text = "예) 아바타 - 연예인, 나 - 팬"
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
     }
     
     private let avatarRoleTitleLabel = UILabel().then {
         $0.text = "아바타 :"
         $0.textColor = .lightGray
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        $0.font = UIFont.content(size: 16, weight: .semibold)
         $0.textAlignment = .right
     }
     
@@ -77,7 +77,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     private let avatarRoleClearButton = UIButton().then {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        $0.titleLabel?.font = UIFont.content(size: 16, weight: .medium)
         $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }
@@ -85,7 +85,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     private let userRoleTitleLabel = UILabel().then {
         $0.text = "나 :"
         $0.textColor = .lightGray
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        $0.font = UIFont.content(size: 16, weight: .semibold)
         $0.textAlignment = .right
     }
     
@@ -104,7 +104,7 @@ final class AvatarRelationshipInputView: UIView, ActivatableInputView {
     private let userRoleClearButton = UIButton().then {
         $0.backgroundColor = .clear
         $0.setTitle("지우기", for: .normal)
-        $0.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        $0.titleLabel?.font = UIFont.content(size: 16, weight: .medium)
         $0.setTitleColor(UIColor(hex: 0x6878F6), for: .normal)
         $0.isHidden = true
     }

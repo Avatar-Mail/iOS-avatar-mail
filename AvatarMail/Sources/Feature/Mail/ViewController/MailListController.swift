@@ -19,7 +19,7 @@ class MailListController: UIViewController, View {
     var disposeBag = DisposeBag()
 
     private let topNavigation = TopNavigation().then {
-        $0.setTitle(titleText: "나의 편지함", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTitle(titleText: "나의 편지함", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
@@ -32,7 +32,7 @@ class MailListController: UIViewController, View {
         
         // AttributedString을 사용하여 타이틀 설정
         var title = AttributedString("필터")
-        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.font = UIFont.content(size: 16, weight: .regular)
         title.foregroundColor = UIColor(hex: 0x7B7B7B)
         config.attributedTitle = title
         config.titlePadding = 0

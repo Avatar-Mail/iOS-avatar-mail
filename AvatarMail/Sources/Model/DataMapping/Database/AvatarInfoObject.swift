@@ -10,7 +10,8 @@ import RealmSwift
 class AvatarInfoObject: Object {
     typealias Identifier = String
     
-    @Persisted(primaryKey: true) var name: Identifier          // 아바타 이름
+    @Persisted(primaryKey: true) var id: Identifier            // 아바타 ID
+    @Persisted var name: String                                // 아바타 이름
     @Persisted var ageGroup: String?                           // 아바타 나이대
     @Persisted var avatarRole: String?                         // 아바타의 역할(관계)
     @Persisted var userRole: String?                           // 나의 역할(관계)
@@ -36,6 +37,7 @@ extension AvatarInfoObject {
     // AvatarInfoObject를 AvatarInfo 엔티티로 변환
     func toEntity() -> AvatarInfo {
         return AvatarInfo(
+            id: id,
             name: name,
             ageGroup: ageGroup,
             relationship: Relationship(avatar: avatarRole,

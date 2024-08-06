@@ -25,7 +25,7 @@ class AvatarHomeController: UIViewController, View {
         $0.setLeftLogoIcon(logoName: "white_logo_img", logoSize: CGSize(width: 25, height: 25))
         $0.setRightSidePrimaryIcon(iconName: "bell.fill", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
-        $0.setTitle(titleText: "나의 아바타", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTitle(titleText: "나의 아바타", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
@@ -160,7 +160,7 @@ class AvatarHomeController: UIViewController, View {
 extension AvatarHomeController: AvatarSearchBarDelegate {
     func searchTextFieldDidTap() {
         showAvatarSearchView(true)
-        topNavigation.setTitle(titleText: "아바타 찾기", titleColor: .white, fontSize: 20, fontWeight: .semibold)
+        topNavigation.setTitle(titleText: "아바타 찾기", titleColor: .white, font: .content(size: 18, weight: .semibold))
     }
     
     func searchTextDidChange(text: String) {
@@ -169,14 +169,14 @@ extension AvatarHomeController: AvatarSearchBarDelegate {
     
     func cancelButtonDidTap() {
         showAvatarSearchView(false)
-        topNavigation.setTitle(titleText: "나의 아바타", titleColor: .white, fontSize: 20, fontWeight: .semibold)
+        topNavigation.setTitle(titleText: "나의 아바타", titleColor: .white, font: .content(size: 18, weight: .semibold))
     }
     
     func clearButtonDidTap() {
         reactor?.action.onNext(.syncQueryToSearchTextFieldInput(text: ""))
         showAvatarSearchView(true)
         searchBar.showKeyboard(true)
-        topNavigation.setTitle(titleText: "나의 아바타", titleColor: .white, fontSize: 20, fontWeight: .semibold)
+        topNavigation.setTitle(titleText: "나의 아바타", titleColor: .white, font: .content(size: 18, weight: .semibold))
     }
 }
 

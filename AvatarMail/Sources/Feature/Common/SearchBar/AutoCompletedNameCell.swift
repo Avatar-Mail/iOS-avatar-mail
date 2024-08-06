@@ -30,7 +30,7 @@ final class AutoCompletedNameCell: UICollectionViewCell {
     
     
     private let nameLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16)
+        $0.font = UIFont.content(size: 16, weight: .medium)
         $0.textColor = .black
     }
     

@@ -19,7 +19,7 @@ class RepliedMailController: UIViewController, View {
     
     
     private let topNavigation = TopNavigation().then {
-        $0.setTitle(titleText: "편지 작성하기", titleColor: .white, fontSize: 18, fontWeight: .semibold)
+        $0.setTitle(titleText: "편지 작성하기", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setTitleIsHidden(true)
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
@@ -32,7 +32,7 @@ class RepliedMailController: UIViewController, View {
         
         // AttributedString을 사용하여 타이틀 설정
         var title = AttributedString("편지 삭제하기")
-        title.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        title.font = UIFont.content(size: 16, weight: .regular)
         title.foregroundColor = UIColor(hex: 0x7B7B7B)
         config.attributedTitle = title
         config.titlePadding = 0
@@ -66,7 +66,9 @@ class RepliedMailController: UIViewController, View {
         $0.layer.borderColor = UIColor(hex: 0xE6E6E6).cgColor
     }
     
-    private let letterScrollView = UIScrollView()
+    private let letterScrollView = UIScrollView().then {
+        $0.showsVerticalScrollIndicator = false
+    }
     
     private let scrollContentView = UIView()
     
@@ -94,7 +96,6 @@ class RepliedMailController: UIViewController, View {
     }
     
     private let mailContentsView = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         $0.numberOfLines = 0
     }
     
@@ -113,8 +114,7 @@ class RepliedMailController: UIViewController, View {
     private let replyButton = UIButton().then {
         $0.setButtonTitle(title: "답장 편지 작성하기",
                           color: .white,
-                          fontSize: 20,
-                          fontWeight: .bold)
+                          font: .content(size: 20, weight: .bold))
         $0.applyCornerRadius(20)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -309,12 +309,19 @@ class RepliedMailController: UIViewController, View {
                 
                 topNavigation.setTitle(titleText: mail.isSentFromUser ? "보낸 편지" : "받은 편지",
                                        titleColor: .white,
-                                       fontSize: 18,
-                                       fontWeight: .semibold)
+                                       font: .content(size: 18, weight: .semibold))
                 
-                recipientNameLabel.text = "To. \(mail.recipientName)"
-                mailContentsView.text = mail.content
-                senderNameLabel.text = "From. \(mail.senderName)"
+                recipientNameLabel.attributedText = .makeAttributedString(text: "To. \(mail.recipientName)",
+                                                                          color: .black,
+                                                                          font: .letter(size: 16, weight: .bold))
+                mailContentsView.attributedText = .makeAttributedString(text: mail.content,
+                                                                        color: .black,
+                                                                        font: .letter(size: 16, weight: .medium),
+                                                                        lineHeightMultiple: 1.6)
+                senderNameLabel.attributedText = .makeAttributedString(text: "From. \(mail.senderName)",
+                                                                       color: .black,
+                                                                       font: .letter(size: 16, weight: .bold),
+                                                                       textAlignment: .right)
                 
                 if mail.isSentFromUser == false, let recording = mail.audioRecording {
                     narrationButton.isHidden = false

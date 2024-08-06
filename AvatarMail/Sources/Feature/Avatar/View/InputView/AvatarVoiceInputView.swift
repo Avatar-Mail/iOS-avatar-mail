@@ -37,6 +37,13 @@ final class AvatarVoiceInputView: UIView {
         case rectangle
     }
     
+    private struct CollectionViewSetting {
+        static let cellHeight: CGFloat = 116
+        static let singleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16)
+        static let multipleCellWidth: CGFloat = UIScreen.main.bounds.size.width - 2 * (20 + 16) - 16
+        static let spacingBetweenCells: CGFloat = 10
+    }
+    
     private var viewState: AvatarVoiceInputViewState = .initial {
         didSet {
             showInitialStateView(viewState == .initial ? true : false)
@@ -47,7 +54,7 @@ final class AvatarVoiceInputView: UIView {
             case .initial:
                 showBackButton(false)
                 titleLabel.text = "아바타의 목소리를 입력하세요."
-                subTitleLabel.text = "음성 녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요. 샘플 문장과 음성을 모두 입력해야 합니다."
+                subTitleLabel.text = "녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요."
             case .inputText:
                 showBackButton(true)
                 titleLabel.text = "문장 입력"
@@ -58,12 +65,13 @@ final class AvatarVoiceInputView: UIView {
                 
                 contentsTextLabel.attributedText = .makeAttributedString(text: "\"\(recordingContents)\"",
                                                                          color: .black,
-                                                                         fontSize: 20)
+                                                                         font: .content(size: 20, weight: .medium))
                 contentsTextLabel.textAlignment = .center
             }
         }
     }
     
+    private var recordingList: [AudioRecording] = []  // 음성 녹음 파일 리스트
     private var recordingContents: String = ""
     
     
@@ -80,13 +88,13 @@ final class AvatarVoiceInputView: UIView {
     
     private let titleLabel = UILabel().then {
         $0.text = "아바타의 목소리를 입력하세요."
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        $0.font = UIFont.content(size: 18, weight: .bold)
     }
     
     private let subTitleLabel = UILabel().then {
         $0.numberOfLines = 0
         $0.text = "음성 녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요. 샘플 문장과 음성을 모두 입력해야 합니다."
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        $0.font = UIFont.content(size: 14, weight: .regular)
         $0.textColor = .lightGray
         $0.lineBreakMode = .byCharWrapping
     }
@@ -113,11 +121,39 @@ final class AvatarVoiceInputView: UIView {
     // 1. 최초 state 뷰
     private let initialStateContainerView = UIView()
     
+    private let recordingsContainerView = UIView()
+    
+    private let recordingsPlaceHolderView = UIView().then {
+        $0.backgroundColor = .systemBlue
+    }
+    
+    private lazy var recordingsCollectionView = UICollectionView(frame: .zero,
+                                                                 collectionViewLayout: self.recordingsCollectionViewFlowLayout).then {
+        $0.isScrollEnabled = true
+        $0.showsHorizontalScrollIndicator = false
+        $0.showsVerticalScrollIndicator = false
+        $0.backgroundColor = .clear
+        $0.clipsToBounds = true
+        $0.register(AudioRecordingCell.self, forCellWithReuseIdentifier: AudioRecordingCell.identifier)
+        $0.isPrefetchingEnabled = false
+        $0.contentInsetAdjustmentBehavior = .never
+        $0.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        $0.decelerationRate = .fast
+        $0.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private lazy var recordingsCollectionViewFlowLayout = UICollectionViewFlowLayout().then {
+        $0.scrollDirection = .horizontal
+        $0.itemSize = CGSize(width: CollectionViewSetting.multipleCellWidth,
+                             height: CollectionViewSetting.cellHeight)
+        $0.minimumLineSpacing = CollectionViewSetting.spacingBetweenCells
+        $0.minimumInteritemSpacing = 0
+    }
+    
     private let initialAvatarVoiceRecordButton = UIButton().then {
         $0.setButtonTitle(title: "목소리 녹음하기",
                           color: .white,
-                          fontSize: 16,
-                          fontWeight: .bold)
+                          font: .content(size: 16, weight: .bold))
         $0.applyCornerRadius(15)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -137,7 +173,7 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.font = UIFont.content(size: 18, weight: .regular)
         $0.isScrollEnabled = false  // 스크롤을 비활성화하여 높이 자동 조정을 가능하게 함
     }
     
@@ -145,16 +181,14 @@ final class AvatarVoiceInputView: UIView {
     private let textCountLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "0 | 60자",
                                                   color: UIColor(hex:0x7B7B7B),
-                                                  fontSize: 16,
-                                                  fontWeight: .regular)
+                                                  font: .content(size: 16, weight: .regular))
     }
     
     // 문장으로 녹음 시작 버튼
     private let startRecordingTextButton = UIButton().then {
         $0.setButtonTitle(title: "위 문장으로 녹음하기",
                           color: .white,
-                          fontSize: 16,
-                          fontWeight: .bold)
+                          font: .content(size: 16, weight: .bold))
         $0.applyCornerRadius(15)
         $0.applyShadow(shadowRadius: 4,
                        shadowOffset: CGSize(width: 0, height: 2),
@@ -178,33 +212,33 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private let minutesLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let firstColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let secondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let secondColonLabel = UILabel().then {
         $0.text = ":"
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
     
     private let millisecondsLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        $0.font = UIFont.content(size: 16, weight: .regular)
         $0.textColor = UIColor(hex: 0x898989)
         $0.textAlignment = .center
     }
@@ -213,8 +247,6 @@ final class AvatarVoiceInputView: UIView {
         $0.applyCornerRadius(30)
         $0.backgroundColor = UIColor(hex:0x6878F6)
     }
-    
-    let test = AudioRecordingCell()
     
     private let recordingButton = UIButton().then {
         $0.applyCornerRadius(34)
@@ -233,7 +265,8 @@ final class AvatarVoiceInputView: UIView {
         bindUI()
         
         timer.delegate = self
-        test.delegate = self
+        recordingsCollectionView.delegate = self
+        recordingsCollectionView.dataSource = self
     }
     
     required init?(coder: NSCoder) {
@@ -267,9 +300,61 @@ final class AvatarVoiceInputView: UIView {
     }
     
     public func setData(recordings: [AudioRecording]) {
-        if recordings.count > 0 {
-            test.setData(recording: recordings.last ?? recordings[0])
+        
+        recordingList = recordings
+        
+        for subview in recordingsContainerView.subviews {
+            subview.removeConstraints(subview.constraints)
+            subview.removeFromSuperview()
         }
+        
+        // 녹음 파일이 없는 경우
+        if recordings.isEmpty {
+            // 플레이스 홀더 노출
+            recordingsContainerView.addSubview(recordingsPlaceHolderView)
+            recordingsPlaceHolderView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        }
+        // 녹음 파일이 1개인 경우
+        else if recordings.count == 1 {
+            // 셀의 크기를 (Screen.width - 좌우 패딩) 값으로 수정
+            let singleRecordingCollectionViewFloatLayout = UICollectionViewFlowLayout().then {
+                $0.itemSize = CGSize(width: CollectionViewSetting.singleCellWidth,
+                                     height: CollectionViewSetting.cellHeight)
+                $0.minimumLineSpacing = 0
+                $0.minimumInteritemSpacing = 0
+            }
+            recordingsCollectionView.collectionViewLayout = singleRecordingCollectionViewFloatLayout
+            
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        // 녹음 파일이 여러 개인 경우
+        } else {
+            let multipleRecordingsCollectionViewFloatLayout = UICollectionViewFlowLayout().then {
+                $0.scrollDirection = .horizontal
+                $0.itemSize = CGSize(width: CollectionViewSetting.multipleCellWidth,
+                                     height: CollectionViewSetting.cellHeight)
+                $0.minimumLineSpacing = CollectionViewSetting.spacingBetweenCells
+                $0.minimumInteritemSpacing = 0
+            }
+            
+            recordingsCollectionView.collectionViewLayout = multipleRecordingsCollectionViewFloatLayout
+            
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+            
+            recordingsContainerView.addSubview(recordingsCollectionView)
+            recordingsCollectionView.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+            }
+        }
+        
+        recordingsCollectionView.reloadData()
     }
     
     
@@ -286,7 +371,7 @@ final class AvatarVoiceInputView: UIView {
                     
                     // initial-state 뷰
                     initialStateContainerView.addSubViews(
-                        test,
+                        recordingsContainerView,
                         initialAvatarVoiceRecordButton
                     ),
                     
@@ -356,9 +441,9 @@ final class AvatarVoiceInputView: UIView {
             $0.height.equalTo(200)
         }
         
-        test.snp.makeConstraints {
+        recordingsContainerView.snp.makeConstraints {
             $0.left.top.right.equalToSuperview()
-            $0.height.equalTo(108)
+            $0.height.equalTo(116)
         }
         
         initialAvatarVoiceRecordButton.snp.makeConstraints {
@@ -497,8 +582,7 @@ final class AvatarVoiceInputView: UIView {
                 
                 textCountLabel.attributedText = .makeAttributedString(text: "\(recordingContents.count) | 60자",
                                                                       color: UIColor(hex:0x7B7B7B),
-                                                                      fontSize: 16,
-                                                                      fontWeight: .regular)
+                                                                      font: .content(size: 16, weight: .regular))
             })
             .disposed(by: disposeBag)
         
@@ -584,5 +668,54 @@ extension AvatarVoiceInputView: CustomTimerDelegate {
 extension AvatarVoiceInputView: AudioRecordingCellDelegate {
     func playingButtonDidTap(with recording: AudioRecording) {
         delegate?.playingButtonDidTap(with: recording)
+    }
+}
+
+
+extension AvatarVoiceInputView: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        recordingList.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioRecordingCell.identifier, for: indexPath) as? AudioRecordingCell else {
+            return UICollectionViewCell()
+        }
+        cell.setData(recording: recordingList[indexPath.row])
+        return cell
+    }
+}
+
+
+extension AvatarVoiceInputView: UICollectionViewDelegateFlowLayout {
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, 
+                                   withVelocity velocity: CGPoint,
+                                   targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        
+        let cellWidthIncludingSpacing = CollectionViewSetting.multipleCellWidth + CollectionViewSetting.spacingBetweenCells
+        
+        // targetContentOffset을 이용하여 x좌표가 얼마나 이동했는지 확인
+        // 이동한 x좌표 값과 item의 크기를 비교하여 얼마나 페이징이 될 것인지를 계산
+        var offset = targetContentOffset.pointee
+        let index = (offset.x + recordingsCollectionView.contentInset.left) / cellWidthIncludingSpacing
+        var roundedIndex = round(index)
+        
+        // scrollView, targetContentOffset의 좌표값으로 스크롤 방향을 알 수 있다.
+        // index를 반올림하여 사용하면 item의 절반 사이즈만큼 스크롤을 해야지만 페이징 된다.
+        
+        // 셀 스크롤에 대한 예외 처리 (스크롤 시 셀이 반만 걸쳐있는 경우)
+        if recordingsCollectionView.contentOffset.x > recordingsCollectionView.contentSize.width - frame.width {
+            roundedIndex = ceil(index)
+        } else if recordingsCollectionView.contentOffset.x > targetContentOffset.pointee.x {
+            roundedIndex = floor(index)
+        } else if recordingsCollectionView.contentOffset.x > targetContentOffset.pointee.x {
+            roundedIndex = ceil(index)
+        } else {
+            roundedIndex = round(index)
+        }
+        
+        offset = CGPoint(x: roundedIndex * cellWidthIncludingSpacing - recordingsCollectionView.contentInset.left, y: .zero)
+        targetContentOffset.pointee = offset
     }
 }

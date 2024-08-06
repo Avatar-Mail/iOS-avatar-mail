@@ -74,8 +74,7 @@ final class CustomItemView: UIView {
         nameLabel.configureWith(item.name,
                                 color: .white.withAlphaComponent(0.4),
                                 alignment: .center,
-                                size: 11,
-                                weight: .semibold)
+                                font: UIFont.content(size: 11, weight: .semibold))
         underlineView.backgroundColor = .white
         underlineView.applyCornerRadius(2)
         
