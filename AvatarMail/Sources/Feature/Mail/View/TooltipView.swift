@@ -51,13 +51,12 @@ class TooltipView: UIView {
         if let title {
             titleLabel.attributedText = .makeAttributedString(text: title,
                                                               color: .white,
-                                                              fontSize: 20,
-                                                              fontWeight: .bold)
+                                                              font: .content(size: 20, weight: .bold))
         }
         if let description {
             descriptionLabel.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 편지를 작성해보세요.",
                                                                     color: .white,
-                                                                    fontSize: 14,
+                                                                    font: .content(size: 14, weight: .regular),
                                                                     lineBreakMode: .byCharWrapping)
         }
     }

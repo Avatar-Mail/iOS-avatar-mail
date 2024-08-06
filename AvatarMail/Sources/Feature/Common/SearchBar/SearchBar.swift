@@ -210,12 +210,10 @@ final class SearchBar: UIView {
     
     public func setPlaceholderText(placeholderText: String,
                                    color: UIColor,
-                                   fontSize: CGFloat,
-                                   fontWeight: UIFont.Weight) {
+                                   font: UIFont) {
         searchTextField.attributedPlaceholder = .makeAttributedString(text: placeholderText,
                                                                       color: color,
-                                                                      fontSize: fontSize,
-                                                                      fontWeight: fontWeight)
+                                                                      font: font)
     }
     
     

@@ -200,14 +200,12 @@ public final class TopNavigation: UIView {
     ///   - fontSize: 타이틀 폰트 사이즈
     public func setTitle(titleText: String?,
                          titleColor: UIColor,
-                         fontSize: CGFloat,
-                         fontWeight: UIFont.Weight) {
+                         font: UIFont) {
         
         if let titleText {
             titleLabel.attributedText = .makeAttributedString(text: titleText,
                                                               color: titleColor,
-                                                              fontSize: fontSize,
-                                                              fontWeight: fontWeight,
+                                                              font: font,
                                                               textAlignment: .center)
             titleLabel.isHidden = false
         }
@@ -325,13 +323,11 @@ public final class TopNavigation: UIView {
     ///  - buttonTextColor: 텍스트 버튼 내 텍스트 색상
     public func setRightSideTextButton(buttonText: String?,
                                        buttonTextColor: UIColor,
-                                       buttonTextFontSize: CGFloat,
-                                       buttonTextFontWeight: UIFont.Weight) {
+                                       buttonTextFont: UIFont) {
         if let buttonText {
             rightSideTextButton.setAttributedTitle(.makeAttributedString(text: buttonText,
                                                                          color: buttonTextColor,
-                                                                         fontSize: buttonTextFontSize,
-                                                                         fontWeight: buttonTextFontWeight),
+                                                                         font: buttonTextFont),
                                                    for: .normal)
             rightSideTextButton.isHidden = false
         }

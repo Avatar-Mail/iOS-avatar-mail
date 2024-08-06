@@ -30,8 +30,7 @@ public class GlobalIndicator {
             descriptionLabel = UILabel().then {
                 $0.attributedText = .makeAttributedString(text: description,
                                                           color: .white,
-                                                          fontSize: 16,
-                                                          fontWeight: .regular)
+                                                          font: .content(size: 16, weight: .regular))
             }
         }
         

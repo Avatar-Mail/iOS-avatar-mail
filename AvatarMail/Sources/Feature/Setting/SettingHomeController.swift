@@ -16,7 +16,7 @@ class SettingHomeController: UIViewController {
     
     private let pageTitleLabel = UILabel().then {
         $0.text = "설정"
-        $0.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        $0.font = UIFont.content(size: 28, weight: .bold)
     }
     
     // scroll-view
@@ -66,24 +66,21 @@ class SettingHomeController: UIViewController {
     private let fileNameLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "FileName: ",
                                                   color: .black,
-                                                  fontSize: 20,
-                                                  fontWeight: .bold)
+                                                  font: .content(size: 20, weight: .bold))
         $0.numberOfLines = 0
     }
     
     private let fileUrlLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "FileURL: ",
                                                   color: .darkGray,
-                                                  fontSize: 16,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 16, weight: .regular))
         $0.numberOfLines = 0
     }
     
     private let createdDateLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "Date: ",
                                                   color: .gray,
-                                                  fontSize: 16,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 16, weight: .regular))
         $0.numberOfLines = 1
     }
     
@@ -91,8 +88,7 @@ class SettingHomeController: UIViewController {
     private let recordingTitleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "음성 기록 시간",
                                                   color: .black,
-                                                  fontSize: 16,
-                                                  fontWeight: .semibold)
+                                                  font: .content(size: 16, weight: .semibold))
     }
     
     private let recordingMinutesLabel = UILabel().then {
@@ -100,8 +96,7 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     private let recordingSecondsLabel = UILabel().then {
@@ -109,8 +104,7 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     private let recordingMillisecondsLabel = UILabel().then {
@@ -118,16 +112,14 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     // 음성 재생
     private let playingTitleLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "음성 재생 시간",
                                                   color: .black,
-                                                  fontSize: 16,
-                                                  fontWeight: .semibold)
+                                                  font: .content(size: 16, weight: .semibold))
     }
     
     private let playingMinutesLabel = UILabel().then {
@@ -135,8 +127,7 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     private let playingSecondsLabel = UILabel().then {
@@ -144,8 +135,7 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     private let playingMillisecondsLabel = UILabel().then {
@@ -153,8 +143,7 @@ class SettingHomeController: UIViewController {
         $0.textAlignment = .center
         $0.attributedText = .makeAttributedString(text: "00",
                                                   color: .black,
-                                                  fontSize: 18,
-                                                  fontWeight: .medium)
+                                                  font: .content(size: 18, weight: .medium))
     }
     
     private let textViewContainerView = UIView().then {
@@ -165,7 +154,7 @@ class SettingHomeController: UIViewController {
     }
     
     private let inputTextView = UITextView().then {
-        $0.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        $0.font = UIFont.content(size: 18, weight: .regular)
         $0.isScrollEnabled = true
     }
     
@@ -515,18 +504,15 @@ class SettingHomeController: UIViewController {
                 
                 recordingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
                                                                              color: .black,
-                                                                             fontSize: 18,
-                                                                             fontWeight: .medium)
+                                                                             font: .content(size: 18, weight: .medium))
                 
                 recordingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
                                                                              color: .black,
-                                                                             fontSize: 18,
-                                                                             fontWeight: .medium)
+                                                                             font: .content(size: 18, weight: .medium))
                 
                 recordingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
-                                                                             color: .black,
-                                                                             fontSize: 18,
-                                                                             fontWeight: .medium)
+                                                                                  color: .black,
+                                                                                  font: .content(size: 18, weight: .medium))
             }).disposed(by: disposeBag)
         
         playingTime
@@ -543,18 +529,15 @@ class SettingHomeController: UIViewController {
                     
                     playingMinutesLabel.attributedText = .makeAttributedString(text: String(format: "%02d", minutes),
                                                                                color: .black,
-                                                                               fontSize: 18,
-                                                                               fontWeight: .medium)
+                                                                               font: .content(size: 18, weight: .medium))
                     
                     playingSecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", seconds),
                                                                                color: .black,
-                                                                               fontSize: 18,
-                                                                               fontWeight: .medium)
+                                                                               font: .content(size: 18, weight: .medium))
                     
                     playingMillisecondsLabel.attributedText = .makeAttributedString(text: String(format: "%02d", milliseconds),
                                                                                     color: .black,
-                                                                                    fontSize: 18,
-                                                                                    fontWeight: .medium)
+                                                                                    font: .content(size: 18, weight: .medium))
                 }
             }).disposed(by: disposeBag)
         

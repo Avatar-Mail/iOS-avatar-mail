@@ -10,19 +10,26 @@ import RxSwift
 import RxCocoa
 
 protocol NetworkServiceProtocol {
-    func getNarrationAudio(mailContents: String,
+    func getNarrationAudio(avatarID: String,
+                           mailContents: String,
                            sampleVoiceURL: URL,
                            serverURL: URL) -> Observable<URL>
+    
+    func sendAvatarAudioFiles(avatarID: String,
+                              audioURLs: [URL],
+                              serverURL: URL) -> Observable<Void>
 }
+
+
 final class NetworkService: NetworkServiceProtocol {
     
     public static let shared = NetworkService()
     
-    private init() {
-        
-    }
+    private init() {}
     
-    func getNarrationAudio(mailContents: String,
+    
+    func getNarrationAudio(avatarID: String,
+                           mailContents: String,
                            sampleVoiceURL: URL,
                            serverURL: URL) -> Observable<URL> {
         
@@ -41,7 +48,7 @@ final class NetworkService: NetworkServiceProtocol {
             let boundary = UUID().uuidString
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             
-            let parameters = ["text": mailContents]
+            let parameters = ["text": mailContents, "avatar_id": avatarID]
             var paths = [sampleVoiceURL]
             
             request.httpBody = createBody(with: parameters, filePathKey: "input_voice_file", paths: paths, boundary: boundary)
@@ -81,6 +88,55 @@ final class NetworkService: NetworkServiceProtocol {
                 } else {
                     observer.onError(NetworkServiceError.networkServiceFileNameNotFoundError)
                     return
+                }
+            }
+            task.resume()
+            
+            return Disposables.create {
+                task.cancel()
+            }
+        }
+    }
+    
+    
+    func sendAvatarAudioFiles(avatarID: String,
+                              audioURLs: [URL],
+                              serverURL: URL) -> RxSwift.Observable<Void> {
+        print("[SEND AUDIO FILES START]")
+        
+        return Observable.create { [weak self] observer -> Disposable in
+            
+            guard let self = self else {
+                observer.onError(NetworkServiceError.networkServiceCreationFailure)
+                return Disposables.create()
+            }
+            
+            var request = URLRequest(url: serverURL)
+            request.httpMethod = "POST"
+            
+            let boundary = UUID().uuidString
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            
+            let parameters = ["avatar_id": avatarID]
+            
+            request.httpBody = createBody(with: parameters, filePathKey: "input_voice_files", paths: audioURLs, boundary: boundary)
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    observer.onError(error)
+                    return
+                }
+                
+                guard let data = data else {
+                    observer.onError(NetworkServiceError.networkServiceResponseError)
+                    return
+                }
+                
+                if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                    observer.onError(NetworkServiceError.networkServiceResponseError)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
                 }
             }
             task.resume()

@@ -32,8 +32,7 @@ final class RecipientNamePlaceholderView: UIView {
     let messageLabel = UILabel().then {
         $0.attributedText = .makeAttributedString(text: "입력된 아바타가 존재하지 않습니다.",
                                                   color: UIColor(hex: 0x787878),
-                                                  fontSize: 14,
-                                                  fontWeight: .regular)
+                                                  font: .content(size: 14, weight: .regular))
     }
     
     let newAvatarCreationButton = UIButton().then {
@@ -41,7 +40,7 @@ final class RecipientNamePlaceholderView: UIView {
         
         // AttributedString을 사용하여 타이틀 설정
         var title = AttributedString("새로운 아바타 생성하기")
-        title.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        title.font = UIFont.content(size: 14, weight: .regular)
         title.foregroundColor = UIColor(hex: 0xB6B6B6)
         config.attributedTitle = title
         config.titlePadding = 0

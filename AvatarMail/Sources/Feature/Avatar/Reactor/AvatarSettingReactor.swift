@@ -42,6 +42,7 @@ class AvatarSettingReactor: Reactor {
     }
     
     struct State {
+        var id: String                      // ID
         var name: String                    // 이름
         var age: String?                    // 나이
         var avatarRole: String?             // 아바타의 역할(관계)
@@ -64,22 +65,26 @@ class AvatarSettingReactor: Reactor {
     // MARK: - Initialization
     var coordinator: AvatarSettingCoordinator
     var database: RealmDatabaseProtocol
+    var networkService: NetworkServiceProtocol
     var audioRecordingManager: AudioRecordingManager
     var audioPlayingManager: AudioPlayingManager
     
     init(
         coordinator: AvatarSettingCoordinator,
         database: RealmDatabaseProtocol,
+        networkService: NetworkServiceProtocol,
         audioRecordingManager: AudioRecordingManager,
         audioPlayingManager: AudioPlayingManager,
         avatar: AvatarInfo?
     ) {
         self.coordinator = coordinator
         self.database = database
+        self.networkService = networkService
         self.audioRecordingManager = audioRecordingManager
         self.audioPlayingManager = audioPlayingManager
 
-        self.initialState = State(name: avatar?.name ?? "",
+        self.initialState = State(id: avatar?.id ?? UUID().uuidString,
+                                  name: avatar?.name ?? "",
                                   age: avatar?.ageGroup,
                                   avatarRole: avatar?.relationship.avatar,
                                   userRole: avatar?.relationship.user,
@@ -119,7 +124,8 @@ class AvatarSettingReactor: Reactor {
         case .stopPlaying:
             return stopPlaying()
         case .saveAvatar:
-            let avatar = AvatarInfo(name: currentState.name,
+            let avatar = AvatarInfo(id: UUID().uuidString,
+                                    name: currentState.name,
                                     ageGroup: currentState.age,
                                     relationship: Relationship(avatar: currentState.avatarRole,
                                                                user: currentState.userRole),
@@ -179,10 +185,18 @@ class AvatarSettingReactor: Reactor {
         
         return database.saveAvatar(avatarObject)
             .flatMap { toastMessage in
-                return Observable.of(
-                    Mutation.setToastMessage(text: toastMessage),
-                    Mutation.setAvatarHasSaved(hasSaved: true)
-                )
+                self.networkService.sendAvatarAudioFiles(avatarID: avatar.id,
+                                                    audioURLs: avatar.recordings.map { $0.fileURL },
+                                                    serverURL: URL(string: "http://127.0.0.1:8000/api/avatar")!)
+                .flatMap {
+                    return Observable.of(
+                        Mutation.setToastMessage(text: toastMessage),
+                        Mutation.setAvatarHasSaved(hasSaved: true)
+                    )
+                }.catch { error in
+                    return Observable.just(Mutation.setToastMessage(text: "서버에 아바타 오디오 파일을 저장하는 데 실패했습니다."))
+                    
+                }
             }
             .catch { error in
                 if let error = error as? RealmDatabaseError {

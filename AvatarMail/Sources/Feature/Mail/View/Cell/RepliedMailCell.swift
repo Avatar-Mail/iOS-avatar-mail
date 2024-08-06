@@ -39,19 +39,19 @@ class RepliedMailCell: UICollectionViewCell {
     // 수신인 레이블
     private let recipientLabel = UILabel().then {
         $0.text = "Hello world"
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        $0.font = UIFont.content(size: 14, weight: .semibold)
         $0.textColor = UIColor(hex:0x777777)
     }
     
     // 날짜 레이블
     private let dateLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 12, weight: .regular)
+        $0.font = UIFont.content(size: 12, weight: .regular)
         $0.textColor = UIColor(hex:0x8F8F8F)
     }
     
     // 발신인 레이블
     private let senderLabel = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        $0.font = UIFont.content(size: 14, weight: .semibold)
         $0.textColor = UIColor(hex:0x777777)
     }
 
