@@ -10,7 +10,8 @@ import Foundation
 struct AvatarInfo: Hashable, Codable {
     typealias Identifier = String
     
-    let name: Identifier              // 이름
+    let id: Identifier                // 아바타 ID
+    let name: String                  // 이름
     let ageGroup: String?             // 나이대
     let relationship: Relationship    // 관계
     let characteristic: String?       // 성격

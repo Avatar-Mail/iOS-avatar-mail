@@ -42,6 +42,7 @@ class AvatarSettingReactor: Reactor {
     }
     
     struct State {
+        var id: String                      // ID
         var name: String                    // 이름
         var age: String?                    // 나이
         var avatarRole: String?             // 아바타의 역할(관계)
@@ -79,7 +80,8 @@ class AvatarSettingReactor: Reactor {
         self.audioRecordingManager = audioRecordingManager
         self.audioPlayingManager = audioPlayingManager
 
-        self.initialState = State(name: avatar?.name ?? "",
+        self.initialState = State(id: avatar?.id ?? UUID().uuidString,
+                                  name: avatar?.name ?? "",
                                   age: avatar?.ageGroup,
                                   avatarRole: avatar?.relationship.avatar,
                                   userRole: avatar?.relationship.user,
@@ -119,7 +121,8 @@ class AvatarSettingReactor: Reactor {
         case .stopPlaying:
             return stopPlaying()
         case .saveAvatar:
-            let avatar = AvatarInfo(name: currentState.name,
+            let avatar = AvatarInfo(id: UUID().uuidString,
+                                    name: currentState.name,
                                     ageGroup: currentState.age,
                                     relationship: Relationship(avatar: currentState.avatarRole,
                                                                user: currentState.userRole),

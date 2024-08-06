@@ -36,14 +36,27 @@ class RealmDatabase: RealmDatabaseProtocol {
             do {
                 let realm = try Realm()
                 
+                let avatarInfoObjectWithSameName = Array(realm.objects(AvatarInfoObject.self).where {
+                    $0.name == avatarInfoObject.name
+                }).first
+                
+                // 이미 동일한 이름을 갖는 아바타가 존재하는 경우
+                if let avatarInfoObjectWithSameName {
+                    observer.onError(RealmDatabaseError.RealmDatabaseError(errorMessage: "동일한 이름을 가진 아바타가 존재합니다."))
+                    observer.onCompleted()
+                    return Disposables.create()
+                }
+                
+                
                 try realm.write {
-                    let existingAvatar = realm.object(ofType: AvatarInfoObject.self, forPrimaryKey: avatarInfoObject.name)
+                    let existingAvatar = realm.object(ofType: AvatarInfoObject.self, forPrimaryKey: avatarInfoObject.id)
                     
                     if let existingAvatar {
                         // 기존 녹음 파일 삭제
                         existingAvatar.recordings.removeAll()
                         
                         // 기존 아바타의 필드 업데이트
+                        existingAvatar.name = avatarInfoObject.name
                         existingAvatar.ageGroup = avatarInfoObject.ageGroup
                         existingAvatar.avatarRole = avatarInfoObject.avatarRole
                         existingAvatar.userRole = avatarInfoObject.userRole
