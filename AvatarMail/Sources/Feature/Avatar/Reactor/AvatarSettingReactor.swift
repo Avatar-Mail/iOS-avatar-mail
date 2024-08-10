@@ -187,7 +187,7 @@ class AvatarSettingReactor: Reactor {
             .flatMap { toastMessage in
                 self.networkService.sendAvatarAudioFiles(avatarID: avatar.id,
                                                     audioURLs: avatar.recordings.map { $0.fileURL },
-                                                    serverURL: URL(string: "http://127.0.0.1:8000/api/avatar")!)
+                                                    serverURL: URL(string: "http://127.0.0.1:5000/api/avatar")!)
                 .flatMap {
                     return Observable.of(
                         Mutation.setToastMessage(text: toastMessage),

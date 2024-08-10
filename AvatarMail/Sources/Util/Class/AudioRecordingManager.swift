@@ -39,7 +39,17 @@ final class AudioRecordingManager: NSObject {
         // 파일 이름
         let fileName: String = "\(avatarName)_\(fileID).m4a"
         // 파일 경로
-        let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let documentPath = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        
+        // 디렉터리가 없으면 생성
+        if !FileManager.default.fileExists(atPath: documentPath.path) {
+            do {
+                try FileManager.default.createDirectory(at: documentPath, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                print("Failed to create directory: \(error.localizedDescription)")
+            }
+        }
+        
         let fileURL = documentPath.appendingPathComponent("\(fileName)")
         // 파일 생성 날짜
         let currentDate = Date()

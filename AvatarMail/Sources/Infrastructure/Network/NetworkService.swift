@@ -73,7 +73,8 @@ final class NetworkService: NetworkServiceProtocol {
                 
                 if let contentDisposition = (response as? HTTPURLResponse)?.allHeaderFields["Content-Disposition"] as? String,
                    let fileName = self.extractFileName(from: contentDisposition) {
-                    let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    
+                    let documentPath = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
                     let fileURL = documentPath.appendingPathComponent(fileName)
                     
                     do {

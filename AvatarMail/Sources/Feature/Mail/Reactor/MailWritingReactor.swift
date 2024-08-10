@@ -241,7 +241,7 @@ class MailWritingReactor: Reactor {
                             return self.networkService.getNarrationAudio(avatarID: avatarInfo.id,
                                                                          mailContents: repliedMailContents,
                                                                          sampleVoiceURL: recording.fileURL,
-                                                                         serverURL: URL(string: "http://127.0.0.1:8000/api/tts")!)
+                                                                         serverURL: URL(string: "http://127.0.0.1:5000/api/tts")!)
                             .flatMap { narrationFileURL in
                                 // 파일 ID
                                 let fileID = UUID().uuidString
