@@ -16,7 +16,7 @@ class AppContainer {
     
     // MARK: 의존성 등록 메서드 (초기화)
     func registerDepedencies() {
-        // OpenAIService
+        
         container.register(OpenAIService.self) {
             _ in OpenAIService()
         }.inObjectScope(.container)
@@ -31,6 +31,10 @@ class AppContainer {
         
         container.register(AudioPlayingManager.self) {
             _ in AudioPlayingManager()
+        }.inObjectScope(.container)
+        
+        container.register(StorageManager.self) {
+            _ in StorageManager()
         }.inObjectScope(.container)
     }
 
@@ -49,6 +53,10 @@ class AppContainer {
     
     func getAudioPlayingManager() -> AudioPlayingManager! {
         return container.resolve(AudioPlayingManager.self)
+    }
+    
+    func getStorageManager() -> StorageManager! {
+        return container.resolve(StorageManager.self)
     }
 }
 
