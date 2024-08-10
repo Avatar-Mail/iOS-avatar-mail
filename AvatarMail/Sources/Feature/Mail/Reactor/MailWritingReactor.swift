@@ -91,12 +91,13 @@ class MailWritingReactor: Reactor {
     init(
         coordinator: MailWritingCoordinatorProtocol,
         openAIService: OpenAIServiceProtocol,
-        database: RealmDatabaseProtocol
+        database: RealmDatabaseProtocol,
+        networkService: NetworkServiceProtocol
     ) {
         self.coordinator = coordinator
         self.openAIService = openAIService
         self.database = database
-        self.networkService = NetworkService.shared
+        self.networkService = networkService
     }
     
     

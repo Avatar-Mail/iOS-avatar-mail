@@ -36,6 +36,10 @@ class AppContainer {
         container.register(StorageManager.self) {
             _ in StorageManager()
         }.inObjectScope(.container)
+        
+        container.register(NetworkService.self) {
+            _ in NetworkService()
+        }.inObjectScope(.container)
     }
 
     
@@ -57,6 +61,10 @@ class AppContainer {
     
     func getStorageManager() -> StorageManager! {
         return container.resolve(StorageManager.self)
+    }
+    
+    func getNetworkService() -> NetworkService! {
+        return container.resolve(NetworkService.self)
     }
 }
 
