@@ -40,6 +40,21 @@ class AppContainer {
         container.register(NetworkService.self) {
             _ in NetworkService()
         }.inObjectScope(.container)
+        
+        container.register(RefactoredNetworkService.self) {
+            _ in RefactoredNetworkService()
+        }.inObjectScope(.container)
+        
+        
+        // MARK: = Network Adapters
+        
+        guard let refactoredNetworkService = getRefactoredNetworkService() else {
+            fatalError("RefactoredNetworkService 초기화 실패")
+        }
+        
+        container.register(TTSAdapter.self) {
+            _ in TTSAdapter.init(networkService: refactoredNetworkService)
+        }.inObjectScope(.container)
     }
 
     
@@ -65,6 +80,14 @@ class AppContainer {
     
     func getNetworkService() -> NetworkService! {
         return container.resolve(NetworkService.self)
+    }
+    
+    func getRefactoredNetworkService() -> RefactoredNetworkService! {
+        return container.resolve(RefactoredNetworkService.self)
+    }
+    
+    func getTTSAdapter() -> TTSAdapter! {
+        return container.resolve(TTSAdapter.self)
     }
 }
 
