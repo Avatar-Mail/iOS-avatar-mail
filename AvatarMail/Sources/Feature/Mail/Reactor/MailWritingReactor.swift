@@ -86,20 +86,17 @@ class MailWritingReactor: Reactor {
     var coordinator: MailWritingCoordinatorProtocol
     var openAIService: OpenAIServiceProtocol
     var database: RealmDatabaseProtocol
-    var networkService: NetworkServiceProtocol
     var ttsAdapter: TTSAdapterProtocol
     
     init(
         coordinator: MailWritingCoordinatorProtocol,
         openAIService: OpenAIServiceProtocol,
         database: RealmDatabaseProtocol,
-        networkService: NetworkServiceProtocol,
         ttsAdapter: TTSAdapterProtocol
     ) {
         self.coordinator = coordinator
         self.openAIService = openAIService
         self.database = database
-        self.networkService = networkService
         self.ttsAdapter = ttsAdapter
     }
     

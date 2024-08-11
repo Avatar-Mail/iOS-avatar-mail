@@ -51,4 +51,22 @@ public class TTSRequest: RequestProtocol {
             return JSONEncoding.default
         }
     }
+    
+    public func getMultipartFormInfoList(uploadFiles: [[String : Any]]) -> [MultipartFormDataInfo] {
+        var multipartFormInfoList: [MultipartFormDataInfo] = []
+        
+        for file in uploadFiles {
+            guard let audioData = file["contents"] as? Data,
+                  let fileName = file["fileName"] as? String else { return [] }
+            
+            let info = MultipartFormDataInfo(data: audioData,
+                                             name: "input_voice_files",
+                                             fileName:  fileName,
+                                             mimeType: "audio/m4a")
+            
+            multipartFormInfoList.append(info)
+        }
+        
+        return multipartFormInfoList
+    }
 }

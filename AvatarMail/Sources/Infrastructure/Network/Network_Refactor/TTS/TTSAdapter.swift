@@ -21,17 +21,32 @@ public final class TTSAdapter: TTSAdapterProtocol {
         self.networkService = networkService
     }
     
-//    public func saveAvatar(avatarID: String, inputVoiceFiles: [String: Any]) {
-//        
-//        let path: TTSRequestPath = .saveAvatar
-//        
-//        let requestData = RequestData(path: path, 
-//                                      method: .post,
-//                                      queryItems: nil,
-//                                      additionalHeaders: nil,
-//                                      uploadFiles: inputVoiceFiles)
-//        
-//    }
+    public func saveAvatar(avatarID: String, audioURLs: [URL]) -> Observable<ResponseData<EmptyData>> {
+        
+        let path: TTSRequestPath = .saveAvatar
+        
+        let uploadFiles: [[String: Any]] = audioURLs.map { url in
+            let fileName = url.lastPathComponent
+            let data = try! Data(contentsOf: url)
+            
+            return [
+                "contents": data,
+                "fileName": fileName
+            ]
+        }
+        
+        let requestData = RequestData(path: path, 
+                                      method: .post,
+                                      parameters: [:],
+                                      queryItems: nil,
+                                      additionalHeaders: nil,
+                                      uploadFiles: uploadFiles)
+        
+        let request = TTSRequest(requestData: requestData)
+        
+        return networkService.multipartUpload(request)
+        
+    }
     
     
     public func sendMail(mailID: String, avatarID: String, content: String) -> Observable<ResponseData<EmptyData>> {
@@ -57,15 +72,11 @@ public final class TTSAdapter: TTSAdapterProtocol {
     
     
     public func getMail(mailID: String) -> Observable<ResponseData<EmptyData>> {
-        let path: TTSRequestPath = .sendMail
-        
-        let parameters: [String: Any] = [
-            "mail_id": mailID
-        ]
+        let path: TTSRequestPath = .getMail(mailID: mailID)
         
         let requestData = RequestData(path: path,
                                       method: .get,
-                                      parameters: parameters,
+                                      parameters: [:],
                                       queryItems: nil,
                                       additionalHeaders: nil,
                                       uploadFiles: nil)

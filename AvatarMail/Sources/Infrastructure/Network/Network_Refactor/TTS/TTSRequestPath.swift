@@ -10,7 +10,7 @@ import Foundation
 public enum TTSRequestPath: RequestPathProtocol {
     case saveAvatar
     case sendMail
-    case getMail
+    case getMail(mailID: String)
     
     public var rawValue: String {
         switch self {
@@ -18,8 +18,8 @@ public enum TTSRequestPath: RequestPathProtocol {
             return "/api/tts/model"
         case .sendMail:
             return "/api/tts"
-        case .getMail:
-            return "/api/tts"
+        case .getMail(let mailID):
+            return "/api/tts/\(mailID)"
         }
     }
 }

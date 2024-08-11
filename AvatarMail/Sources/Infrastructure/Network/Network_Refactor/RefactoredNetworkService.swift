@@ -40,6 +40,7 @@ public enum ResponseResult<T: Codable> {
 
 public protocol RefactoredNetworkServiceProtocol {
     func request<T: Codable>(_ request: RequestProtocol) -> Observable<ResponseData<T>>
+    func multipartUpload<T: Codable> (_ request: RequestProtocol) -> Observable<ResponseData<T>>
     
 }
 
@@ -108,6 +109,85 @@ public final class RefactoredNetworkService: RefactoredNetworkServiceProtocol {
     }
     
     
+    public func multipartUpload<T: Codable> (_ request: RequestProtocol) -> Observable<ResponseData<T>> {
+        
+        return Observable<ResponseData<T>>.create { [weak self] observer -> Disposable in
+            guard let self else { return Disposables.create() }
+            
+            let path = request.requestData.path.rawValue
+            
+            sharedSession.sessionConfiguration.timeoutIntervalForRequest = request.requestTimeOut
+            sharedSession.sessionConfiguration.timeoutIntervalForResource = request.resourceTimeOut
+            
+            let requestData = request.requestData
+            let requestURLString = request.getRequestURLString()
+            let method = HTTPMethod(rawValue: requestData.method.rawValue)
+            
+            let additionalHeaders = requestData.additionalHeaders
+            let header = request.getHeader(additionalHeaders: additionalHeaders)
+            
+            let httpHeaderList: [HTTPHeader] = header.map { HTTPHeader(name: $0.key, value: $0.value)}
+            let requestHeader: HTTPHeaders = HTTPHeaders(httpHeaderList)
+            
+            let uploadTask = self.sharedSession.upload(multipartFormData: { multipartFormData in
+                
+                // 파라미터 추가
+                for (key, value) in requestData.parameters {
+                    let convertedString = String(describing: value)
+                    if let data = convertedString.data(using: .utf8) {
+                        multipartFormData.append(data, withName: key)
+                    }
+                }
+                
+                // 파일(미디어) 추가
+                if let uploadFiles = requestData.uploadFiles, uploadFiles.isNotEmpty {
+                    
+                    let multipartFormInfos = request.getMultipartFormInfoList(uploadFiles: uploadFiles)
+                    
+                    for info in multipartFormInfos {
+                        multipartFormData.append(info.data,
+                                                 withName: info.name,
+                                                 fileName: info.fileName,
+                                                 mimeType: info.mimeType)
+                    }
+                }
+            }, to: requestURLString, method: method, headers: requestHeader)
+                .validate()
+                .uploadProgress { progress in
+                    print("[UPLOADING] - progress: \(progress)")
+                }
+                .response { [weak self] (response) in
+                    guard let self else { return }
+                    let requestQueue = DispatchQueue(label: "alamofire.queue")
+                    requestQueue.async { [weak self] in
+                        guard let self else { return }
+
+                        networkLog(response)
+
+                        let responseResult: ResponseResult<T> = getResponseResult(response: response)
+
+                        switch responseResult {
+                        case .success(let isSuccess, let message, let code, let data, let header):
+                            let responseData = ResponseData(isSuccess: isSuccess,
+                                                            message: message,
+                                                            code: code,
+                                                            data: data,
+                                                            header: header)
+                            observer.onNext(responseData)
+                            observer.onCompleted()
+                        case .error(let message, let code):
+                            observer.onError(RefactoredNetworkServiceError(message: message, code: code))
+                        }
+                    }
+                }.resume()
+
+            return Disposables.create {
+                uploadTask.cancel()
+            }
+        }.observe(on: MainScheduler.instance)
+    }
+    
+    
     private func networkLog(_ response: AFDataResponse<Data?>) {
         guard let request = response.request,
               let method = request.method,
@@ -125,10 +205,10 @@ public final class RefactoredNetworkService: RefactoredNetworkServiceProtocol {
             let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
             if let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .withoutEscapingSlashes]),
                let jsonString = String(data: jsonData, encoding: .utf8) {
-                message = "\n[RESULT]: \(jsonString)"
+                message += "\n[RESULT]: \(jsonString)"
                 print(message)
             } else {
-                message = "\n[ERROR]: JSON 파싱 중 에러가 발생했습니다."
+                message += "\n[ERROR]: JSON 파싱 중 에러가 발생했습니다."
                 print(message)
             }
         } catch {
