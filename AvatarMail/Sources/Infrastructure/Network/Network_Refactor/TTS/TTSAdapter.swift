@@ -9,8 +9,9 @@ import Foundation
 import RxSwift
 
 public protocol TTSAdapterProtocol {
+    func saveAvatar(avatarID: String, audioURLs: [URL]) -> Observable<ResponseData<EmptyData>>
     func sendMail(mailID: String, avatarID: String, content: String) -> Observable<ResponseData<EmptyData>>
-    func getMail(mailID: String) -> Observable<ResponseData<EmptyData>>
+    func getNarrationAudioFile(mailID: String) -> Observable<ResponseData<Data>>
 }
 
 public final class TTSAdapter: TTSAdapterProtocol {
@@ -37,7 +38,7 @@ public final class TTSAdapter: TTSAdapterProtocol {
         
         let requestData = RequestData(path: path, 
                                       method: .post,
-                                      parameters: [:],
+                                      parameters: ["avatar_id": avatarID],
                                       queryItems: nil,
                                       additionalHeaders: nil,
                                       uploadFiles: uploadFiles)
@@ -45,7 +46,6 @@ public final class TTSAdapter: TTSAdapterProtocol {
         let request = TTSRequest(requestData: requestData)
         
         return networkService.multipartUpload(request)
-        
     }
     
     
@@ -71,7 +71,7 @@ public final class TTSAdapter: TTSAdapterProtocol {
     }
     
     
-    public func getMail(mailID: String) -> Observable<ResponseData<EmptyData>> {
+    public func getNarrationAudioFile(mailID: String) -> Observable<ResponseData<Data>> {
         let path: TTSRequestPath = .getMail(mailID: mailID)
         
         let requestData = RequestData(path: path,
@@ -83,6 +83,6 @@ public final class TTSAdapter: TTSAdapterProtocol {
         
         let request = TTSRequest(requestData: requestData)
         
-        return networkService.request(request)
+        return networkService.multipartDownload(request)
     }
 }

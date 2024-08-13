@@ -220,8 +220,7 @@ class MailWritingReactor: Reactor {
                                 content: content,
                                 senderName: senderName,
                                 date: Date(),
-                                isSentFromUser: true,
-                                audioRecording: nil)
+                                isSentFromUser: true)
                 
                 // (2) 편지 본문과 아바타 정보를 OpenAI API로 넘겨 답장 편지 내용을 Response로 받음
                 return openAIService.sendMail(mail: mail,
@@ -235,8 +234,7 @@ class MailWritingReactor: Reactor {
                                                 content: repliedMailContent,
                                                 senderName: recipientName,
                                                 date: Date(),
-                                                isSentFromUser: false,
-                                                audioRecording: nil)
+                                                isSentFromUser: false)
                         
                         // (3) 서버에 메일 정보를 보내서, 이후에 응답 편지 리스트 페이지 진입할 때 나레이션 음성 파일을 Response로 받음
                         return self.ttsAdapter.sendMail(mailID: repliedMailID,

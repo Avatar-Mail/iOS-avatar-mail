@@ -19,7 +19,7 @@ public protocol RequestProtocol {
     func getURLRequestConvertible() throws -> URLRequestConvertible
     func getMultipartFormInfoList(uploadFiles: [[String: Any]]) -> [MultipartFormDataInfo]
     
-    typealias MultipartFormDataInfo = (data: Data, name: String, fileName: String?, mimeType: String?)
+    typealias MultipartFormDataInfo = (data: Data, name: String, fileName: String, mimeType: String)
 }
 
 

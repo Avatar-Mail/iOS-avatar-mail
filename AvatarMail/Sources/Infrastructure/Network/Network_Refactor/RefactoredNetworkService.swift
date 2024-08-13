@@ -41,6 +41,7 @@ public enum ResponseResult<T: Codable> {
 public protocol RefactoredNetworkServiceProtocol {
     func request<T: Codable>(_ request: RequestProtocol) -> Observable<ResponseData<T>>
     func multipartUpload<T: Codable> (_ request: RequestProtocol) -> Observable<ResponseData<T>>
+    func multipartDownload(_ request: RequestProtocol) -> Observable<ResponseData<Data>>
     
 }
 
@@ -186,6 +187,66 @@ public final class RefactoredNetworkService: RefactoredNetworkServiceProtocol {
             }
         }.observe(on: MainScheduler.instance)
     }
+
+    
+    public func multipartDownload(_ request: RequestProtocol) -> Observable<ResponseData<Data>> {
+
+        return Observable<ResponseData<Data>>.create { [weak self] observer -> Disposable in
+            guard let self else { return Disposables.create() }
+
+            let path = request.requestData.path.rawValue
+
+            sharedSession.sessionConfiguration.timeoutIntervalForRequest = request.requestTimeOut
+            sharedSession.sessionConfiguration.timeoutIntervalForResource = request.resourceTimeOut
+
+            let requestData = request.requestData
+            let requestURLString = request.getRequestURLString()
+            let method = HTTPMethod(rawValue: requestData.method.rawValue)
+            
+            let additionalHeaders = requestData.additionalHeaders
+            let header = request.getHeader(additionalHeaders: additionalHeaders)
+
+            let httpHeaderList: [HTTPHeader] = header.map { HTTPHeader(name: $0.key, value: $0.value) }
+            let requestHeader: HTTPHeaders = HTTPHeaders(httpHeaderList)
+
+            let downloadRequest = self.sharedSession.download(requestURLString, method: method, headers: requestHeader)
+                .validate()
+                .downloadProgress { progress in
+                    print("[DOWNLOADING] - progress: \(progress)")
+                }
+                .responseData { [weak self] (response) in
+                    guard let self else { return }
+                    let requestQueue = DispatchQueue(label: "alamofire.queue")
+                    requestQueue.async { [weak self] in
+                        guard let self else { return }
+
+                        print(response.debugDescription)
+
+                        let responseResult: ResponseResult<Data> = getResponseResult(response: response)
+
+                        switch responseResult {
+                        case .success(let isSuccess, let message, let code, let data, let header):
+                            let responseData = ResponseData(isSuccess: isSuccess,
+                                                            message: message,
+                                                            code: code,
+                                                            data: data,
+                                                            header: header)
+                            observer.onNext(responseData)
+                            observer.onCompleted()
+                        case .error(let message, let code):
+                            observer.onError(RefactoredNetworkServiceError(message: message, code: code))
+                        }
+                    }
+                }.resume()
+            
+            downloadRequest.resume()
+
+            return Disposables.create {
+                downloadRequest.cancel()
+            }
+        }.observe(on: MainScheduler.instance)
+    }
+
     
     
     private func networkLog(_ response: AFDataResponse<Data?>) {
@@ -261,6 +322,36 @@ public final class RefactoredNetworkService: RefactoredNetworkServiceProtocol {
         case .failure(let error):
             // 요청이 실패했을 때의 처리
             return ResponseResult.error("서버 요청을 실패했습니다. -error: \(error.localizedDescription)", code)
+        }
+    }
+    
+    
+    private func getResponseResult(response: AFDownloadResponse<Data>) -> ResponseResult<Data> {
+        // 서버의 상태 코드
+        var code: Int? = response.response?.statusCode
+        
+        switch response.result {
+        case .success(let responseData):
+            // 응답 헤더
+            let responseHeader: [String: String]? = response.response?.headers.dictionary
+            
+            if let responseCode = code {
+                switch responseCode {
+                case 200..<300:
+                    return ResponseResult.success(true,
+                                                  "파일을 성공적으로 다운로드 했습니다.",
+                                                  code,
+                                                  responseData,
+                                                  responseHeader)
+                default:
+                    return ResponseResult.error("파일을 다운로드 하는 데 실패했습니다.", code)
+                }
+            } else {
+                return ResponseResult.error("Response Code가 null입니다.", code)
+            }
+        case .failure(let error):
+            // 요청이 실패했을 때의 처리
+            return ResponseResult.error("파일 요청을 실패했습니다. -error: \(error.localizedDescription)", code)
         }
     }
 }
