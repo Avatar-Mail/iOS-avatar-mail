@@ -18,7 +18,6 @@ class MailObject: Object {
     @Persisted var senderName: String
     @Persisted var date: Date
     @Persisted var isSentFromUser: Bool
-    @Persisted var audioRecording: AudioRecordingObject?
 
     convenience init(mail: Mail) {
         self.init()
@@ -28,12 +27,6 @@ class MailObject: Object {
         self.senderName = mail.senderName
         self.date = mail.date
         self.isSentFromUser = mail.isSentFromUser
-        
-        if let audioRecording = mail.audioRecording {
-            self.audioRecording = AudioRecordingObject(recording: audioRecording)
-        } else {
-            self.audioRecording = nil
-        }
     }
 }
 
@@ -45,8 +38,7 @@ extension MailObject {
             content: content,
             senderName: senderName,
             date: date,
-            isSentFromUser: isSentFromUser,
-            audioRecording: audioRecording?.toEntity()
+            isSentFromUser: isSentFromUser
         )
     }
 }

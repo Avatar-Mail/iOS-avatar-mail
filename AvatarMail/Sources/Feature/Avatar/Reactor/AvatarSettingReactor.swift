@@ -68,6 +68,7 @@ class AvatarSettingReactor: Reactor {
     var networkService: NetworkServiceProtocol
     var audioRecordingManager: AudioRecordingManager
     var audioPlayingManager: AudioPlayingManager
+    var ttsAdapter: TTSAdapterProtocol
     
     init(
         coordinator: AvatarSettingCoordinator,
@@ -75,6 +76,7 @@ class AvatarSettingReactor: Reactor {
         networkService: NetworkServiceProtocol,
         audioRecordingManager: AudioRecordingManager,
         audioPlayingManager: AudioPlayingManager,
+        ttsAdapter: TTSAdapterProtocol,
         avatar: AvatarInfo?
     ) {
         self.coordinator = coordinator
@@ -82,6 +84,7 @@ class AvatarSettingReactor: Reactor {
         self.networkService = networkService
         self.audioRecordingManager = audioRecordingManager
         self.audioPlayingManager = audioPlayingManager
+        self.ttsAdapter = ttsAdapter
 
         self.initialState = State(id: avatar?.id ?? UUID().uuidString,
                                   name: avatar?.name ?? "",
@@ -185,17 +188,19 @@ class AvatarSettingReactor: Reactor {
         
         return database.saveAvatar(avatarObject)
             .flatMap { toastMessage in
-                self.networkService.sendAvatarAudioFiles(avatarID: avatar.id,
-                                                    audioURLs: avatar.recordings.map { $0.fileURL },
-                                                    serverURL: URL(string: "http://127.0.0.1:8000/api/avatar")!)
-                .flatMap {
+                
+                self.ttsAdapter.saveAvatar(avatarID: avatar.id,
+                                           audioURLs: avatar.recordings.map { $0.fileURL } )
+                .flatMap { response in
                     return Observable.of(
-                        Mutation.setToastMessage(text: toastMessage),
-                        Mutation.setAvatarHasSaved(hasSaved: true)
+                        Mutation.setToastMessage(text: toastMessage)
                     )
-                }.catch { error in
-                    return Observable.just(Mutation.setToastMessage(text: "서버에 아바타 오디오 파일을 저장하는 데 실패했습니다."))
-                    
+                }
+                .catch { error in
+                    let networkError = RefactoredNetworkServiceError(error: error)
+                    return Observable.of(
+                        Mutation.setToastMessage(text: networkError.message ?? "서버에 편지를 보내는 과정에서 문제가 발생했습니다.")
+                    )
                 }
             }
             .catch { error in

@@ -16,5 +16,4 @@ struct Mail: Equatable, Codable {
     var senderName: String
     var date: Date
     var isSentFromUser: Bool
-    var audioRecording: AudioRecording?
 }
