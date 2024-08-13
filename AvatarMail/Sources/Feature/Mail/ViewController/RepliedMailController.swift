@@ -307,6 +307,8 @@ class RepliedMailController: UIViewController, View {
             .bind { [weak self] mail in
                 guard let self else { return }
                 
+                reactor.action.onNext(.requestNarrationAudioFile(mailID: mail.id))
+                
                 topNavigation.setTitle(titleText: mail.isSentFromUser ? "보낸 편지" : "받은 편지",
                                        titleColor: .white,
                                        font: .content(size: 18, weight: .semibold))
@@ -322,21 +324,26 @@ class RepliedMailController: UIViewController, View {
                                                                        color: .black,
                                                                        font: .letter(size: 16, weight: .bold),
                                                                        textAlignment: .right)
+            }.disposed(by: disposeBag)
+        
+        reactor.state.map(\.narrationAudioURL)
+            .observe(on: MainScheduler.instance)
+            .distinctUntilChanged()
+            .bind { [weak self] audioURL in
+                guard let self else { return }
                 
-                if mail.isSentFromUser == false, let recording = mail.audioRecording {
+                if let audioURL {
                     narrationButton.isHidden = false
                 } else {
                     narrationButton.isHidden = true
                 }
-                
             }.disposed(by: disposeBag)
                 
-                reactor.pulse(\.$toastMessage)
-                    .filterNil()
-                    .bind { toastMessage in
-                        ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
-                    }.disposed(by: disposeBag)
-                
+        reactor.pulse(\.$toastMessage)
+            .filterNil()
+            .bind { toastMessage in
+                ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
+            }.disposed(by: disposeBag)
     }
     
     

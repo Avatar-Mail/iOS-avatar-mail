@@ -583,7 +583,7 @@ class SettingHomeController: UIViewController {
                 guard let self else { return }
                 
                 if let sampleText = mailContents, let fileURL = currentRecording?.fileURL {
-                    uploadTextAndAudioFileToServer(text: sampleText, fileURL: fileURL, to: URL(string: "http://127.0.0.1:8000/upload")!)
+                    uploadTextAndAudioFileToServer(text: sampleText, fileURL: fileURL, to: URL(string: "http://127.0.0.1:5000/upload")!)
                 } else {
                     print("Data has not yet been set.")
                 }
@@ -648,7 +648,7 @@ extension SettingHomeController {
                 print("response = \(String(describing: response))")
             }
 
-            let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let documentPath = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             let fileURL = documentPath.appendingPathComponent("download.m4a")
             self.serverSentFileURL = fileURL
             

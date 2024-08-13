@@ -23,9 +23,9 @@ protocol NetworkServiceProtocol {
 
 final class NetworkService: NetworkServiceProtocol {
     
-    public static let shared = NetworkService()
-    
-    private init() {}
+    init() {
+        
+    }
     
     
     func getNarrationAudio(avatarID: String,

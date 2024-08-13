@@ -34,9 +34,10 @@ class AvatarSettingCoordinator: AvatarSettingCoordinatorProtocol {
     func start() {
         let avatarSettingReactor = AvatarSettingReactor(coordinator: self,
                                                         database: AppContainer.shared.getRealmDatabase(),
-                                                        networkService:NetworkService.shared,  // FIXME: AppContainer 안으로 넣기
+                                                        networkService: AppContainer.shared.getNetworkService(),
                                                         audioRecordingManager: AppContainer.shared.getAudioRecordingManager(),
                                                         audioPlayingManager: AppContainer.shared.getAudioPlayingManager(),
+                                                        ttsAdapter: AppContainer.shared.getTTSAdapter(),
                                                         avatar: viewParameter.avatarInfo)
         let avatarSettingController = AvatarSettingController(reactor: avatarSettingReactor)
         navigationController?.pushViewController(avatarSettingController, animated: true)

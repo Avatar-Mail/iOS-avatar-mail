@@ -25,7 +25,8 @@ class MailWritingCoordinator: MailWritingCoordinatorProtocol {
     public func start() {
         let mailWritingReactor = MailWritingReactor(coordinator: self,
                                                     openAIService: AppContainer.shared.getOpenAIService(),
-                                                    database: AppContainer.shared.getRealmDatabase())
+                                                    database: AppContainer.shared.getRealmDatabase(),
+                                                    ttsAdapter: AppContainer.shared.getTTSAdapter())
         let mailWritingController = MailWritingController(reactor: mailWritingReactor)
         navigationController?.pushViewController(mailWritingController, animated: true)
     }

@@ -15,7 +15,7 @@ public protocol AudioPlayingManagerDelegate: AnyObject {
 }
 
 final class AudioPlayingManager: NSObject {
-    
+        
     weak var delegate: AudioPlayingManagerDelegate?
     
     private var audioPlayer : AVAudioPlayer?
