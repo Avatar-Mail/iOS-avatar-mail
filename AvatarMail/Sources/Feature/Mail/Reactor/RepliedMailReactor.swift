@@ -156,6 +156,14 @@ class RepliedMailReactor: Reactor {
                 let fileName = "\(mailID).wav"
                 let fileURL = directoryURL.appendingPathComponent(fileName, isDirectory: false)
                 
+                // 디렉토리가 존재하지 않으면 생성
+                do {
+                    try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+                } catch {
+                    print("[ERROR] 디렉토리 생성 실패: \(error.localizedDescription)")
+                    return Observable.of(Mutation.setToastMessage(text: "다운로드 디렉터리 생성에 실패했습니다."))
+                }
+                
                 if response.isSuccess == true, let data = response.data {
                     do {
                         try data.write(to: fileURL)
