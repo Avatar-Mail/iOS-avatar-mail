@@ -1,13 +1,9 @@
-//
-//  AppDelegate.swift
-//  IOSAvatarMail
-//
-//  Created by 최지석 on 6/15/24.
-//
-
 import UIKit
 import AVFoundation
 import RealmSwift
+import UserNotifications
+import Firebase
+import FirebaseMessaging
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -21,8 +17,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // 오디오 세션 설정
         setupAudioSession()
-
-        window = UIWindow(frame: UIScreen.main.bounds) // 변경된 부분
+        
+        // Realm 데이터베이스 설정
+        setupRealmDatabase()
+        
+        // 파이어베이스 설정
+        setupFirebase()
+        
+        // 푸시 알림 설정
+        setupPushNotification(with: application)
+        
+        
+        
+        window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = CustomTabBarController()
         window?.makeKeyAndVisible()
         
@@ -30,33 +37,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     private func setupAudioSession() {
-        // AudioSession Setup
         let audioSession = AVAudioSession.sharedInstance()
-        
         do {
-            try audioSession.setCategory(.playAndRecord)
-            try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [])
+            try audioSession.overrideOutputAudioPort(.speaker)
+            try audioSession.setActive(true)
         } catch {
-            fatalError("AudioSession Initialization Error")
+            fatalError("AudioSession Initialization Error: \(error)")
         }
     }
     
     private func setupRealmDatabase() {
-        // Realm 스키마 버전
         let schemaVersion: UInt64 = 1
 
         let config = Realm.Configuration(
             schemaVersion: schemaVersion,
             migrationBlock: { migration, oldSchemaVersion in
                 if oldSchemaVersion < schemaVersion {
-                    
-                    // Migration Logic
-                    // 참고 : https://1000one.tistory.com/57
-                    
                     migration.enumerateObjects(ofType: AvatarInfoObject.className()) { oldObject, newObject in
-                        // recordings 속성이 새로 추가되었기 때문에 기본값을 설정합니다.
-                        if newObject!["recordings"] == nil {
-                            newObject!["recordings"] = List<AudioRecordingObject>()
+                        if newObject?["recordings"] == nil {
+                            newObject?["recordings"] = List<AudioRecordingObject>()
                         }
                     }
                 }
@@ -65,6 +65,63 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         Realm.Configuration.defaultConfiguration = config
     }
+    
+    private func setupFirebase() {
+        FirebaseApp.configure()
+    }
+    
+    private func setupPushNotification(with application: UIApplication) {
+        
+        UNUserNotificationCenter.current().delegate = self
+        
+        application.registerForRemoteNotifications()
+
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: authOptions,
+            completionHandler: { granted, error in
+                if let error = error {
+                    print("Failed to request authorization for notifications: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard granted else {
+                    print("User denied notification permissions")
+                    return
+                }
+            }
+        )
+    }
 }
 
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("Successfully registered for notifications")
+        Messaging.messaging().apnsToken = deviceToken
+        
+        // 이게 FCMS 토큰
+        // TODO: 토큰 저장했다가 서버에 전달
+        print(Messaging.messaging().fcmToken)
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.list, .banner])
+    }
+}
 
+extension AppDelegate: MessagingDelegate {
+    
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("Firebase registration token: \(String(describing: fcmToken))")
+
+        let dataDict: [String: String] = ["token": fcmToken ?? ""]
+        NotificationCenter.default.post(
+            name: Notification.Name("FCMToken"),
+            object: nil,
+            userInfo: dataDict
+        )
+        
+        // TODO: If necessary send token to application server.
+    }
+}

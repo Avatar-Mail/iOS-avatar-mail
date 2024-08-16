@@ -2,7 +2,7 @@ import ProjectDescription
 
 let projectSettings: Settings = .settings(
     base: [
-        "PROJECT_BASE": "PROJECT_BASE",
+        "OTHER_LDFLAGS": ["-ObjC -all_load"]
     ],
     configurations: [
         .debug(name: "Debug", xcconfig: "./XCConfig/DEV.xcconfig"),
@@ -46,7 +46,13 @@ let project = Project(
                         "Pretendard-Light.otf",
                         "Pretendard-ExtraLight.otf",
                         "Pretendard-Thin.otf"
-                    ]
+                    ],
+                    "UIBackgroundModes": [
+                        "fetch",
+                        "remote-notification",
+                        "processing"
+                    ],
+                    "FirebaseAppDelegateProxyEnabled": false
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],
@@ -54,7 +60,11 @@ let project = Project(
                 "AvatarMail/Resources/**",
                 "AvatarMail/Resources/Fonts/*.ttf"
             ],
+            entitlements: "AvatarMail/Resources/AvatarMail.entitlements",
             dependencies: [
+                // SDK
+                .external(name: "FirebaseMessaging", condition: .none),
+                .external(name: "FirebaseAnalytics", condition: .none),
                 // API
                 .external(name: "OpenAI", condition: .none),
                 // DB

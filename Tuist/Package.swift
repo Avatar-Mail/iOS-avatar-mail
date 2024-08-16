@@ -26,6 +26,7 @@ let package = Package(
         .package(url: "https://github.com/ReactorKit/ReactorKit.git", .upToNextMajor(from: "3.2.0")),
         .package(url: "https://github.com/Swinject/Swinject.git", from: "2.8.0"),
         .package(url: "https://github.com/scalessec/Toast-Swift.git", from: "5.1.1"),
-        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.3.0")
+        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.3.0"),
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.24.0")
     ]
 )
