@@ -12,7 +12,7 @@ class AudioRecordingObject: Object {
     typealias Identifier = String
     
     @Persisted var id: Identifier                     // 파일 식별자
-    @Persisted var fileName: String                   // 파일 이름 (미사용)
+    @Persisted var fileName: String                   // 파일 이름
     @Persisted var contents: String                   // 파일(음성 녹음) 내용
     @Persisted var createdDate: Date                  // 파일 생성 시간
     @Persisted var duration: Double                   // 녹음 시간
