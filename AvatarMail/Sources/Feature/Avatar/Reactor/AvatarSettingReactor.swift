@@ -196,7 +196,8 @@ class AvatarSettingReactor: Reactor {
                                            audioURLs: avatar.recordings.map { self.storageManager.getFileURL(fileName: $0.fileName, type: .audio) } )
                 .flatMap { response in
                     return Observable.of(
-                        Mutation.setToastMessage(text: toastMessage)
+                        Mutation.setToastMessage(text: toastMessage),
+                        Mutation.setAvatarHasSaved(hasSaved: true)
                     )
                 }
                 .catch { error in
