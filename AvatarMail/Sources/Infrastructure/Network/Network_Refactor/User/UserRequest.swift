@@ -1,14 +1,14 @@
 //
-//  TTSRequest.swift
+//  UserRequest.swift
 //  AvatarMail
 //
-//  Created by 최지석 on 8/11/24.
+//  Created by 최지석 on 8/17/24.
 //
 
 import Foundation
 import Alamofire
 
-public class TTSRequest: RequestProtocol {
+public class UserRequest: RequestProtocol {
 
     public let requestTimeOut: TimeInterval = 20
     
@@ -55,20 +55,7 @@ public class TTSRequest: RequestProtocol {
     }
     
     public func getMultipartFormInfoList(uploadFiles: [[String : Any]]) -> [MultipartFormDataInfo] {
-        var multipartFormInfoList: [MultipartFormDataInfo] = []
-        
-        for file in uploadFiles {
-            guard let audioData = file["contents"] as? Data,
-                  let fileName = file["fileName"] as? String else { return [] }
-            
-            let info = MultipartFormDataInfo(data: audioData,
-                                             name: "input_voice_files",
-                                             fileName:  fileName,
-                                             mimeType: "audio/m4a")
-            
-            multipartFormInfoList.append(info)
-        }
-        
-        return multipartFormInfoList
+        return []
     }
 }
+

@@ -55,6 +55,10 @@ class AppContainer {
         container.register(TTSAdapter.self) {
             _ in TTSAdapter.init(networkService: refactoredNetworkService)
         }.inObjectScope(.container)
+        
+        container.register(UserAdapter.self) {
+            _ in UserAdapter.init(networkService: refactoredNetworkService)
+        }.inObjectScope(.container)
     }
 
     
@@ -88,6 +92,10 @@ class AppContainer {
     
     func getTTSAdapter() -> TTSAdapter! {
         return container.resolve(TTSAdapter.self)
+    }
+    
+    func getUserAdapter() -> UserAdapter! {
+        return container.resolve(UserAdapter.self)
     }
 }
 

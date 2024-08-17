@@ -23,12 +23,13 @@ let project = Project(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
                     "APIKey": "$(OPEN_API_KEY)",
+                    "BaseURL": "BASE_SERVER_URL",
                     "NSMicrophoneUsageDescription": "This app requires access to the microphone to record audio.",
                     // FIXME: 배포할 땐 false로 바꾸자 (localhost HTTP load 허용)
                     "NSAppTransportSecurity": [
                         "NSExceptionDomains": [
                             "localhost": [
-                                "NSTemporaryExceptionAllowsInsecureHTTPLoads": true
+                                "NSTemporaryExceptionAllowsInsecureHTTPLoads": false
                             ]
                         ]
                     ],
@@ -85,7 +86,9 @@ let project = Project(
                 .external(name: "SnapKit", condition: .none),
                 .external(name: "Then", condition: .none),
                 .external(name: "Toast", condition: .none),
-                .external(name: "Lottie", condition: .none)
+                .external(name: "Lottie", condition: .none),
+                // ETC
+                .external(name: "SwiftKeychainWrapper", condition: .none)
             ],
             settings: projectSettings
         ),

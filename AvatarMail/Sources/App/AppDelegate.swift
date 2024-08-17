@@ -4,11 +4,14 @@ import RealmSwift
 import UserNotifications
 import Firebase
 import FirebaseMessaging
+import RxSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    
+    var disposeBag = DisposeBag()
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
@@ -27,7 +30,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // 푸시 알림 설정
         setupPushNotification(with: application)
         
-        
+        print(String.deviceID)
         
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = CustomTabBarController()
@@ -76,6 +79,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         application.registerForRemoteNotifications()
 
+        Messaging.messaging().delegate = self
+        
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(
             options: authOptions,
@@ -99,10 +104,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("Successfully registered for notifications")
         Messaging.messaging().apnsToken = deviceToken
-        
-        // 이게 FCMS 토큰
-        // TODO: 토큰 저장했다가 서버에 전달
-        print(Messaging.messaging().fcmToken)
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -122,6 +123,23 @@ extension AppDelegate: MessagingDelegate {
             userInfo: dataDict
         )
         
-        // TODO: If necessary send token to application server.
+        // FCM 토큰을 서버에 전달
+        let userAdapter = AppContainer.shared.getUserAdapter()
+        
+        guard let token = Messaging.messaging().fcmToken else { fatalError("FCM 토큰을 찾을 수 없습니다.") }
+        
+        userAdapter?.sendFCMToken(fcmToken: token)
+            .subscribe(
+                onNext: { _ in
+                    print("FCMS 토큰 전송 성공 - Token: \(token)")
+                },
+                onError: { error in
+                    print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
+                    UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        exit(0)
+                    }
+                }
+            ).disposed(by: disposeBag)
     }
 }
