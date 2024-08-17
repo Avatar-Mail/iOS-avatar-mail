@@ -28,7 +28,9 @@ final class LetterContentInputTextView: UIView {
     
     let containerView = UIView()
     
-    private let inputTextView = UITextView()
+    private let inputTextView = UITextView().then {
+        $0.font = UIFont.letter(size: 16, weight: .medium)
+    }
     
     private let placeholderView = UIView().then {
         $0.backgroundColor = UIColor(hex:0xFCFCFC)

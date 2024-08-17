@@ -2,7 +2,8 @@ import ProjectDescription
 
 let projectSettings: Settings = .settings(
     base: [
-        "OTHER_LDFLAGS": ["-ObjC -all_load"]
+        "OTHER_LDFLAGS": ["-ObjC -all_load"],
+        "DEVELOPMENT_TEAM": "$(TEAM_ID)"
     ],
     configurations: [
         .debug(name: "Debug", xcconfig: "./XCConfig/DEV.xcconfig"),

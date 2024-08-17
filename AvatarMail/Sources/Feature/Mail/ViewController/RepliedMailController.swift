@@ -171,7 +171,7 @@ class RepliedMailController: UIViewController, View {
                             recipientNameInputContainerView.addSubViews(
                                 recipientNameStackView.addArrangedSubViews(
                                     recipientNameLabel,
-                                    // 나레이션 재신 버튼
+                                    // 나레이션 재생 버튼
                                     narrationButton
                                 )
                             ),

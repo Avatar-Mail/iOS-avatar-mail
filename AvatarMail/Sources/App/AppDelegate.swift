@@ -77,8 +77,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         UNUserNotificationCenter.current().delegate = self
         
-        application.registerForRemoteNotifications()
-
         Messaging.messaging().delegate = self
         
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
@@ -94,6 +92,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     print("User denied notification permissions")
                     return
                 }
+                
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    application.registerForRemoteNotifications()
+                }
             }
         )
     }
@@ -102,12 +105,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("Successfully registered for notifications")
+        print("Successfully registered for notifications with token: \(deviceToken.map { String(format: "%02.2hhx", $0) }.joined())")
         Messaging.messaging().apnsToken = deviceToken
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.list, .banner])
+        completionHandler([.banner, .list, .sound, .badge])
     }
 }
 
@@ -128,18 +131,18 @@ extension AppDelegate: MessagingDelegate {
         
         guard let token = Messaging.messaging().fcmToken else { fatalError("FCM 토큰을 찾을 수 없습니다.") }
         
-        userAdapter?.sendFCMToken(fcmToken: token)
-            .subscribe(
-                onNext: { _ in
-                    print("FCMS 토큰 전송 성공 - Token: \(token)")
-                },
-                onError: { error in
-                    print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
-                    UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        exit(0)
-                    }
-                }
-            ).disposed(by: disposeBag)
+//        userAdapter?.sendFCMToken(fcmToken: token)
+//            .subscribe(
+//                onNext: { _ in
+//                    print("FCMS 토큰 전송 성공 - Token: \(token)")
+//                },
+//                onError: { error in
+//                    print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
+//                    UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                        exit(0)
+//                    }
+//                }
+//            ).disposed(by: disposeBag)
     }
 }
