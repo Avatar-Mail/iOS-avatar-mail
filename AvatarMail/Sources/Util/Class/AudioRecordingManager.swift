@@ -22,8 +22,12 @@ final class AudioRecordingManager: NSObject {
     private var audioRecorder : AVAudioRecorder?
     private var recording: AudioRecording?
     
+    private var storageManager: StorageManagerProtocol
     
-    override init() {
+    
+    init(storageManager: StorageManagerProtocol) {
+        self.storageManager = storageManager
+        
         super.init()
     }
     
@@ -38,25 +42,14 @@ final class AudioRecordingManager: NSObject {
         let fileID = UUID().uuidString
         // 파일 이름
         let fileName: String = "\(avatarName)_\(fileID).m4a"
-        // 파일 경로
-        let documentPath = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         
-        // 디렉터리가 없으면 생성
-        if !FileManager.default.fileExists(atPath: documentPath.path) {
-            do {
-                try FileManager.default.createDirectory(at: documentPath, withIntermediateDirectories: true, attributes: nil)
-            } catch {
-                print("Failed to create directory: \(error.localizedDescription)")
-            }
-        }
+        let fileURL = storageManager.getFileURL(fileName: fileName, type: .audio)
         
-        let fileURL = documentPath.appendingPathComponent("\(fileName)")
         // 파일 생성 날짜
         let currentDate = Date()
         
         recording = AudioRecording(id: fileID,
                                    fileName: fileName,
-                                   fileURL: fileURL,
                                    contents: contents,
                                    createdDate: currentDate,
                                    duration: 0.0)
@@ -87,7 +80,9 @@ final class AudioRecordingManager: NSObject {
         
         audioRecorder.stop()
         
-        if let duration = getRecordedTime(url: recording.fileURL) {
+        let fileURL = storageManager.getFileURL(fileName: recording.fileName, type: .audio)
+        
+        if let duration = getRecordedTime(url: fileURL) {
             recording.duration = duration
             return .success(recording)
         } else {

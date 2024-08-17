@@ -69,6 +69,7 @@ class AvatarSettingReactor: Reactor {
     var audioRecordingManager: AudioRecordingManager
     var audioPlayingManager: AudioPlayingManager
     var ttsAdapter: TTSAdapterProtocol
+    var storageManager: StorageManagerProtocol
     
     init(
         coordinator: AvatarSettingCoordinator,
@@ -77,6 +78,7 @@ class AvatarSettingReactor: Reactor {
         audioRecordingManager: AudioRecordingManager,
         audioPlayingManager: AudioPlayingManager,
         ttsAdapter: TTSAdapterProtocol,
+        storageManager: StorageManagerProtocol,
         avatar: AvatarInfo?
     ) {
         self.coordinator = coordinator
@@ -85,6 +87,7 @@ class AvatarSettingReactor: Reactor {
         self.audioRecordingManager = audioRecordingManager
         self.audioPlayingManager = audioPlayingManager
         self.ttsAdapter = ttsAdapter
+        self.storageManager = storageManager
 
         self.initialState = State(id: avatar?.id ?? UUID().uuidString,
                                   name: avatar?.name ?? "",
@@ -190,7 +193,7 @@ class AvatarSettingReactor: Reactor {
             .flatMap { toastMessage in
                 
                 self.ttsAdapter.saveAvatar(avatarID: avatar.id,
-                                           audioURLs: avatar.recordings.map { $0.fileURL } )
+                                           audioURLs: avatar.recordings.map { self.storageManager.getFileURL(fileName: $0.fileName, type: .audio) } )
                 .flatMap { response in
                     return Observable.of(
                         Mutation.setToastMessage(text: toastMessage)
@@ -262,7 +265,8 @@ class AvatarSettingReactor: Reactor {
     
     private func startPlaying(recording: AudioRecording) -> Observable<Mutation> {
         
-        let result = audioPlayingManager.startPlaying(url: recording.fileURL)
+        let fileURL = storageManager.getFileURL(fileName: recording.fileName, type: .audio)
+        let result = audioPlayingManager.startPlaying(url: fileURL)
             
         switch result {
         case .success(_):

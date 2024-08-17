@@ -93,8 +93,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     return
                 }
                 
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
+                DispatchQueue.main.async {
                     application.registerForRemoteNotifications()
                 }
             }
@@ -110,7 +109,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .list, .sound, .badge])
+        completionHandler([.badge, .banner, .list, .sound])
     }
 }
 
@@ -131,18 +130,18 @@ extension AppDelegate: MessagingDelegate {
         
         guard let token = Messaging.messaging().fcmToken else { fatalError("FCM 토큰을 찾을 수 없습니다.") }
         
-//        userAdapter?.sendFCMToken(fcmToken: token)
-//            .subscribe(
-//                onNext: { _ in
-//                    print("FCMS 토큰 전송 성공 - Token: \(token)")
-//                },
-//                onError: { error in
-//                    print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
-//                    UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//                        exit(0)
-//                    }
-//                }
-//            ).disposed(by: disposeBag)
+        userAdapter?.sendFCMToken(fcmToken: token)
+            .subscribe(
+                onNext: { _ in
+                    print("FCMS 토큰 전송 성공 - Token: \(token)")
+                },
+                onError: { error in
+                    print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
+                    UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        exit(0)
+                    }
+                }
+            ).disposed(by: disposeBag)
     }
 }

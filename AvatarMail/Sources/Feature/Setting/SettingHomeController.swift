@@ -445,26 +445,26 @@ class SettingHomeController: UIViewController {
             .bind { [weak self] _ in
                 guard let self else { return }
                 
-                if let recording = self.currentRecording {
-                    let result = self.playingManager.startPlaying(url: recording.fileURL)
-                    
-                    switch result {
-                    case .success:
-                        print("Playing Start")
-                        playingTimer.startTimer()
-                    case .failure(let error):
-                        switch error {
-                        case .audioPlayerCreationFailure:
-                            print("audioPlayerCreationFailure")
-                        case .audioPlayerNotFound:
-                            print("audioPlayerNotFound")
-                        case .playingSessionSetupFailure:
-                            print("playingSessionSetupFailure")
-                        }
-                    }
-                } else {
-                    print("Recording Not Found")
-                }
+//                if let recording = self.currentRecording {
+//                    let result = self.playingManager.startPlaying(url: recording.fileURL)
+//                    
+//                    switch result {
+//                    case .success:
+//                        print("Playing Start")
+//                        playingTimer.startTimer()
+//                    case .failure(let error):
+//                        switch error {
+//                        case .audioPlayerCreationFailure:
+//                            print("audioPlayerCreationFailure")
+//                        case .audioPlayerNotFound:
+//                            print("audioPlayerNotFound")
+//                        case .playingSessionSetupFailure:
+//                            print("playingSessionSetupFailure")
+//                        }
+//                    }
+//                } else {
+//                    print("Recording Not Found")
+//                }
             }.disposed(by: disposeBag)
         
         playingStopButton.rx.tap
@@ -581,12 +581,12 @@ class SettingHomeController: UIViewController {
         playServerSentFileButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                
-                if let sampleText = mailContents, let fileURL = currentRecording?.fileURL {
-                    uploadTextAndAudioFileToServer(text: sampleText, fileURL: fileURL, to: URL(string: "http://127.0.0.1:5000/upload")!)
-                } else {
-                    print("Data has not yet been set.")
-                }
+//                
+//                if let sampleText = mailContents, let fileURL = currentRecording?.fileURL {
+//                    uploadTextAndAudioFileToServer(text: sampleText, fileURL: fileURL, to: URL(string: "http://127.0.0.1:5000/upload")!)
+//                } else {
+//                    print("Data has not yet been set.")
+//                }
                 
             }.disposed(by: disposeBag)
     }

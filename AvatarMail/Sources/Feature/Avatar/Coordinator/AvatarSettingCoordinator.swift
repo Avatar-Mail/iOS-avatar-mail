@@ -38,6 +38,7 @@ class AvatarSettingCoordinator: AvatarSettingCoordinatorProtocol {
                                                         audioRecordingManager: AppContainer.shared.getAudioRecordingManager(),
                                                         audioPlayingManager: AppContainer.shared.getAudioPlayingManager(),
                                                         ttsAdapter: AppContainer.shared.getTTSAdapter(),
+                                                        storageManager: AppContainer.shared.getStorageManager(),
                                                         avatar: viewParameter.avatarInfo)
         let avatarSettingController = AvatarSettingController(reactor: avatarSettingReactor)
         navigationController?.pushViewController(avatarSettingController, animated: true)

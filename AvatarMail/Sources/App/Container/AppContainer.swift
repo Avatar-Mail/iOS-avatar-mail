@@ -25,14 +25,6 @@ class AppContainer {
             _ in RealmDatabase()
         }.inObjectScope(.container)
         
-        container.register(AudioRecordingManager.self) {
-            _ in AudioRecordingManager()
-        }.inObjectScope(.container)
-        
-        container.register(AudioPlayingManager.self) {
-            _ in AudioPlayingManager()
-        }.inObjectScope(.container)
-        
         container.register(StorageManager.self) {
             _ in StorageManager()
         }.inObjectScope(.container)
@@ -52,12 +44,24 @@ class AppContainer {
             fatalError("RefactoredNetworkService 초기화 실패")
         }
         
+        guard let storageManager = getStorageManager() else {
+            fatalError("RefactoredNetworkService 초기화 실패")
+        }
+        
         container.register(TTSAdapter.self) {
             _ in TTSAdapter.init(networkService: refactoredNetworkService)
         }.inObjectScope(.container)
         
         container.register(UserAdapter.self) {
             _ in UserAdapter.init(networkService: refactoredNetworkService)
+        }.inObjectScope(.container)
+        
+        container.register(AudioRecordingManager.self) {
+            _ in AudioRecordingManager(storageManager: storageManager)
+        }.inObjectScope(.container)
+        
+        container.register(AudioPlayingManager.self) {
+            _ in AudioPlayingManager(storageManager: storageManager)
         }.inObjectScope(.container)
     }
 

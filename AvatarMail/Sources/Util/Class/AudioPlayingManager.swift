@@ -20,8 +20,12 @@ final class AudioPlayingManager: NSObject {
     
     private var audioPlayer : AVAudioPlayer?
     
+    private var storageManager: StorageManagerProtocol
     
-    override init() {
+    
+    init(storageManager: StorageManagerProtocol) {
+        self.storageManager = storageManager
+        
         super.init()
     }
     

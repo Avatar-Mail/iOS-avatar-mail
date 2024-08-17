@@ -8,11 +8,12 @@
 import Foundation
 import UIKit
 
-public protocol StorageManagerDelegate: AnyObject {
-    func didFinishPlaying(with fileURL: String?)
+public protocol StorageManagerProtocol: AnyObject {
+    func getFileURL(fileName: String, type: StorageFileType) -> URL
+    func save(data: Data, fileName: String, type: StorageFileType) throws
 }
 
-final class StorageManager {
+final class StorageManager: StorageManagerProtocol {
     
     let fileManager = FileManager.default
     
@@ -42,7 +43,7 @@ final class StorageManager {
     }
     
     
-    func prepareDirectories() {
+    private func prepareDirectories() {
         let applicationDirectoryURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         
         for type in StorageFileType.allCases {
@@ -61,12 +62,12 @@ final class StorageManager {
 }
 
 
-enum StorageFileType: String, CaseIterable {
+public enum StorageFileType: String, CaseIterable {
     case audio = "audio_files"
 }
 
 
-enum StorageManagerError: Error {
+public enum StorageManagerError: Error {
     case FileSaveFailure
     
     var errorDescription: String? {
