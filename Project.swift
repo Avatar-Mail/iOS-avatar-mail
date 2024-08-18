@@ -65,6 +65,7 @@ let project = Project(
             entitlements: "AvatarMail/Resources/AvatarMail.entitlements",
             dependencies: [
                 // SDK
+                .external(name: "FirebaseFirestore", condition: .none),
                 .external(name: "FirebaseMessaging", condition: .none),
                 .external(name: "FirebaseAnalytics", condition: .none),
                 // API

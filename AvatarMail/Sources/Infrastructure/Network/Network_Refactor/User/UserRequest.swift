@@ -7,6 +7,8 @@
 
 import Foundation
 import Alamofire
+import FirebaseFirestore
+
 
 public class UserRequest: RequestProtocol {
 
@@ -25,8 +27,18 @@ public class UserRequest: RequestProtocol {
         guard let baseURLString = Bundle.main.infoDictionary?["BaseURL"] as? String else {
             fatalError("BASE_SERVER_URL has not yet been set.")
         }
-        let fullURLString = baseURLString + requestData.path.rawValue
-        return fullURLString
+
+        let uploadedBaseURL = FirestoreDatabase.shared.getCachedBaseServerURL()
+        
+        // firestore에 서버에서 업로드한 BASE_SERVER_URL이 존재하면 해당 URL을 사용하고,
+        // 없으면 Info.plist 파일에 존재하는 URL을 사용한다.
+        if let uploadedBaseURL {
+            let fullURLString = uploadedBaseURL + requestData.path.rawValue
+            return fullURLString
+        } else {
+            let fullURLString = baseURLString + requestData.path.rawValue
+            return fullURLString
+        }
     }
     
     public func getHeader(additionalHeaders: [String : String]?) -> [String: String] {

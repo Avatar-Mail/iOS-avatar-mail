@@ -57,6 +57,8 @@ class RepliedMailReactor: Reactor {
                                   isNarrating: false,
                                   narrationAudioURL: nil,
                                   toastMessage: nil)
+        
+        audioPlayingManager.delegate = self
     }
     
     
@@ -187,3 +189,9 @@ class RepliedMailReactor: Reactor {
     }
 }
 
+
+extension RepliedMailReactor: AudioPlayingManagerDelegate {
+    func didFinishPlaying(with fileURL: String?) {
+        action.onNext(.stopNarration)
+    }
+}
