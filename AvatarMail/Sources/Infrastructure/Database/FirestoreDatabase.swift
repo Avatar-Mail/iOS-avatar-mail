@@ -11,7 +11,8 @@ import RxSwift
 
 
 protocol FirestoreDatabaseProtocol {
-    func getBaseServerURL(completion: @escaping () -> Void)
+    func loadBaseServerURL() async
+    func loadBaseServerURL(completion: @escaping () -> Void)
     func getCachedBaseServerURL() -> String?
 }
 
@@ -29,7 +30,7 @@ class FirestoreDatabase: FirestoreDatabaseProtocol {
         self.docRef = database.collection("server-info").document("config")
     }
     
-    func getBaseServerURL(completion: @escaping () -> Void) {
+    func loadBaseServerURL(completion: @escaping () -> Void) {
         docRef.getDocument { (document, error) in
             if let document = document, document.exists {
                 if let url = document.get("url") as? String {
@@ -44,6 +45,21 @@ class FirestoreDatabase: FirestoreDatabaseProtocol {
                 print("[Firestore] Error: Document가 존재하지 않습니다.")
                 completion()
             }
+        }
+    }
+    
+    func loadBaseServerURL() async {
+        do {
+            let document = try await docRef.getDocument()
+            
+            if let url = document.get("url") as? String {
+                print("[Firestore] BASE_SERVER_URL: \(url)")
+                self.baseServerURL = url
+            } else {
+                print("[Firestore] Error: 업로드 된 url이 존재하지 않습니다.")
+            }
+        } catch {
+            print("[Firestore] Error: Document를 불러오는 데 실패했습니다. - \(error.localizedDescription)")
         }
     }
     

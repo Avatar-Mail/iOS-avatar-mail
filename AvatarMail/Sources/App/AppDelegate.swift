@@ -130,7 +130,9 @@ extension AppDelegate: MessagingDelegate {
         
         guard let token = Messaging.messaging().fcmToken else { fatalError("FCM 토큰을 찾을 수 없습니다.") }
         
-        FirestoreDatabase.shared.getBaseServerURL {
+        Task {
+            await FirestoreDatabase.shared.loadBaseServerURL()
+            
             userAdapter?.sendFCMToken(fcmToken: token)
                 .subscribe(
                     onNext: { _ in
