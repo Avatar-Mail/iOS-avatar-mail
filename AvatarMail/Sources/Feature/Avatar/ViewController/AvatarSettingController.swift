@@ -255,6 +255,13 @@ class AvatarSettingController: UIViewController, View {
                 ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
             }.disposed(by: disposeBag)
         
+        reactor.state.map(\.selectedSampleText)
+            .distinctUntilChanged()
+            .bind { [weak self] sampleText in
+                guard let self else { return }
+                avatarVoiceInputView.setSampleText(to: sampleText)
+            }.disposed(by: disposeBag)
+        
         reactor.state.map(\.isRecording)
             .distinctUntilChanged()
             .bind { [weak self] isRecording in
@@ -381,22 +388,37 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     
     func backButtonDidTap() {
         let viewState = avatarVoiceInputView.getViewState()
+        avatarVoiceInputView.clearInputText()
         
         switch viewState {
         case .initial: ()
-        case .inputText:
-            avatarVoiceInputView.clearInputText()
+        case .randomText:
             avatarVoiceInputView.setViewState(.initial)
+        case .inputText:
+            avatarVoiceInputView.setViewState(.randomText)
         case .inputVoice: ()
-            avatarVoiceInputView.setViewState(.inputText)
+            avatarVoiceInputView.setViewState(.randomText)
         }
     }
     
     func initialAvatarVoiceRecordButtonDidTap() {
+        reactor?.action.onNext(.changeSampleText)
+        avatarVoiceInputView.setViewState(.randomText)
+    }
+    
+    func changeSampleTextButtonDidTap() {
+        reactor?.action.onNext(.changeSampleText)
+    }
+    
+    func changeToInputTextButtonDidTap() {
         avatarVoiceInputView.setViewState(.inputText)
     }
     
-    func startRecordingTextButtonDidTap() {
+    func randomTextSelectButtonDidTap() {
+        avatarVoiceInputView.setViewState(.inputVoice)
+    }
+    
+    func inputTextSelectButtonDidTap() {
         avatarVoiceInputView.setViewState(.inputVoice)
     }
     

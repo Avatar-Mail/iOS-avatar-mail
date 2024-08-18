@@ -15,7 +15,10 @@ import SnapKit
 protocol AvatarVoiceInputViewDelegate: AnyObject {
     func backButtonDidTap()
     func initialAvatarVoiceRecordButtonDidTap()
-    func startRecordingTextButtonDidTap()
+    func changeToInputTextButtonDidTap()
+    func randomTextSelectButtonDidTap()
+    func changeSampleTextButtonDidTap()
+    func inputTextSelectButtonDidTap()
     func recordingButtonDidTap(with recordingContents: String)
     func playingButtonDidTap(with recording: AudioRecording)
 }
@@ -28,6 +31,7 @@ final class AvatarVoiceInputView: UIView {
     
     enum AvatarVoiceInputViewState {
         case initial
+        case randomText
         case inputText
         case inputVoice
     }
@@ -47,6 +51,7 @@ final class AvatarVoiceInputView: UIView {
     private var viewState: AvatarVoiceInputViewState = .initial {
         didSet {
             showInitialStateView(viewState == .initial ? true : false)
+            showRandomTextStateView(viewState == .randomText ? true : false)
             showInputTextStateView(viewState == .inputText ? true : false)
             showInputVoiceStateView(viewState == .inputVoice ? true : false)
             
@@ -55,18 +60,24 @@ final class AvatarVoiceInputView: UIView {
                 showBackButton(false)
                 titleLabel.text = "아바타의 목소리를 입력하세요."
                 subTitleLabel.text = "녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요."
+            case .randomText:
+                showBackButton(true)
+                titleLabel.text = "문장 선택"
+                subTitleLabel.text = "어떤 문장을 녹음할 것인지 선택하세요."
             case .inputText:
                 showBackButton(true)
                 titleLabel.text = "문장 입력"
                 subTitleLabel.text = "어떤 문장을 녹음할 것인지 입력하세요."
+                
+                textCountLabel.attributedText
+                
             case .inputVoice: ()
+                showBackButton(true)
                 titleLabel.text = "음성 녹음"
                 subTitleLabel.text = "문장을 아바타의 목소리로 녹음하세요."
                 
-                contentsTextLabel.attributedText = .makeAttributedString(text: "\"\(recordingContents)\"",
-                                                                         color: .black,
-                                                                         font: .content(size: 20, weight: .medium))
-                contentsTextLabel.textAlignment = .center
+                setElaspedTimeLabels(with: 0.0)
+                setContentLabel(with: recordingContents)
             }
         }
     }
@@ -168,7 +179,61 @@ final class AvatarVoiceInputView: UIView {
                        shadowOpacity: 0.5)
     }
     
-    // 2. 문장 입력 state 뷰
+    // 2. 랜덤 문장 입력 state 뷰
+    private let randomTextStateContainerView = UIView().then {
+        $0.isHidden = true
+    }
+    
+    private let randomTextLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "녹음할 샘플 문장입니다.",
+                                                  color: .black,
+                                                  font: .content(size: 18, weight: .medium),
+                                                  textAlignment: .center,
+                                                  lineBreakMode: .byWordWrapping,
+                                                  lineBreakStrategy: .hangulWordPriority)
+        $0.numberOfLines = 0
+    }
+    
+    let changeSampleTextButton = UIButton().then {
+        
+        var config = UIButton.Configuration.plain()
+    
+        var title = AttributedString("문장 바꾸기")
+        title.font = UIFont.content(size: 14, weight: .regular)
+        title.foregroundColor = UIColor(hex: 0xB6B6B6)
+        config.attributedTitle = title
+        config.titlePadding = 0
+        
+        let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular, scale: .default)
+        let image = UIImage(systemName: "arrow.triangle.2.circlepath", withConfiguration: imageConfiguration)
+        config.image = image
+        config.imagePadding = 2
+        config.imagePlacement = .trailing
+        
+        config.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 1, bottom: 1, trailing: 1)
+        
+        $0.configuration = config
+        $0.tintColor = UIColor(hex: 0xB6B6B6)
+    }
+    
+    private let changeToInputTextButton = UIButton().then {
+        $0.setButtonTitle(title: "직접 입력",
+                          color: .gray,
+                          font: .content(size: 14, weight: .bold))
+    }
+    
+    private let randomTextSelectButton = UIButton().then {
+        $0.setButtonTitle(title: "위 문장으로 녹음하기",
+                          color: .white,
+                          font: .content(size: 16, weight: .bold))
+        $0.applyCornerRadius(15)
+        $0.applyShadow(shadowRadius: 4,
+                       shadowOffset: CGSize(width: 0, height: 2),
+                       shadowOpacity: 0.5)
+    }
+    
+    
+    // 3. 사용자 정의 문장 입력 state 뷰
     private let inputTextStateContainerView = UIView().then {
         $0.isHidden = true
     }
@@ -193,7 +258,7 @@ final class AvatarVoiceInputView: UIView {
     }
     
     // 문장으로 녹음 시작 버튼
-    private let startRecordingTextButton = UIButton().then {
+    private let inputTextSelectButton = UIButton().then {
         $0.setButtonTitle(title: "위 문장으로 녹음하기",
                           color: .white,
                           font: .content(size: 16, weight: .bold))
@@ -288,9 +353,13 @@ final class AvatarVoiceInputView: UIView {
                                                                         UIColor(hex: 0x4C5BDF)],
                                                                isHorizontal: true)
         
-        startRecordingTextButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
-                                                                  UIColor(hex: 0x4C5BDF)],
+        inputTextSelectButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
+                                                               UIColor(hex: 0x4C5BDF)],
                                                          isHorizontal: true)
+        
+        randomTextSelectButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
+                                                                UIColor(hex: 0x4C5BDF)],
+                                                       isHorizontal: true)
     }
     
     
@@ -388,13 +457,25 @@ final class AvatarVoiceInputView: UIView {
                         initialAvatarVoiceRecordButton
                     ),
                     
+                    // randomText-state 뷰
+                    randomTextStateContainerView.addSubViews(
+                        // 랜덤 샘플 텍스트 레이블
+                        randomTextLabel,
+                        // 샘플 문장 변경 버튼
+                        changeSampleTextButton,
+                        // 직접 입력 버튼
+                        changeToInputTextButton,
+                        // 위 문장으로 입력하기 버튼
+                        randomTextSelectButton
+                    ),
+                    
                     // inputText-state 뷰
                     inputTextStateContainerView.addSubViews(
                         textViewContainerView.addSubViews(
                             inputTextView
                         ),
                         textCountLabel,
-                        startRecordingTextButton
+                        inputTextSelectButton
                     ),
                     
                     // inputVoice-state 뷰
@@ -450,6 +531,7 @@ final class AvatarVoiceInputView: UIView {
             $0.left.bottom.right.equalToSuperview().inset(20)
         }
         
+        // initial-state 뷰
         initialStateContainerView.snp.makeConstraints {
             $0.height.equalTo(200)
         }
@@ -464,6 +546,35 @@ final class AvatarVoiceInputView: UIView {
             $0.height.equalTo(64)
         }
         
+        // randomText-state 뷰
+        randomTextStateContainerView.snp.makeConstraints {
+            $0.height.equalTo(200)
+        }
+         
+        randomTextLabel.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.left.right.equalToSuperview().inset(20)
+            $0.height.equalTo(90)
+        }
+        
+        changeSampleTextButton.snp.makeConstraints {
+            $0.top.equalTo(randomTextLabel.snp.bottom).offset(6)
+            $0.right.equalToSuperview()
+        }
+        
+        changeToInputTextButton.snp.makeConstraints {
+            $0.left.bottom.equalToSuperview()
+            $0.height.equalTo(64)
+            $0.width.equalTo(80)
+        }
+        
+        randomTextSelectButton.snp.makeConstraints {
+            $0.left.equalTo(changeToInputTextButton.snp.right).offset(16)
+            $0.right.bottom.equalToSuperview()
+            $0.height.equalTo(64)
+        }
+        
+        // inputText-state 뷰
         inputTextStateContainerView.snp.makeConstraints {
             $0.height.equalTo(200)
         }
@@ -482,11 +593,12 @@ final class AvatarVoiceInputView: UIView {
             $0.right.equalToSuperview()
         }
         
-        startRecordingTextButton.snp.makeConstraints {
+        inputTextSelectButton.snp.makeConstraints {
             $0.left.bottom.right.equalToSuperview()
             $0.height.equalTo(64)
         }
         
+        // inputVoice-state 뷰
         inputVoiceStateContainerView.snp.makeConstraints {
             $0.height.equalTo(200)
         }
@@ -553,14 +665,7 @@ final class AvatarVoiceInputView: UIView {
             .subscribe(onNext: { [weak self] elapsedTime in
                 guard let self else { return }
                 
-                let totalMilliseconds = Int(elapsedTime * 1000)
-                let minutes = (totalMilliseconds / 1000) / 60
-                let seconds = (totalMilliseconds / 1000) % 60
-                let milliseconds = (totalMilliseconds % 1000) / 10
-                
-                minutesLabel.text = String(format: "%02d", minutes)
-                secondsLabel.text = String(format: "%02d", seconds)
-                millisecondsLabel.text = String(format: "%02d", milliseconds)
+                setElaspedTimeLabels(with: elapsedTime)
 
             }).disposed(by: disposeBag)
         
@@ -579,10 +684,33 @@ final class AvatarVoiceInputView: UIView {
             }
             .disposed(by: disposeBag)
         
-        startRecordingTextButton.rx.tap
+        inputTextSelectButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-                delegate?.startRecordingTextButtonDidTap()
+                recordingContents = inputTextView.text
+                delegate?.inputTextSelectButtonDidTap()
+            }
+            .disposed(by: disposeBag)
+        
+        changeSampleTextButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                delegate?.changeSampleTextButtonDidTap()
+            }
+            .disposed(by: disposeBag)
+        
+        changeToInputTextButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                delegate?.changeToInputTextButtonDidTap()
+            }
+            .disposed(by: disposeBag)
+        
+        randomTextSelectButton.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                recordingContents = "\(randomTextLabel.text ?? "")"
+                delegate?.randomTextSelectButtonDidTap()
             }
             .disposed(by: disposeBag)
         
@@ -590,12 +718,7 @@ final class AvatarVoiceInputView: UIView {
             .asDriver()
             .drive(onNext: { [weak self] text in
                 guard let self else { return }
-                
-                recordingContents = text ?? ""
-                
-                textCountLabel.attributedText = .makeAttributedString(text: "\(recordingContents.count) | 60자",
-                                                                      color: UIColor(hex:0x7B7B7B),
-                                                                      font: .content(size: 16, weight: .regular))
+                setTextCountLabel(with: text?.count ?? 0)
             })
             .disposed(by: disposeBag)
         
@@ -607,10 +730,40 @@ final class AvatarVoiceInputView: UIView {
             .disposed(by: disposeBag)
     }
     
+    private func setElaspedTimeLabels(with elapsedTime: Double) {
+        
+        let totalMilliseconds = Int(elapsedTime * 1000)
+        let minutes = (totalMilliseconds / 1000) / 60
+        let seconds = (totalMilliseconds / 1000) % 60
+        let milliseconds = (totalMilliseconds % 1000) / 10
+        
+        minutesLabel.text = String(format: "%02d", minutes)
+        secondsLabel.text = String(format: "%02d", seconds)
+        millisecondsLabel.text = String(format: "%02d", milliseconds)
+    }
+    
+    private func setContentLabel(with text: String) {
+        contentsTextLabel.attributedText = .makeAttributedString(text: text,
+                                                                 color: .black,
+                                                                 font: .content(size: 18, weight: .medium),
+                                                                 textAlignment: .center,
+                                                                 lineBreakMode: .byWordWrapping,
+                                                                 lineBreakStrategy: .hangulWordPriority)
+    }
+    
+    private func setTextCountLabel(with count: Int) {
+        textCountLabel.attributedText = .makeAttributedString(text: "\(count) | 60자",
+                                                              color: UIColor(hex:0x7B7B7B),
+                                                              font: .content(size: 16, weight: .regular))
+    }
+    
     
     private func showInitialStateView(_ shouldShow: Bool) {
         initialStateContainerView.isHidden = !shouldShow
+    }
     
+    private func showRandomTextStateView(_ shouldShow: Bool) {
+        randomTextStateContainerView.isHidden = !shouldShow
     }
     
     private func showInputTextStateView(_ shouldShow: Bool) {
@@ -627,6 +780,15 @@ final class AvatarVoiceInputView: UIView {
     
     public func getViewState() -> AvatarVoiceInputViewState {
         return viewState
+    }
+    
+    public func setSampleText(to text: String) {
+        randomTextLabel.attributedText = .makeAttributedString(text: "\"\(text)\"",
+                                                               color: .black,
+                                                               font: .content(size: 18, weight: .medium),
+                                                               textAlignment: .center,
+                                                               lineBreakMode: .byWordWrapping,
+                                                               lineBreakStrategy: .hangulWordPriority)
     }
     
     public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape, animated: Bool) {

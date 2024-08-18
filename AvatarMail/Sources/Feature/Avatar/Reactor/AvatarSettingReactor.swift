@@ -13,6 +13,7 @@ class AvatarSettingReactor: Reactor {
     enum Action {
         // Logic
         case loadSampleTexts
+        case changeSampleText
         case avatarNameDidChange(name: String)
         case avatarAgeDidChange(age: String?)
         case avatarSelfRoleDidChange(avatarRole: String?)
@@ -30,6 +31,7 @@ class AvatarSettingReactor: Reactor {
     
     enum Mutation {
         case setSampleTexts(texts: [String])
+        case setSelectedSampleText(text: String)
         case setAvatarName(name: String)
         case setAvatarAge(age: String?)
         case setAvatarSelfRole(avatarRole: String?)
@@ -44,7 +46,8 @@ class AvatarSettingReactor: Reactor {
     }
     
     struct State {
-        var sampleTexts: [String]           // 음성 녹음용 샘플 텍스트
+        var sampleTexts: [String]           // 음성 녹음용 샘플 텍스트 배열
+        var selectedSampleText: String      // 선택된 샘플 텍스트
         
         var id: String                      // ID
         var name: String                    // 이름
@@ -94,6 +97,7 @@ class AvatarSettingReactor: Reactor {
         self.storageManager = storageManager
 
         self.initialState = State(sampleTexts: [],
+                                  selectedSampleText: "샘플 텍스트가 없습니다.",
                                   id: avatar?.id ?? UUID().uuidString,
                                   name: avatar?.name ?? "",
                                   age: avatar?.ageGroup,
@@ -146,6 +150,8 @@ class AvatarSettingReactor: Reactor {
             return saveAvatar(avatar)
         case .loadSampleTexts:
             return loadSampleTexts()
+        case .changeSampleText:
+            return changeSelectedSampleText(sampleTexts: currentState.sampleTexts)
             
         // Navigation
         case .closeAvatarSettingController:
@@ -162,6 +168,8 @@ class AvatarSettingReactor: Reactor {
         switch mutation {
         case let .setSampleTexts(texts: texts):
             newState.sampleTexts = texts
+        case let .setSelectedSampleText(text: text):
+            newState.selectedSampleText = text
         case let .setAvatarName(name: name):
             newState.name = name
         case let .setAvatarAge(age: age):
@@ -205,7 +213,16 @@ class AvatarSettingReactor: Reactor {
             
             do {
                 let sampleTextModel = try decoder.decode(SampleText.self, from: data)
-                return Observable.just(Mutation.setSampleTexts(texts: sampleTextModel.samples))
+                
+                // 화면에 표시할 랜덤 샘플 텍스트 선택
+                if let randomSampleText = sampleTextModel.samples.randomElement() {
+                    return Observable.of(
+                        Mutation.setSelectedSampleText(text: randomSampleText),
+                        Mutation.setSampleTexts(texts: sampleTextModel.samples)
+                    )
+                } else {
+                    return Observable.just(.setToastMessage(text: "샘플 텍스트를 가져오는 데 실패했습니다."))
+                }
             } catch let error {
                 print("JSON Parsing Error: \(error.localizedDescription)")
                 return Observable.just(.setToastMessage(text: "샘플 텍스트 JSON 파일을 파싱하는 데 실패했습니다: \(error.localizedDescription)"))
@@ -213,6 +230,15 @@ class AvatarSettingReactor: Reactor {
         } catch let error {
             print("File Read Error: \(error.localizedDescription)")
             return Observable.just(.setToastMessage(text: "JSON 파일을 불러오는 데 실패했습니다: \(error.localizedDescription)"))
+        }
+    }
+    
+    
+    private func changeSelectedSampleText(sampleTexts: [String]) -> Observable<Mutation> {
+        if let randomSampleText = sampleTexts.randomElement() {
+            return Observable.just(.setSelectedSampleText(text: randomSampleText))
+        } else {
+            return Observable.just(.setToastMessage(text: "샘플 텍스트를 가져오는 데 실패했습니다."))
         }
     }
     
