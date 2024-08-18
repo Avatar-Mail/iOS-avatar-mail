@@ -124,7 +124,15 @@ final class AvatarVoiceInputView: UIView {
     private let recordingsContainerView = UIView()
     
     private let recordingsPlaceHolderView = UIView().then {
-        $0.backgroundColor = .systemBlue
+        $0.layer.cornerRadius = 15
+        $0.clipsToBounds = true
+        $0.backgroundColor = UIColor(hex: 0xEBEBEB, alpha: 0.6)
+    }
+    
+    private let recordingsPlaceHolderLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "녹음된 음성 파일이 없습니다.",
+                                                  color: UIColor(hex:0x7B7B7B),
+                                                  font: .content(size: 14, weight: .regular))
     }
     
     private lazy var recordingsCollectionView = UICollectionView(frame: .zero,
@@ -314,6 +322,11 @@ final class AvatarVoiceInputView: UIView {
             recordingsContainerView.addSubview(recordingsPlaceHolderView)
             recordingsPlaceHolderView.snp.makeConstraints {
                 $0.edges.equalToSuperview()
+            }
+            
+            recordingsPlaceHolderView.addSubview(recordingsPlaceHolderLabel)
+            recordingsPlaceHolderLabel.snp.makeConstraints {
+                $0.center.equalToSuperview()
             }
         }
         // 녹음 파일이 1개인 경우
