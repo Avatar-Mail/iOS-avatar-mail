@@ -141,17 +141,17 @@ class RepliedMailController: UIViewController, View {
         topNavigation.delegate = self
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
+    }
+    
     override func viewDidLayoutSubviews() {
         topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
                                                                        UIColor(hex: 0x403DD2)])
         replyButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE), UIColor(hex: 0x4C5BDF)],
                                             isHorizontal: true)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
     private func makeUI() {

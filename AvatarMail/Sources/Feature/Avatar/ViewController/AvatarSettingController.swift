@@ -104,10 +104,12 @@ class AvatarSettingController: UIViewController, View {
         
         setDelegates()
         
-        tabBarController?.hideTabBar(isHidden: true, animated: true)
-        
         // 샘플 텍스트 json 파일 불러옴
         reactor?.action.onNext(.loadSampleTexts)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
     override func viewDidLayoutSubviews() {
