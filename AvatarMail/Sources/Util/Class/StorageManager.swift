@@ -11,6 +11,7 @@ import UIKit
 public protocol StorageManagerProtocol: AnyObject {
     func getFileURL(fileName: String, type: StorageFileType) -> URL
     func save(data: Data, fileName: String, type: StorageFileType) throws
+    func delete(fileName: String, type: StorageFileType) throws
 }
 
 final class StorageManager: StorageManagerProtocol {
@@ -43,6 +44,20 @@ final class StorageManager: StorageManagerProtocol {
     }
     
     
+    public func delete(fileName: String, type: StorageFileType) throws {
+        let fileURL = getFileURL(fileName: fileName, type: type)
+        do {
+            if fileManager.fileExists(atPath: fileURL.path) {
+                try fileManager.removeItem(at: fileURL)
+            } else {
+                throw StorageManagerError.FileNotFound
+            }
+        } catch {
+            throw StorageManagerError.FileDeleteFailure
+        }
+    }
+    
+    
     private func prepareDirectories() {
         let applicationDirectoryURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         
@@ -69,11 +84,17 @@ public enum StorageFileType: String, CaseIterable {
 
 public enum StorageManagerError: Error {
     case FileSaveFailure
+    case FileDeleteFailure
+    case FileNotFound
     
     var errorDescription: String? {
         switch self {
         case .FileSaveFailure:
             return "파일을 저장하는 데 실패했습니다."
+        case .FileDeleteFailure:
+            return "파일을 삭제하는 데 실패했습니다."
+        case .FileNotFound:
+            return "존재하지 않는 파일입니다."
         }
     }
 }
