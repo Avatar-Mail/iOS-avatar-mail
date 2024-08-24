@@ -11,6 +11,7 @@ class TooltipView: UIView {
     
     private let containerView = UIView().then {
         $0.applyCornerRadius(20)
+        $0.backgroundColor = .white
     }
     
     private let titleLabel = UILabel().then {
@@ -34,15 +35,16 @@ class TooltipView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
-        containerView.applyGradientBackground(colors: [UIColor(hex: 0x5B75FF), UIColor(hex: 0x403DD2)],
-                                              isHorizontal: false)
+
+        containerView.applyGradientBorder(width: 4,
+                                          colors: [UIColor(hex: 0x5B75FF), UIColor(hex: 0x403DD2)],
+                                          cornerRadius: 20)
     }
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         
-        drawTooltipCorner()
+        // drawTooltipCorner()
     }
     
     
@@ -50,13 +52,13 @@ class TooltipView: UIView {
                         description: String?) {
         if let title {
             titleLabel.attributedText = .makeAttributedString(text: title,
-                                                              color: .white,
+                                                              color: .black,
                                                               font: .content(size: 20, weight: .bold))
         }
         if let description {
-            descriptionLabel.attributedText = .makeAttributedString(text: "당신이 원하는 아바타에게 편지를 작성해보세요.",
-                                                                    color: .white,
-                                                                    font: .content(size: 14, weight: .regular),
+            descriptionLabel.attributedText = .makeAttributedString(text: description,
+                                                                    color: .darkGray,
+                                                                    font: .content(size: 14, weight: .medium),
                                                                     lineBreakMode: .byCharWrapping)
         }
     }
@@ -75,29 +77,29 @@ class TooltipView: UIView {
         }
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().inset(24)
-            $0.leading.equalToSuperview().inset(24)
+            $0.top.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().inset(20)
         }
         
         descriptionLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(6)
-            $0.leading.equalToSuperview().inset(24)
-            $0.bottom.equalToSuperview().inset(24)
+            $0.leading.equalToSuperview().inset(20)
+            $0.bottom.equalToSuperview().inset(20)
         }
     }
     
     
-    private func drawTooltipCorner() {
-        let cornerPath = UIBezierPath()
-        cornerPath.move(to: CGPoint(x: 10, y: bounds.height - 3))
-        cornerPath.addLine(to: CGPoint(x: 32, y: bounds.height + 14))
-        cornerPath.addLine(to: CGPoint(x: 54, y: bounds.height - 3))
-        cornerPath.close()
-        
-        let cornerLayer = CAShapeLayer()
-        cornerLayer.path = cornerPath.cgPath
-        cornerLayer.fillColor = UIColor(hex: 0x403DD2).cgColor
-        
-        layer.addSublayer(cornerLayer)
-    }
+//    private func drawTooltipCorner() {
+//        let cornerPath = UIBezierPath()
+//        cornerPath.move(to: CGPoint(x: 10, y: bounds.height - 3))
+//        cornerPath.addLine(to: CGPoint(x: 32, y: bounds.height + 14))
+//        cornerPath.addLine(to: CGPoint(x: 54, y: bounds.height - 3))
+//        cornerPath.close()
+//        
+//        let cornerLayer = CAShapeLayer()
+//        cornerLayer.path = cornerPath.cgPath
+//        cornerLayer.fillColor = UIColor.white.cgColor
+//        
+//        layer.addSublayer(cornerLayer)
+//    }
 }

@@ -124,6 +124,7 @@ extension UIView {
     
     public func applyGradientBorder(width: CGFloat,
                                     colors: [UIColor],
+                                    cornerRadius: CGFloat,
                                     isHorizontal: Bool = true) {
         let existedBorder = gradientBorderLayer()
         let border = existedBorder ?? CAGradientLayer()
@@ -134,12 +135,13 @@ extension UIView {
             border.startPoint = CGPoint(x: 0.0, y: 0.5)
             border.endPoint = CGPoint(x: 1.0, y: 0.5)
         } else {
-            border.startPoint = CGPoint(x: 0.5, y: 0)
-            border.endPoint = CGPoint(x: 0.5, y: 1)
+            border.startPoint = CGPoint(x: 0.5, y: 0.0)
+            border.endPoint = CGPoint(x: 0.5, y: 1.0)
         }
         
         let mask = CAShapeLayer()
-        mask.path = UIBezierPath(roundedRect: bounds, cornerRadius: 0).cgPath
+        // cornerRadius를 적용한 UIBezierPath를 사용
+        mask.path = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
         mask.fillColor = UIColor.clear.cgColor
         mask.strokeColor = UIColor.white.cgColor
         mask.lineWidth = width
@@ -152,6 +154,7 @@ extension UIView {
             layer.addSublayer(border)
         }
     }
+
     
     
     public func removeGradientBorder() {

@@ -266,6 +266,7 @@ final class SearchBar: UIView {
             searchTextField.layer.borderColor = nil
             searchTextField.applyGradientBorder(width: width,
                                                 colors: colors,
+                                                cornerRadius: 10,
                                                 isHorizontal: isHorizontal)
         }
     }

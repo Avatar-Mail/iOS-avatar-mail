@@ -301,8 +301,8 @@ class MailWritingController: UIViewController, View {
         }
         
         tooltipView.snp.makeConstraints {
-            $0.top.equalTo(topNavigation.snp.bottom).offset(16)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.top.equalTo(topNavigation.snp.bottom).offset(20)
+            $0.horizontalEdges.equalToSuperview().inset(20)
         }
         
         sendMailButton.snp.makeConstraints {
@@ -312,10 +312,10 @@ class MailWritingController: UIViewController, View {
         }
         
         letterContainerView.snp.makeConstraints {
-            $0.top.equalTo(tooltipView.snp.bottom).offset(50)
+            $0.top.equalTo(tooltipView.snp.bottom).offset(24)
             $0.horizontalEdges.equalToSuperview().inset(28)
             // 키보드 올라오기 전
-            $0.bottom.equalTo(sendMailButton.snp.top).offset(-50).priority(999)
+            $0.bottom.equalTo(sendMailButton.snp.top).offset(-30).priority(999)
             // 키보드 올라온 후
             $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-50).priority(750)
         }
