@@ -11,6 +11,7 @@ import UIKit
 protocol MailListCoordinatorProtocol: Coordinator {
     func closeMailListController()
     func showRepliedMailController(with mail: Mail)
+    func openMailWritingController()
 }
 
 class MailListCoordinator: MailListCoordinatorProtocol {
@@ -40,6 +41,12 @@ class MailListCoordinator: MailListCoordinatorProtocol {
         let repliedMailCoordinator = RepliedMailCoordinator(navigationController: navigationController,
                                                             viewParameter: viewParameter)
         repliedMailCoordinator.start()
+    }
+    
+    
+    public func openMailWritingController() {
+        let mailWritingCoordinator = MailWritingCoordinator(navigationController: navigationController)
+        mailWritingCoordinator.start()
     }
 }
 

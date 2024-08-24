@@ -14,6 +14,7 @@ class MailListReactor: Reactor {
         case getAllMails
         case closeMailListController
         case showRepliedMailController(mail: Mail)
+        case openMailWritingController
         case sentMailCheckboxDidTap
         case receivedMailCheckboxDidTap
         case searchTextDidChange(String)
@@ -67,36 +68,29 @@ class MailListReactor: Reactor {
         // Logic
         case .getAllMails:
             return getAllMails()
-        // Navigation
-        case .closeMailListController:
-            coordinator.closeMailListController()
-            return .empty()
-        case let .showRepliedMailController(mail: mail):
-            coordinator.showRepliedMailController(with: mail)
-            return .empty()
         case .sentMailCheckboxDidTap:
             if currentState.isSentFromUser == true {
                 return Observable.of(
-                        Mutation.setIsSentFromUser(isSentFromUser: nil),
-                        getFilteredMailMutation(isSentFromUser: nil, searchText: currentState.searchText)
-                    )
+                    Mutation.setIsSentFromUser(isSentFromUser: nil),
+                    getFilteredMailMutation(isSentFromUser: nil, searchText: currentState.searchText)
+                )
             } else {
                 return Observable.of(
-                        Mutation.setIsSentFromUser(isSentFromUser: true),
-                        getFilteredMailMutation(isSentFromUser: true, searchText: currentState.searchText)
-                    )
+                    Mutation.setIsSentFromUser(isSentFromUser: true),
+                    getFilteredMailMutation(isSentFromUser: true, searchText: currentState.searchText)
+                )
             }
         case .receivedMailCheckboxDidTap:
             if currentState.isSentFromUser == false {
                 return Observable.of(
-                        Mutation.setIsSentFromUser(isSentFromUser: nil),
-                        getFilteredMailMutation(isSentFromUser: nil, searchText: currentState.searchText)
-                    )
+                    Mutation.setIsSentFromUser(isSentFromUser: nil),
+                    getFilteredMailMutation(isSentFromUser: nil, searchText: currentState.searchText)
+                )
             } else {
                 return Observable.of(
-                        Mutation.setIsSentFromUser(isSentFromUser: false),
-                        getFilteredMailMutation(isSentFromUser: false, searchText: currentState.searchText)
-                    )
+                    Mutation.setIsSentFromUser(isSentFromUser: false),
+                    getFilteredMailMutation(isSentFromUser: false, searchText: currentState.searchText)
+                )
             }
         case .searchTextDidChange(let searchText):
             
@@ -104,6 +98,16 @@ class MailListReactor: Reactor {
                 Mutation.setSearchText(searchText: searchText),
                 getFilteredMailMutation(isSentFromUser: currentState.isSentFromUser, searchText: searchText)
             )
+        // Navigation
+        case .closeMailListController:
+            coordinator.closeMailListController()
+            return .empty()
+        case .openMailWritingController:
+            coordinator.openMailWritingController()
+            return .empty()
+        case let .showRepliedMailController(mail: mail):
+            coordinator.showRepliedMailController(with: mail)
+            return .empty()
         }
     }
     

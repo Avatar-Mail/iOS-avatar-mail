@@ -162,6 +162,7 @@ class MailListController: UIViewController, View {
         filterAvatarSearchBar.delegate = self
         sentMailCheckbox.delegate = self
         receivedMailCheckbox.delegate = self
+        filterPlaceholderView.delegate = self
     }
 
     private func makeUI() {
@@ -439,5 +440,12 @@ extension MailListController: SearchBarDelegate {
         filterAvatarSearchBar.setBorder(width: 1, colors: [.darkGray])
         
         filterAvatarSearchBar.showKeyboard(true)
+    }
+}
+
+
+extension MailListController: FilterPlaceholderViewDelegate {
+    func writeNewMailButtonDidTap() {
+        reactor?.action.onNext(.openMailWritingController)
     }
 }
