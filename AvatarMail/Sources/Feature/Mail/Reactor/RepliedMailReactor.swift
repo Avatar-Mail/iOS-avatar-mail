@@ -16,18 +16,22 @@ class RepliedMailReactor: Reactor {
         case startNarration
         case stopNarration
         case requestNarrationAudioFile(mailID: String)
+        case deleteMail
     }
     
     enum Mutation {
         case setIsNarrating(isNarrating: Bool)
-        case setToastMessage(text: String)
         case setNarrationAudioURL(audioURL: URL)
+        case setIsMailDeleted(isDeleted: Bool)
+        case setToastMessage(text: String)
     }
     
     struct State {
         var writtenMail: Mail?
         var isNarrating: Bool
         var narrationAudioURL: URL?
+        
+        var isMailDeleted: Bool
         
         @Pulse var toastMessage: String?
     }
@@ -40,6 +44,7 @@ class RepliedMailReactor: Reactor {
     var openAIService: OpenAIServiceProtocol
     var audioPlayingManager: AudioPlayingManager
     var ttsAdapter: TTSAdapterProtocol
+    var database: RealmDatabaseProtocol
 
     
     init(
@@ -47,15 +52,18 @@ class RepliedMailReactor: Reactor {
         openAIService: OpenAIServiceProtocol,
         audioPlayingManager: AudioPlayingManager,
         ttsAdapter: TTSAdapterProtocol,
+        database: RealmDatabaseProtocol,
         mail: Mail
     ) {
         self.coordinator = coordinator
         self.openAIService = openAIService
         self.audioPlayingManager = audioPlayingManager
         self.ttsAdapter = ttsAdapter
+        self.database = database
         self.initialState = State(writtenMail: mail,
                                   isNarrating: false,
                                   narrationAudioURL: nil,
+                                  isMailDeleted: false,
                                   toastMessage: nil)
         
         audioPlayingManager.delegate = self
@@ -66,7 +74,14 @@ class RepliedMailReactor: Reactor {
     func mutate(action: Action) -> Observable<Mutation> {
         switch action {
             // Logic
-            
+        case .startNarration:
+            return startNarration(with: currentState.narrationAudioURL)
+        case .stopNarration:
+            return stopNarration()
+        case .requestNarrationAudioFile(let mailID):
+            return requestNarrationAudioFile(mailID: mailID)
+        case .deleteMail:
+            return deleteMail()
             // Navigation
         case .replyButtonDidTap:
             coordinator.showMailWritingControllerAfterClose()
@@ -74,12 +89,6 @@ class RepliedMailReactor: Reactor {
         case .closeRepliedMailController:
             coordinator.closeRepliedMailController()
             return .empty()
-        case .startNarration:
-            return startNarration(with: currentState.narrationAudioURL)
-        case .stopNarration:
-            return stopNarration()
-        case .requestNarrationAudioFile(let mailID):
-            return requestNarrationAudioFile(mailID: mailID)
         }
     }
     
@@ -91,10 +100,12 @@ class RepliedMailReactor: Reactor {
         switch mutation {
         case let .setIsNarrating(isNarrating: isNarrating):
             newState.isNarrating = isNarrating
-        case let .setToastMessage(text: text):
-            newState.toastMessage = text
         case let .setNarrationAudioURL(audioURL: audioURL):
             newState.narrationAudioURL = audioURL
+        case let .setIsMailDeleted(isDeleted: isDeleted):
+            newState.isMailDeleted = isDeleted
+        case let .setToastMessage(text: text):
+            newState.toastMessage = text
         }
         
         return newState
@@ -146,6 +157,32 @@ class RepliedMailReactor: Reactor {
             )
         }
         
+    }
+    
+    
+    private func deleteMail() -> Observable<Mutation> {
+        guard let writtenMail = currentState.writtenMail else { return .empty() }
+        let mailObject = MailObject(mail: writtenMail)
+        
+        return database.removeMail(mailObject)
+            .flatMap {
+                return Observable.of(
+                    Mutation.setToastMessage(text: "메일이 성공적으로 삭제되었습니다."),
+                    Mutation.setIsMailDeleted(isDeleted: true)
+                )
+            }
+            .catch { error in
+                if let error = error as? RealmDatabaseError {
+                    switch error {
+                    case .RealmDatabaseNotInitializedError(let message):
+                        return Observable.just(Mutation.setToastMessage(text: message ?? "RealmDatabaseNotInitializedError"))
+                    case .RealmDatabaseError(let message):
+                        return Observable.just(Mutation.setToastMessage(text: message ?? "RealmDatabaseError"))
+                    }
+                } else {
+                    return Observable.just(Mutation.setToastMessage(text: "Unknown RealmDatabaseError"))
+                }
+            }
     }
     
     

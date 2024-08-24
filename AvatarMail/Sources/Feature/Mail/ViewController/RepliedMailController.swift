@@ -273,7 +273,8 @@ class RepliedMailController: UIViewController, View {
             .disposed(by: disposeBag)
         
         narrationButton.rx.tap
-            .bind { [weak self] in
+            .asDriver()
+            .drive(onNext: { [weak self] in
                 guard let self else { return }
                 
                 // 나레이션 버튼 바인딩
@@ -282,7 +283,16 @@ class RepliedMailController: UIViewController, View {
                 } else {
                     reactor.action.onNext(.stopNarration)
                 }
-            }
+            })
+            .disposed(by: disposeBag)
+        
+        deleteMailButton.rx.tap
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self else { return }
+                
+                reactor.action.onNext(.deleteMail)
+            })
             .disposed(by: disposeBag)
         
         // states
@@ -336,6 +346,17 @@ class RepliedMailController: UIViewController, View {
                     narrationButton.isHidden = false
                 } else {
                     narrationButton.isHidden = true
+                }
+            }.disposed(by: disposeBag)
+        
+        reactor.state.map(\.isMailDeleted)
+            .observe(on: MainScheduler.instance)
+            .distinctUntilChanged()
+            .bind { [weak self] isMailDeleted in
+                guard let self else { return }
+                
+                if isMailDeleted == true {
+                    reactor.action.onNext(.closeRepliedMailController)
                 }
             }.disposed(by: disposeBag)
                 

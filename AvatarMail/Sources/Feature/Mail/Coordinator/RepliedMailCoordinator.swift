@@ -37,6 +37,7 @@ class RepliedMailCoordinator: RepliedMailCoordinatorProtocol {
                                                     openAIService: AppContainer.shared.getOpenAIService(),
                                                     audioPlayingManager: AppContainer.shared.getAudioPlayingManager(),
                                                     ttsAdapter: AppContainer.shared.getTTSAdapter(),
+                                                    database: AppContainer.shared.getRealmDatabase(),
                                                     mail: viewParameter.mail)
         let repliedMailController = RepliedMailController(reactor: repliedMailReactor)
         navigationController?.pushViewController(repliedMailController, animated: true)
