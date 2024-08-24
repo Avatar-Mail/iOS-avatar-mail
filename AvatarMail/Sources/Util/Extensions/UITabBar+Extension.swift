@@ -19,14 +19,14 @@ extension UITabBarController {
             
         if isHidden {
             UIView.animate(withDuration: duration, animations: {
-                tabBar.frame.origin.y += tabBarHeight
+                tabBar.frame.origin.y = UIScreen.main.bounds.height + tabBarHeight
             }, completion: { _ in
                 tabBar.isHidden = true
             })
         } else {
             tabBar.isHidden = false
             UIView.animate(withDuration: duration, animations: {
-                tabBar.frame.origin.y -= tabBarHeight
+                tabBar.frame.origin.y = UIScreen.main.bounds.height - tabBarHeight
             })
         }
     }

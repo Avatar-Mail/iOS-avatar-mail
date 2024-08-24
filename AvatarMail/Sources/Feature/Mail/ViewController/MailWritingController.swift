@@ -23,7 +23,6 @@ class MailWritingController: UIViewController, View {
         $0.setTitle(titleText: "편지 작성하기", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setTitleIsHidden(true)
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
-        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }

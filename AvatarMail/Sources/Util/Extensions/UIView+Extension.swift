@@ -166,6 +166,35 @@ extension UIView {
         }
         return borderLayers?.first as? CAGradientLayer
     }
+
+    enum ShadowDirection {
+        case bottom
+        case top
+        case left
+        case right
+    }
+
+    func applyShadow(location: ShadowDirection, color: UIColor, opacity: Float, radius: CGFloat) {
+        switch location {
+        case .bottom:
+            applyShadow(offset: CGSize(width: 0, height: 10), color: color, opacity: opacity, radius: radius)
+        case .top:
+            applyShadow(offset: CGSize(width: 0, height: -10), color: color, opacity: opacity, radius: radius)
+        case .left:
+            applyShadow(offset: CGSize(width: -10, height: 0), color: color, opacity: opacity, radius: radius)
+        case .right:
+            applyShadow(offset: CGSize(width: 10, height: 0), color: color, opacity: opacity, radius: radius)
+        }
+    }
+
+    func applyShadow(offset: CGSize, color: UIColor = .black, opacity: Float = 0.1, radius: CGFloat = 3.0) {
+        self.layer.masksToBounds = false
+        self.layer.shadowColor = color.cgColor
+        self.layer.shadowOffset = offset
+        self.layer.shadowOpacity = opacity
+        self.layer.shadowRadius = radius
+    }
+    
 }
 
 

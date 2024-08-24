@@ -21,9 +21,61 @@ class MailListController: UIViewController, View {
     private let topNavigation = TopNavigation().then {
         $0.setTitle(titleText: "나의 편지함", titleColor: .white, font: .content(size: 18, weight: .semibold))
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
-        $0.setRightSideSecondaryIcon(iconName: "line.3.horizontal", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
+    }
+    
+    private let topContainerView = UIStackView().then {
+        $0.axis = .vertical
+        $0.alignment = .fill
+    }
+    
+    private let filterButtonContainerView = UIView().then {
+        $0.backgroundColor = .white
+        $0.applyShadow(offset: CGSize(width: 0, height: 5), color: .lightGray, opacity: 0.5, radius: 3)
+    }
+    
+    private let filterMainContainerView = UIView().then {
+        $0.backgroundColor = .clear
+        $0.isHidden = true
+    }
+    
+    private let filterAvatarSearchBarContainerView = UIView().then {
+        $0.backgroundColor = .white
+    }
+    
+    private let filterAvatarSearchBar = SearchBar().then {
+        $0.setPlaceholderText(placeholderText: "아바타의 이름을 입력하세요.",
+                              color: UIColor(hex: 0x7B7B7B),
+                              font: .content(size: 14, weight: .regular))
+        $0.setLeftIcon(iconName: "magnifyingglass",
+                       iconSize: CGSize(width: 16, height: 16),
+                       iconColor: UIColor(hex:0x7B7B7B),
+                       configuration: nil)
+        $0.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+        $0.setBorder(width: 0, colors: [])
+    }
+    
+    let spacer = UIView().then {
+        $0.backgroundColor = UIColor(hex: 0xEEEEEE)
+    }
+    
+    let checkboxContainerView = UIView().then {
+        $0.backgroundColor = .white
+        $0.applyCornerRadius(10, maskedCorners: [.layerMinXMaxYCorner])
+        $0.applyShadow(offset: CGSize(width: 0, height: 5), color: .lightGray, opacity: 0.5, radius: 3)
+    }
+    
+    let sentMailCheckbox = CustomCheckbox(selectedIcon: "checkbox_checked",
+                                          unSelectedIcon: "checkbox_un_checked").then {
+        $0.setTitle(with: "보낸 메일")
+        $0.setIsChecked(false)
+    }
+    
+    let receivedMailCheckbox = CustomCheckbox(selectedIcon: "checkbox_checked",
+                                            unSelectedIcon: "checkbox_un_checked").then {
+        $0.setTitle(with: "받은 메일")
+        $0.setIsChecked(false)
     }
     
     // 필터 확장 버튼
@@ -48,10 +100,16 @@ class MailListController: UIViewController, View {
         $0.configuration = config
         $0.tintColor = UIColor(hex: 0x7B7B7B)
     }
-
-    private let filterContainerView = UIView().then {
+    
+    private let upArrowButtonContainerView = UIView().then {
         $0.backgroundColor = .white
-        $0.applyBorder(to: .bottom, width: 1, color: UIColor(hex:0xCECECE))
+        $0.applyCornerRadius(10, maskedCorners: [.layerMinXMaxYCorner, .layerMaxXMaxYCorner])
+        $0.applyShadow(offset: CGSize(width: 0, height: 5), color: .lightGray, opacity: 0.5, radius: 3)
+    }
+    
+    private let upArrowButton = UIButton().then {
+        $0.setImage(UIImage(systemName: "chevron.up"), for: .normal)
+        $0.tintColor = .gray
     }
 
     private let mailCollectionView: UICollectionView = {
@@ -77,8 +135,9 @@ class MailListController: UIViewController, View {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         makeUI()
-        topNavigation.delegate = self
+        setDelegates()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -92,6 +151,13 @@ class MailListController: UIViewController, View {
         topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
                                                                        UIColor(hex: 0x403DD2)])
     }
+    
+    private func setDelegates() {
+        topNavigation.delegate = self
+        filterAvatarSearchBar.delegate = self
+        sentMailCheckbox.delegate = self
+        receivedMailCheckbox.delegate = self
+    }
 
     private func makeUI() {
         view.backgroundColor = .white
@@ -100,8 +166,27 @@ class MailListController: UIViewController, View {
             
             topNavigation,
             
-            filterContainerView.addSubViews(
-                filterExtendButton
+            topContainerView.addArrangedSubViews(
+                filterButtonContainerView.addSubViews(
+                    filterExtendButton
+                ),
+                
+                filterMainContainerView.addSubViews(
+                    filterAvatarSearchBarContainerView.addSubViews(
+                        filterAvatarSearchBar
+                    ),
+                    
+                    spacer,
+                    
+                    checkboxContainerView.addSubViews(
+                        sentMailCheckbox,
+                        receivedMailCheckbox
+                    ),
+                    
+                    upArrowButtonContainerView.addSubViews(
+                        upArrowButton
+                    )
+                )
             ),
             
             mailCollectionView
@@ -110,10 +195,13 @@ class MailListController: UIViewController, View {
         topNavigation.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
         }
-
-        filterContainerView.snp.makeConstraints {
+        
+        topContainerView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.leading.trailing.equalToSuperview()
+        }
+
+        filterButtonContainerView.snp.makeConstraints {
             $0.height.equalTo(54)
         }
         
@@ -121,13 +209,56 @@ class MailListController: UIViewController, View {
             $0.centerY.equalToSuperview()
             $0.trailing.equalToSuperview().offset(-20)
         }
+        
+        filterAvatarSearchBarContainerView.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
+            $0.height.equalTo(80)
+        }
+        
+        filterAvatarSearchBar.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(16)
+        }
+        
+        spacer.snp.makeConstraints {
+            $0.height.equalTo(1)
+            $0.top.equalTo(filterAvatarSearchBar.snp.bottom).offset(16)
+            $0.leading.trailing.equalToSuperview().inset(16)
+        }
+        
+        checkboxContainerView.snp.makeConstraints {
+            $0.height.equalTo(54)
+            $0.top.equalTo(spacer.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+        }
+        
+        sentMailCheckbox.snp.makeConstraints {
+            $0.leading.equalToSuperview().inset(16)
+            $0.centerY.equalToSuperview()
+        }
+        
+        receivedMailCheckbox.snp.makeConstraints {
+            $0.leading.equalTo(sentMailCheckbox.snp.trailing).offset(10)
+            $0.centerY.equalToSuperview()
+        }
+        
+        upArrowButtonContainerView.snp.makeConstraints {
+            $0.top.equalTo(checkboxContainerView.snp.bottom)
+            $0.trailing.bottom.equalToSuperview()
+            $0.width.equalTo(56)
+            $0.height.equalTo(36)
+        }
+        
+        upArrowButton.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            $0.size.equalTo(28)
+        }
 
         mailCollectionView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
             $0.leading.bottom.trailing.equalToSuperview()
         }
 
-        view.bringSubviewToFront(filterContainerView)
+        view.bringSubviewToFront(topContainerView)
     }
 
     func bind(reactor: MailListReactor) {
@@ -135,7 +266,17 @@ class MailListController: UIViewController, View {
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self = self else { return }
-                // TODO: 필터 버튼 추가
+                filterMainContainerView.isHidden = false
+                filterButtonContainerView.isHidden = true
+            })
+            .disposed(by: disposeBag)
+        
+        upArrowButton.rx.tap
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self = self else { return }
+                filterMainContainerView.isHidden = true
+                filterButtonContainerView.isHidden = false
             })
             .disposed(by: disposeBag)
 
@@ -177,5 +318,53 @@ extension MailListController: TopNavigationDelegate {
 extension MailListController: RepliedMailCellDelegate {
     func repliedMailCellDidTap(mail: Mail) {
         reactor?.action.onNext(.showRepliedMailController(mail: mail))
+    }
+}
+
+
+
+extension MailListController: CustomCheckboxDelegate {
+    func checkboxDidTap(checkBox: CustomCheckbox) {
+        switch checkBox {
+        case sentMailCheckbox:
+            sentMailCheckbox.setIsChecked(true)
+        case receivedMailCheckbox:
+            receivedMailCheckbox.setIsChecked(true)
+        default:
+            break
+        }
+    }
+}
+
+
+extension MailListController: SearchBarDelegate {
+    func searchTextFieldDidBeginEditing() {
+        filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
+                                          iconSize: CGSize(width: 16, height: 16),
+                                          iconColor: .darkGray,
+                                          configuration: nil)
+        filterAvatarSearchBar.setBackgroundColor(colors: [.white])
+        filterAvatarSearchBar.setBorder(width: 1, colors: [.darkGray])
+    }
+    
+    func searchTextFieldDidEndEditing() {
+        filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
+                                          iconSize: CGSize(width: 16, height: 16),
+                                          iconColor: UIColor(hex:0x7B7B7B),
+                                          configuration: nil)
+        filterAvatarSearchBar.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+        filterAvatarSearchBar.setBorder(width: 0, colors: [])
+    }
+    
+    func searchTextDidChange(text: String) {
+        
+    }
+    
+    func cancelButtonDidTap() {
+        
+    }
+    
+    func clearButtonDidTap() {
+        
     }
 }
