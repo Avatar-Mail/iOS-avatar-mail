@@ -28,6 +28,7 @@ class MailListController: UIViewController, View {
     private let topContainerView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .fill
+        $0.isHidden = true
     }
     
     private let filterButtonContainerView = UIView().then {
@@ -111,6 +112,8 @@ class MailListController: UIViewController, View {
         $0.setImage(UIImage(systemName: "chevron.up"), for: .normal)
         $0.tintColor = .gray
     }
+    
+    private let filterPlaceholderView = FilterPlaceholderView()
 
     private let mailCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -121,8 +124,10 @@ class MailListController: UIViewController, View {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(RepliedMailCell.self, forCellWithReuseIdentifier: RepliedMailCell.identifier)
         collectionView.backgroundColor = UIColor(hex: 0xEFEFEF)
+        collectionView.isHidden = true
         return collectionView
     }()
+
 
     init(reactor: MailListReactor) {
         super.init(nibName: nil, bundle: nil)
@@ -189,6 +194,8 @@ class MailListController: UIViewController, View {
                 )
             ),
             
+            filterPlaceholderView,
+            
             mailCollectionView
         )
 
@@ -252,6 +259,11 @@ class MailListController: UIViewController, View {
             $0.center.equalToSuperview()
             $0.size.equalTo(28)
         }
+        
+        filterPlaceholderView.snp.makeConstraints {
+            $0.top.equalTo(topNavigation.snp.bottom)
+            $0.leading.bottom.trailing.equalToSuperview()
+        }
 
         mailCollectionView.snp.makeConstraints {
             $0.top.equalTo(topNavigation.snp.bottom)
@@ -288,6 +300,22 @@ class MailListController: UIViewController, View {
                 filterAvatarSearchBar.showKeyboard(false)
             })
             .disposed(by: disposeBag)
+        
+        reactor.state.map { $0.mails }
+            .distinctUntilChanged()
+            .bind { [weak self] mails in
+                guard let self else { return }
+                
+                if mails.isNotEmpty {
+                    filterPlaceholderView.placeholderAnimationView.isHidden = true
+                    topContainerView.isHidden = false
+                    mailCollectionView.isHidden = false
+                } else {
+                    filterPlaceholderView.placeholderAnimationView.isHidden = false
+                    topContainerView.isHidden = true
+                    mailCollectionView.isHidden = true
+                }
+            }
 
 
         reactor.state.map { $0.filteredMails }
