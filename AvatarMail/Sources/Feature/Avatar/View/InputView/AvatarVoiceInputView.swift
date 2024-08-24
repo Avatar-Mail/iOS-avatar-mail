@@ -857,6 +857,7 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
         cell.setData(recording: recordingList[indexPath.row])
+        cell.delegate = self
         return cell
     }
 }

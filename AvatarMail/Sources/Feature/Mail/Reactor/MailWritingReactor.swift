@@ -14,6 +14,7 @@ class MailWritingReactor: Reactor {
         // MARK: Logic
         case hideToolTip
         case sendButtonDipTap
+        case showToast(text: String)
         // recipient
         case recipientNameTextDidChange(text: String)
         case getAllAvatarInfos
@@ -111,6 +112,8 @@ class MailWritingReactor: Reactor {
                             recipientName: currentState.selectedAvatar?.name ?? "")
         case .hideToolTip:
             return Observable.just(Mutation.setIsTooltipHidden(isHidden: true))
+        case let .showToast(text: text):
+            return Observable.just(Mutation.setToastMessage(text: text))
         // recipient
         case .getAllAvatarInfos:
             return getAllAvatarInfos()
@@ -192,19 +195,6 @@ class MailWritingReactor: Reactor {
     private func sendMail(senderName: String,
                           content: String,
                           recipientName: String) -> Observable<Mutation> {
-        
-        // 발신인(사용자)의 이름이 없는 경우
-        if senderName.isEmpty {
-            return Observable.just(.setToastMessage(text: "편지를 보내는 사람의 이름을 입력하세요."))
-        }
-        // 선택된 수신인(아바타)이 없는 경우
-        else if recipientName.isEmpty {
-            return Observable.just(.setToastMessage(text: "편지를 받는 아바타를 선택하세요."))
-        }
-        // 편지의 내용이 없는 경우
-        else if content.isEmpty {
-            return Observable.just(.setToastMessage(text: "편지의 내용을 입력하세요."))
-        }
         
         let avatarName = recipientName  // 수신인 이름 -> 아바타 이름
 

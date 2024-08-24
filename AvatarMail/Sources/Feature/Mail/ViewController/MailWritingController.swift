@@ -42,6 +42,10 @@ class MailWritingController: UIViewController, View {
         $0.backgroundColor = .clear
     }
     
+    private let clearTextButtonContainerView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
     // 상단 초기화 버튼
     private let clearTextButton = UIButton().then {
         var config = UIButton.Configuration.plain()
@@ -241,7 +245,10 @@ class MailWritingController: UIViewController, View {
             topNavigation,
             
             tooltipView,
-            clearTextButton,
+            
+            clearTextButtonContainerView.addSubViews(
+                clearTextButton
+            ),
             
             letterContainerView.addSubViews(
                 letterOutlineView.addSubViews(
@@ -317,10 +324,17 @@ class MailWritingController: UIViewController, View {
             $0.edges.equalToSuperview().inset(14)
         }
         
+        clearTextButtonContainerView.snp.makeConstraints {
+            $0.bottom.equalTo(letterContainerView.snp.top)
+            $0.trailing.equalTo(letterContainerView.snp.trailing)
+            $0.width.equalTo(70)
+            $0.height.equalTo(40)
+        }
+        
         // 초기화 버튼
         clearTextButton.snp.makeConstraints {
-            $0.bottom.equalTo(letterContainerView.snp.top).offset(-10)
-            $0.trailing.equalTo(letterContainerView.snp.trailing)
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview()
         }
         
         // 'N | 300자' 레이블
@@ -418,28 +432,59 @@ class MailWritingController: UIViewController, View {
         sendMailButton.rx.tap
             .asDriver()
             .drive(onNext: {
-                reactor.action.onNext(.sendButtonDipTap)
+                
+                if reactor.currentState.senderNameText.isEmpty {
+                    reactor.action.onNext(.showToast(text: "편지를 보내는 사람의 이름을 입력하세요"))
+                    return
+                }
+                
+                if reactor.currentState.letterContentsText.isEmpty {
+                    reactor.action.onNext(.showToast(text: "편지의 내용을 입력하세요."))
+                    return
+                }
+                
+                if reactor.currentState.selectedAvatar == nil {
+                    reactor.action.onNext(.showToast(text: "편지를 받는 아바타를 선택하세요."))
+                    return
+                }
+                
                 GlobalIndicator.shared.show("mail_indicator", with: "편지를 보내는 중입니다...")
+                
+                reactor.action.onNext(.sendButtonDipTap)
             })
             .disposed(by: disposeBag)
         
         
         clearTextButton.rx.tap
-            .bind { [weak self] in
+            .asDriver()
+            .drive(onNext: { [weak self] in
                 guard let self else { return }
                 // 수신인 영역 초기화
                 recipientNameSearchBar.setSearchText(text: "")
                 recipientNameSearchBar.showClearButton(false)
                 recipientNameSearchBar.showCancelButton(false)
-                recipientNameSearchBar.showKeyboard(false)
                 recipientNameSearchBar.setPlaceholderText(placeholderText: "편지를 보낼 아바타를 찾아보세요.",
                                                           color: UIColor(hex: 0x7B7B7B),
                                                           font: .content(size: 14, weight: .regular))
                 showRecipientSearchBar(true)
                 reactor.action.onNext(.initializeRecipientStates)
                 
+                // 메일 컨텐츠 영역 초기화
+                inputTextView.setInputText(text: "")
+                inputTextView.showInputTextView(false)
+                reactor.action.onNext(.initializeLetterContentStates)
                 
-            }
+                // 발신인 영역 초기화
+                senderNameInputTextfield.setInputText(text: "")
+                senderNameInputTextfield.showClearButton(false)
+                senderNameInputTextfield.showCancelButton(false)
+                senderNameInputTextfield.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
+                                                            color: UIColor(hex: 0x7B7B7B),
+                                                            font: .content(size: 14, weight: .regular))
+                reactor.action.onNext(.initializeSenderStates)
+                
+                view.endEditing(true)
+            })
             .disposed(by: disposeBag)
         
         recipientNameStackView.rx.tapGesture()
