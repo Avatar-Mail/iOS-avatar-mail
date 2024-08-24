@@ -277,11 +277,20 @@ class MailListController: UIViewController, View {
                 guard let self = self else { return }
                 filterMainContainerView.isHidden = true
                 filterButtonContainerView.isHidden = false
+                
+                filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
+                                                  iconSize: CGSize(width: 16, height: 16),
+                                                  iconColor: UIColor(hex:0x7B7B7B),
+                                                  configuration: nil)
+                filterAvatarSearchBar.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+                filterAvatarSearchBar.setBorder(width: 0, colors: [])
+                
+                filterAvatarSearchBar.showKeyboard(false)
             })
             .disposed(by: disposeBag)
 
-        reactor.state
-            .map { $0.filteredMails }
+
+        reactor.state.map { $0.filteredMails }
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .bind(to: mailCollectionView.rx.items(cellIdentifier: RepliedMailCell.identifier,
@@ -298,7 +307,25 @@ class MailListController: UIViewController, View {
             .filterNil()
             .bind { toastMessage in
                 ToastHelper.shared.makeToast2(message: toastMessage, duration: 2.0, position: .bottom)
-            }.disposed(by: disposeBag)
+            }
+            .disposed(by: disposeBag)
+        
+        
+        reactor.state.map { $0.isSentFromUser }
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] isSentFromUser in
+                guard let self else { return }
+                
+                if let isSentFromUser {
+                    sentMailCheckbox.setIsChecked(isSentFromUser ? true : false)
+                    receivedMailCheckbox.setIsChecked(!isSentFromUser ? true : false)
+                } else {
+                    sentMailCheckbox.setIsChecked(false)
+                    receivedMailCheckbox.setIsChecked(false)
+                }
+            }
+            .disposed(by: disposeBag)
     }
 }
 
@@ -327,9 +354,9 @@ extension MailListController: CustomCheckboxDelegate {
     func checkboxDidTap(checkBox: CustomCheckbox) {
         switch checkBox {
         case sentMailCheckbox:
-            sentMailCheckbox.setIsChecked(true)
+            reactor?.action.onNext(.sentMailCheckboxDidTap)
         case receivedMailCheckbox:
-            receivedMailCheckbox.setIsChecked(true)
+            reactor?.action.onNext(.receivedMailCheckboxDidTap)
         default:
             break
         }
@@ -345,6 +372,8 @@ extension MailListController: SearchBarDelegate {
                                           configuration: nil)
         filterAvatarSearchBar.setBackgroundColor(colors: [.white])
         filterAvatarSearchBar.setBorder(width: 1, colors: [.darkGray])
+        
+        filterAvatarSearchBar.showKeyboard(true)
     }
     
     func searchTextFieldDidEndEditing() {
@@ -357,14 +386,30 @@ extension MailListController: SearchBarDelegate {
     }
     
     func searchTextDidChange(text: String) {
+        reactor?.action.onNext(.searchTextDidChange(text))
         
+        if !text.isEmpty {
+            filterAvatarSearchBar.showClearButton(true)
+        } else {
+            filterAvatarSearchBar.showClearButton(false)
+        }
     }
     
-    func cancelButtonDidTap() {
-        
-    }
+    func searchTextFieldDidReturn() { }
+    
+    func cancelButtonDidTap() { }
     
     func clearButtonDidTap() {
+        filterAvatarSearchBar.setSearchText(text: "")
+        reactor?.action.onNext(.searchTextDidChange(""))
         
+        filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
+                                          iconSize: CGSize(width: 16, height: 16),
+                                          iconColor: .darkGray,
+                                          configuration: nil)
+        filterAvatarSearchBar.setBackgroundColor(colors: [.white])
+        filterAvatarSearchBar.setBorder(width: 1, colors: [.darkGray])
+        
+        filterAvatarSearchBar.showKeyboard(true)
     }
 }

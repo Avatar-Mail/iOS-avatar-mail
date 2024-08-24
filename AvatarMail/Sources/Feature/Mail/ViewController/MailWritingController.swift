@@ -592,6 +592,8 @@ extension MailWritingController: TopNavigationDelegate {
 
 
 extension MailWritingController: SearchBarDelegate {
+    func searchTextFieldDidReturn() { }
+    
     func searchTextFieldDidBeginEditing() {
         recipientNameSearchBar.clearPlaceholderText()
         showRecipientNameAutoCompleteContainerView(true)

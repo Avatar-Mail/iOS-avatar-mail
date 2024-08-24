@@ -16,6 +16,7 @@ protocol SearchBarDelegate: AnyObject {
     func searchTextFieldDidBeginEditing()
     func searchTextFieldDidEndEditing()
     func searchTextDidChange(text: String)
+    func searchTextFieldDidReturn()
     func cancelButtonDidTap()
     func clearButtonDidTap()
 }
@@ -118,7 +119,7 @@ final class SearchBar: UIView {
     private func bindUI() {
         searchTextField.rx.text
             .orEmpty
-            .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+            .debounce(.milliseconds(200), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
             .bind { [weak self] text in
                 guard let self = self else { return }
@@ -161,6 +162,14 @@ final class SearchBar: UIView {
                 guard let self else { return }
                 self.delegate?.searchTextFieldDidEndEditing()
                 
+            })
+            .disposed(by: disposeBag)
+        
+        searchTextField.rx.controlEvent(.editingDidEndOnExit)
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self = self else { return }
+                self.delegate?.searchTextFieldDidReturn()
             })
             .disposed(by: disposeBag)
     }
