@@ -37,6 +37,11 @@ class MailWritingController: UIViewController, View {
                    description: "당신이 원하는 아바타에게 편지를 작성해보세요.")
     }
     
+    // 바탕 버튼 (터치 시 키보드 감추기 위함)
+    private let backgroundButton = UIButton().then {
+        $0.backgroundColor = .clear
+    }
+    
     // 상단 초기화 버튼
     private let clearTextButton = UIButton().then {
         var config = UIButton.Configuration.plain()
@@ -207,8 +212,6 @@ class MailWritingController: UIViewController, View {
         inputTextView.delegate = self
         recipientNameAutoCompleteCollectionView.delegate = self
         senderNameInputTextfield.delegate = self
-        
-        self.hideKeyboardWhenTappedAround()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -233,6 +236,8 @@ class MailWritingController: UIViewController, View {
         view.backgroundColor = .white
         
         view.addSubViews(
+            backgroundButton,
+            
             topNavigation,
             
             tooltipView,
@@ -240,35 +245,36 @@ class MailWritingController: UIViewController, View {
             
             letterContainerView.addSubViews(
                 letterOutlineView.addSubViews(
+                    
+                    // 수신인 (To.)
+                    recipientNameInputContainerView.addSubViews(
+                        recipientNameSearchBar,
+
+                        recipientNameStackView.addArrangedSubViews(
+                            recipientNameLabel,
+                            recipientNameCorrectionIcon
+                        )
+                    ),
+                    
+                    recipientNameAutoCompleteContainerView.addSubViews(
+                        recipientNameAutoCompleteCollectionView,
+                        recipientNamePlaceholderView
+                    ),
+                    
                     letterScrollView.addSubViews(
                         scrollContentView.addSubViews(
-                            // 수신인 (To.)
-                            recipientNameInputContainerView.addSubViews(
-                                recipientNameSearchBar,
-
-                                recipientNameStackView.addArrangedSubViews(
-                                    recipientNameLabel,
-                                    recipientNameCorrectionIcon
-                                )
-                            ),
-                            
-                            recipientNameAutoCompleteContainerView.addSubViews(
-                                recipientNameAutoCompleteCollectionView,
-                                recipientNamePlaceholderView
-                            ),
-                            
                             // 편지 내용
-                            inputTextView,
-                            
-                            // 발신인 (From.)
-                            senderNameInputContainerView.addSubViews(
-                                senderNameInputTextfield,
-                                
-                                senderNameStackView.addArrangedSubViews(
-                                    senderNameLabel,
-                                    senderNameCorrectionIcon
-                                )
-                            )
+                            inputTextView
+                        )
+                    ),
+                    
+                    // 발신인 (From.)
+                    senderNameInputContainerView.addSubViews(
+                        senderNameInputTextfield,
+                        
+                        senderNameStackView.addArrangedSubViews(
+                            senderNameLabel,
+                            senderNameCorrectionIcon
                         )
                     )
                 )
@@ -278,6 +284,10 @@ class MailWritingController: UIViewController, View {
             
             sendMailButton
         )
+        
+        backgroundButton.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         
         topNavigation.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
@@ -296,9 +306,15 @@ class MailWritingController: UIViewController, View {
         
         letterContainerView.snp.makeConstraints {
             $0.top.equalTo(tooltipView.snp.bottom).offset(50)
-            $0.bottom.lessThanOrEqualTo(sendMailButton.snp.top).offset(-50).priority(999)
-            $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-50).priority(1)
             $0.horizontalEdges.equalToSuperview().inset(28)
+            // 키보드 올라오기 전
+            $0.bottom.equalTo(sendMailButton.snp.top).offset(-50).priority(999)
+            // 키보드 올라온 후
+            $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-50).priority(750)
+        }
+        
+        letterOutlineView.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(14)
         }
         
         // 초기화 버튼
@@ -313,24 +329,10 @@ class MailWritingController: UIViewController, View {
             $0.trailing.equalTo(letterContainerView.snp.trailing)
         }
         
-        letterOutlineView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(14)
-        }
-        
-        letterScrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(20)
-        }
-        
-        scrollContentView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-            $0.width.equalToSuperview()
-            $0.height.greaterThanOrEqualToSuperview()
-        }
-        
         // 수신인 (To.)
         recipientNameInputContainerView.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.horizontalEdges.equalToSuperview()
+            $0.top.equalToSuperview().inset(20)
+            $0.horizontalEdges.equalToSuperview().inset(20)
             $0.height.equalTo(43)
         }
         
@@ -345,8 +347,8 @@ class MailWritingController: UIViewController, View {
         
         recipientNameAutoCompleteContainerView.snp.makeConstraints {
             $0.top.equalTo(recipientNameSearchBar.snp.bottom).offset(10)
-            $0.horizontalEdges.equalToSuperview()
-            $0.bottom.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(20)
+            $0.bottom.equalToSuperview().inset(20)
         }
         
         recipientNameAutoCompleteCollectionView.snp.makeConstraints {
@@ -357,19 +359,30 @@ class MailWritingController: UIViewController, View {
             $0.edges.equalToSuperview()
         }
         
+        letterScrollView.snp.makeConstraints {
+            $0.top.equalTo(recipientNameInputContainerView.snp.bottom).offset(10)
+            $0.horizontalEdges.equalToSuperview().inset(20)
+            $0.bottom.equalTo(senderNameInputContainerView.snp.top).offset(-10)
+        }
+        
+        scrollContentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+            $0.height.greaterThanOrEqualToSuperview()
+        }
+        
         // 편지 내용
         inputTextView.snp.makeConstraints {
-            $0.top.equalTo(recipientNameInputContainerView.snp.bottom).offset(10)
-            $0.bottom.equalTo(senderNameInputContainerView.snp.top).offset(-10)
-            $0.horizontalEdges.equalToSuperview()
+            $0.edges.equalToSuperview()
         }
         
         // 발신인 (From.)
         senderNameInputContainerView.snp.makeConstraints {
-            $0.bottom.equalToSuperview()
-            $0.horizontalEdges.equalToSuperview()
+            $0.bottom.equalToSuperview().inset(20)
+            $0.horizontalEdges.equalToSuperview().inset(20)
             $0.height.equalTo(43)
         }
+        
         senderNameInputTextfield.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
@@ -393,6 +406,15 @@ class MailWritingController: UIViewController, View {
             }
             .disposed(by: disposeBag)
         
+        backgroundButton.rx.tap
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self else { return }
+                
+                view.endEditing(true)
+            })
+            .disposed(by: disposeBag)
+        
         sendMailButton.rx.tap
             .asDriver()
             .drive(onNext: {
@@ -405,9 +427,6 @@ class MailWritingController: UIViewController, View {
         clearTextButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-//                self.recipientNameTextField.text = ""
-//                sself.inputTextView.text = ""
-//                self.senderNameTextField.text = ""
                 // 수신인 영역 초기화
                 recipientNameSearchBar.setSearchText(text: "")
                 recipientNameSearchBar.showClearButton(false)
@@ -700,17 +719,13 @@ extension MailWritingController: SenderNameInputTextfieldDelegate {
     
     func senderNameInputTextfieldCancelButtonDidTap() {
         
-        if let senderName = reactor?.currentState.senderNameText, senderName.isEmpty {
-            senderNameInputTextfield.setInputText(text: "")
-            senderNameInputTextfield.showClearButton(false)
-            senderNameInputTextfield.showCancelButton(false)
-            senderNameInputTextfield.showKeyboard(false)
-            senderNameInputTextfield.setPlaceholderText(placeholderText: "편지를 보내는 사람의 이름을 입력하세요.",
-                                                        color: UIColor(hex: 0x7B7B7B),
-                                                        font: UIFont.content(size: 14, weight: .regular))
-        } else {
-            showSenderInputTextfield(false)
-        }
+        senderNameInputTextfield.setInputText(text: "")
+        senderNameInputTextfield.showClearButton(false)
+        senderNameInputTextfield.showCancelButton(false)
+        senderNameInputTextfield.showKeyboard(false)
+        senderNameInputTextfield.setPlaceholderText(placeholderText: "편지를 보내는 사람의 이름을 입력하세요.",
+                                                    color: UIColor(hex: 0x7B7B7B),
+                                                    font: UIFont.content(size: 14, weight: .regular))
     }
     
     func senderNameInputTextfieldClearButtonDidTap() {
