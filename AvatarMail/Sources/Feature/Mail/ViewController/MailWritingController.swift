@@ -263,16 +263,16 @@ class MailWritingController: UIViewController, View {
                         )
                     ),
                     
-                    recipientNameAutoCompleteContainerView.addSubViews(
-                        recipientNameAutoCompleteCollectionView,
-                        recipientNamePlaceholderView
-                    ),
-                    
                     letterScrollView.addSubViews(
                         scrollContentView.addSubViews(
                             // 편지 내용
                             inputTextView
                         )
+                    ),
+                    
+                    recipientNameAutoCompleteContainerView.addSubViews(
+                        recipientNameAutoCompleteCollectionView,
+                        recipientNamePlaceholderView
                     ),
                     
                     // 발신인 (From.)
@@ -823,6 +823,9 @@ extension MailWritingController: AutoCompletedNameCellDelegate {
         recipientNameLabel.attributedText = .makeAttributedString(text: "To. \(selectedAvatar.name)",
                                                                   color: .black,
                                                                   font: .letter(size: 16, weight: .bold))
+        
+        showRecipientNameAutoCompleteContainerView(false)
+        
         showRecipientSearchBar(false)
     }
 }
