@@ -213,7 +213,7 @@ class MailWritingReactor: Reactor {
                                 isSentFromUser: true)
                 
                 // (2) 편지 본문과 아바타 정보를 OpenAI API로 넘겨 답장 편지 내용을 Response로 받음
-                return openAIService.sendMail(mail: mail,
+                return openAIService.sendMail2(mail: mail,
                                               avatarInfo: avatarInfo)
                     .flatMap { openAIResponse in
                         

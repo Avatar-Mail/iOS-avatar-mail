@@ -12,6 +12,7 @@ import RxSwift
 
 protocol OpenAIServiceProtocol {
     func sendMail(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse>
+    func sendMail2(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse>
 }
 
 final class OpenAIService: OpenAIServiceProtocol {
@@ -119,5 +120,131 @@ final class OpenAIService: OpenAIServiceProtocol {
             return Disposables.create()
         }
     }
+    
+    
+    public func sendMail2(mail: Mail,
+                          avatarInfo: AvatarInfo
+    ) -> Observable<OpenAIResponse> {
+
+        let prompt: [ChatQuery.ChatCompletionMessageParam] = [
+            
+            .init(role: .system,
+                  content: """
+                    Your name is {\(mail.recipientName)}.
+
+                    You need to write a reply letter to the letter written by the recipient, which is <INPUT_MAIL>.
+
+                    The recipient's name is {\(mail.senderName)}.
+
+                    Your reply should be addressed to {\(mail.senderName)}.
+
+                    Your characteristics are outlined below:
+                    <CHARACTERISTICS>
+                    (1) Age Group: { \(avatarInfo.ageGroup ?? "NONE") }
+                    (2) Personality: { \(avatarInfo.characteristic ?? "NONE") }
+                    (3) Parlance: { \(avatarInfo.parlance ?? "NONE") }
+                    (4) Relationship:
+                      - You: { \(avatarInfo.relationship.avatar ?? "NONE") }
+                      - Recipient: { \(avatarInfo.relationship.user ?? "NONE") }
+                    </CHARACTERISTICS>
+
+                    If any characteristic is 'NONE', infer the missing traits based on the available information.
+
+                    Your reply letter should reflect your age group, personality, parlance, and relationship with the recipient, as described in the <CHARACTERISTICS>.
+
+                    Make sure to adhere to the following conditions when writing your reply:
+
+                    <CONDITION>
+                    (1) Include only the recipient's name in the letter; do not include your own name, '\(mail.recipientName)'.
+                    (2) Address the content of the letter in <INPUT_MAIL> written by the recipient.
+                    (3) The letter must be at least 200 characters long.
+                    (4) Write the reply in the same language as <INPUT_MAIL>.
+                    (5) Ensure the content flows naturally and coherently.
+                    </CONDITION>
+
+                    Write a reply letter based on the above information.
+                    """)!,
+            // 실제 사용자 입력
+            .init(role: .user,
+                  content: """
+                    <INPUT_MAIL>
+                    \(mail.content)
+                    </INPUT_MAIL>
+                    """)!,
+        ]
+        
+        let query = ChatQuery(
+            messages: prompt,
+            model: .gpt4_o,
+            maxTokens: 300
+        )
+
+        guard let openAI else {
+            fatalError("API client has not yet been setup.")
+        }
+        
+        return Observable.create { observer -> Disposable in
+            openAI.chats(query: query) { [weak self] result in
+                guard let self else { return }
+                
+                switch result {
+                case .success(let result):
+                    let content = result.choices.first?.message.content?.string ?? ""
+                    let response = OpenAIResponse(content: content)
+                    
+                    observer.onNext(response)
+                    observer.onCompleted()
+                case .failure(let error):
+                    observer.onError(error)
+                }
+            }
+            
+            return Disposables.create()
+        }
+    }
+    
 }
 
+
+enum OpenAIServiceError: Error {
+    case OpenAIServiceNotInitializedError(errorMessage: String?)
+    case OpenAIServiceError(errorMessage: String?)
+}
+
+
+
+//Your name is {\(mail.recipientName)}.
+//
+//You have to write a reply letter to the letter written by the recipient, which is <INPUT_MAIL>
+//
+//The recipient's name is {\(mail.senderName)}.
+//
+//You have to write a reply letter to {\(mail.senderName)}.
+//
+//Your characteristics are as stated in <CHARACTERISTICS>.
+//
+//Your reply letter should match your age group, personality, parlance, and relationship with the recipient, as described in the <CHARACTERISTICS>.
+//
+//If 'NONE' is provided, infer the rest of the traits based on the available characteristics.
+//
+//<CHARACTERISTICS>
+//(1) Age Group : { \(avatarInfo.ageGroup ?? "NONE") }
+//(2) Personality : { \(avatarInfo.characteristic ?? "NONE") }
+//(3) Parlance : { \(avatarInfo.parlance ?? "NONE") }.
+//(4) RelationShip : { \(avatarInfo.parlance ?? "NONE") }.
+//  - You : { \(avatarInfo.relationship.avatar ?? "NONE") }
+//  - Recipient : { \(avatarInfo.relationship.user ?? "NONE") }
+//</CHARACTERISTICS>
+//
+//Also, your reply letter must meet the conditions specified in the <CONDITION> below.
+//
+//<CONDITION>
+//(1) The reply letter should include only the recipient's name, and not your own.
+//(2) Do not include your name, '\(mail.recipientName)' in the letter.
+//(3) The reply letter should address the content of the letter within the <INPUT_MAIL> written by the recipient.
+//(4) The content of the letter must be at least 200 characters long.
+//(5) The reply letter must be written in the same language as the <INPUT_MAIL>.
+//(6) The content of the letter should flow as naturally as possible.
+//</CONDITION>
+//
+//Write a reply letter based on the above information.
