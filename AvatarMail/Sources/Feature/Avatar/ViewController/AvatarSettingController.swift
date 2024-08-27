@@ -14,6 +14,8 @@ import RxCocoa
 import RxOptional
 import ReactorKit
 import Toast
+import MobileCoreServices
+import UniformTypeIdentifiers
 
 
 class AvatarSettingController: UIViewController, View {
@@ -431,7 +433,7 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func selectFileUploadButtonDidTap() {
-        // TODO: 파일 업로드 모달 추가
+        selectAudioFile()
     }
     
     func recordingButtonDidTap(with recordingContents: String) {
@@ -507,4 +509,55 @@ extension AvatarSettingController: TopNavigationDelegate {
     func topNavigationRightSideSecondaryIconDidTap() {}
     
     func topNavigationRightSideTextButtonDidTap() {}
+}
+
+
+//MARK: UIDocumentPickerDelegate (음성 파일 선택)
+extension AvatarSettingController: UIDocumentPickerDelegate {
+    
+    // 오디오 파일 선택 메서드 (파일 선택 모달을 띄워줌)
+    func selectAudioFile() {
+        // iOS 14.0 이상에서는 UTTypeAudio 또는 UTType.audio 사용
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.audio])
+        documentPicker.delegate = self
+        documentPicker.modalPresentationStyle = .formSheet
+        present(documentPicker, animated: true, completion: nil)
+    }
+
+    // 파일 선택 후 호출되는 메서드
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let selectedFileURL = urls.first else {
+            return
+        }
+        // 주어진 URL 경로에 있는 음성 파일을 로컬에 저장
+        downloadAndSaveFile(from: selectedFileURL)
+    }
+    
+    func downloadAndSaveFile(from url: URL) {
+        // TODO: AudioRecording 저장 로직 구현 필요
+//
+//        let fileName = url.lastPathComponent
+//
+//        let downloadTask = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+//            guard let self = self else { return }
+//            if let error = error {
+//                print("Failed to download file: \(error)")
+//                return
+//            }
+//            
+//            guard let data = data else {
+//                print("No data found at URL")
+//                return
+//            }
+//            
+//            do {
+//                try self.storageManager.save(data: data, fileName: fileName, type: .audio)
+//                print("File saved successfully")
+//            } catch {
+//                print("Failed to save file: \(error)")
+//            }
+//        }
+//        
+//        downloadTask.resume()
+    }
 }
