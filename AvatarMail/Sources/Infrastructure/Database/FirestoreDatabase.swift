@@ -50,13 +50,20 @@ class FirestoreDatabase: FirestoreDatabaseProtocol {
     
     func loadBaseServerURL() async {
         do {
-            let document = try await docRef.getDocument()
             
-            if let url = document.get("url") as? String {
-                print("[Firestore] BASE_SERVER_URL: \(url)")
-                self.baseServerURL = url
-            } else {
-                print("[Firestore] Error: 업로드 된 url이 존재하지 않습니다.")
+            if let localBaseURL = Bundle.main.infoDictionary?["BaseURL"] as? String, localBaseURL != "BASE_SERVER_URL" {
+                print("[Firestore] BASE_SERVER_URL: \(localBaseURL) (local)")
+                self.baseServerURL = localBaseURL
+            }
+            else {
+                let document = try await docRef.getDocument()
+                
+                if let url = document.get("url") as? String {
+                    print("[Firestore] BASE_SERVER_URL: \(url)")
+                    self.baseServerURL = url
+                } else {
+                    print("[Firestore] Error: 업로드 된 url이 존재하지 않습니다.")
+                }
             }
         } catch {
             print("[Firestore] Error: Document를 불러오는 데 실패했습니다. - \(error.localizedDescription)")

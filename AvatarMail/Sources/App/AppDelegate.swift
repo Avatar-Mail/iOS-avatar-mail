@@ -130,22 +130,22 @@ extension AppDelegate: MessagingDelegate {
         
         guard let token = Messaging.messaging().fcmToken else { fatalError("FCM 토큰을 찾을 수 없습니다.") }
         
-//        Task {
-//            await FirestoreDatabase.shared.loadBaseServerURL()
-//            
-//            userAdapter?.sendFCMToken(fcmToken: token)
-//                .subscribe(
-//                    onNext: { _ in
-//                        print("FCMS 토큰 전송 성공 - Token: \(token)")
-//                    },
-//                    onError: { error in
-//                        print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
-//                        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//                            exit(0)
-//                        }
-//                    }
-//                ).disposed(by: self.disposeBag)
-//        }
+        Task {
+            await FirestoreDatabase.shared.loadBaseServerURL()
+            
+            userAdapter?.sendFCMToken(fcmToken: token)
+                .subscribe(
+                    onNext: { _ in
+                        print("FCMS 토큰 전송 성공 - Token: \(token)")
+                    },
+                    onError: { error in
+                        print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
+                        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            exit(0)
+                        }
+                    }
+                ).disposed(by: self.disposeBag)
+        }
     }
 }
