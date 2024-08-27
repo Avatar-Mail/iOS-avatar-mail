@@ -387,7 +387,7 @@ extension AvatarSettingController: AvatarParlanceInputViewDelegate {
 
 // MARK: AvatarVoiceInputViewDelegate
 extension AvatarSettingController: AvatarVoiceInputViewDelegate {
-    
+
     func backButtonDidTap() {
         let viewState = avatarVoiceInputView.getViewState()
         avatarVoiceInputView.clearInputText()
@@ -398,8 +398,10 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
             avatarVoiceInputView.setViewState(.initial)
         case .inputText:
             avatarVoiceInputView.setViewState(.randomText)
-        case .inputVoice: ()
+        case .inputMethodChoice:
             avatarVoiceInputView.setViewState(.randomText)
+        case .inputVoice: ()
+            avatarVoiceInputView.setViewState(.inputMethodChoice)
         }
     }
     
@@ -417,11 +419,19 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func randomTextSelectButtonDidTap() {
-        avatarVoiceInputView.setViewState(.inputVoice)
+        avatarVoiceInputView.setViewState(.inputMethodChoice)
     }
     
     func inputTextSelectButtonDidTap() {
+        avatarVoiceInputView.setViewState(.inputMethodChoice)
+    }
+    
+    func selectAudioRecordingButtonDidTap() {
         avatarVoiceInputView.setViewState(.inputVoice)
+    }
+    
+    func selectFileUploadButtonDidTap() {
+        // TODO: 파일 업로드 모달 추가
     }
     
     func recordingButtonDidTap(with recordingContents: String) {
