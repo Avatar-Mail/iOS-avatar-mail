@@ -19,6 +19,8 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func randomTextSelectButtonDidTap()
     func changeSampleTextButtonDidTap()
     func inputTextSelectButtonDidTap()
+    func selectAudioRecordingButtonDidTap()
+    func selectFileUploadButtonDidTap()
     func recordingButtonDidTap(with recordingContents: String)
     func playingButtonDidTap(with recording: AudioRecording)
 }
@@ -33,6 +35,7 @@ final class AvatarVoiceInputView: UIView {
         case initial
         case randomText
         case inputText
+        case inputMethodChoice
         case inputVoice
     }
     
@@ -53,23 +56,32 @@ final class AvatarVoiceInputView: UIView {
             showInitialStateView(viewState == .initial ? true : false)
             showRandomTextStateView(viewState == .randomText ? true : false)
             showInputTextStateView(viewState == .inputText ? true : false)
+            showInputMethodSelectStateContainerView(viewState == .inputMethodChoice ? true : false)
             showInputVoiceStateView(viewState == .inputVoice ? true : false)
+            
             
             switch viewState {
             case .initial:
                 showBackButton(false)
                 titleLabel.text = "아바타의 목소리를 입력하세요."
                 subTitleLabel.text = "녹음 버튼을 눌러 아바타의 목소리를 녹음해보세요."
+                
             case .randomText:
                 showBackButton(true)
                 titleLabel.text = "문장 선택"
                 subTitleLabel.text = "어떤 문장을 녹음할 것인지 선택하세요."
+                
             case .inputText:
                 showBackButton(true)
                 titleLabel.text = "문장 입력"
                 subTitleLabel.text = "어떤 문장을 녹음할 것인지 입력하세요."
                 
-                textCountLabel.attributedText
+            case .inputMethodChoice:
+                showBackButton(true)
+                titleLabel.text = "음성 파일 추가"
+                subTitleLabel.text = "아바타의 목소리를 녹음하거나, 음성 파일을 업로드 하세요."
+                
+                setContentLabel(with: recordingContents)
                 
             case .inputVoice: ()
                 showBackButton(true)
@@ -223,7 +235,7 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private let randomTextSelectButton = UIButton().then {
-        $0.setButtonTitle(title: "위 문장으로 녹음하기",
+        $0.setButtonTitle(title: "이 문장 선택하기",
                           color: .white,
                           font: .content(size: 16, weight: .bold))
         $0.applyCornerRadius(15)
@@ -268,12 +280,62 @@ final class AvatarVoiceInputView: UIView {
                        shadowOpacity: 0.5)
     }
     
-    // 3. 음성 녹음 state 뷰
+    // 4. 음성 녹음 / 파일 업로드 선택 state 뷰
+    private let inputMethodSelectStateContainerView = UIView().then {
+        $0.isHidden = true
+    }
+    
+    private let contentsTextLabel1 = UILabel().then {
+        $0.numberOfLines = 0
+        $0.textAlignment = .center
+        $0.lineBreakMode = .byWordWrapping
+        $0.lineBreakStrategy = .hangulWordPriority
+    }
+    
+    private let selectAudioRecordingButtonView = UIButton().then {
+        $0.backgroundColor = .white
+        $0.applyCornerRadius(20)
+        $0.applyBorder(width: 2.5, color: UIColor(hex: 0x4C5BDF))
+        $0.applyShadow(offset: CGSize(width: 0, height: 4))
+    }
+    
+    private let selectAudioRecordingButtonIconImageView = UIImageView().then {
+        $0.image = UIImage(systemName: "mic.fill")
+        $0.tintColor = UIColor(hex:0x4C5BDF)
+        $0.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
+    }
+    
+    private let selectAudioRecordingButtonTitleLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "음성 녹음",
+                                                  color: .black,
+                                                  font: .content(size: 18, weight: .semibold))
+    }
+    
+    private let selectFileUploadButtonView = UIButton().then {
+        $0.backgroundColor = .white
+        $0.applyCornerRadius(20)
+        $0.applyBorder(width: 2.5, color: UIColor(hex: 0x4C5BDF))
+        $0.applyShadow(offset: CGSize(width: 0, height: 4))
+    }
+    
+    private let selectFileUploadButtonIconImageView = UIImageView().then {
+        $0.image = UIImage(systemName: "square.and.arrow.up.fill")
+        $0.tintColor = UIColor(hex:0x4C5BDF)
+        $0.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
+    }
+    
+    private let selectFileUploadButtonTitleLabel = UILabel().then {
+        $0.attributedText = .makeAttributedString(text: "파일 업로드",
+                                                  color: .black,
+                                                  font: .content(size: 18, weight: .semibold))
+    }
+    
+    // 5. 음성 녹음 state 뷰
     private let inputVoiceStateContainerView = UIView().then {
         $0.isHidden = true
     }
     
-    private let contentsTextLabel = UILabel().then {
+    private let contentsTextLabel2 = UILabel().then {
         $0.numberOfLines = 0
         $0.textAlignment = .center
         $0.lineBreakMode = .byWordWrapping
@@ -451,13 +513,13 @@ final class AvatarVoiceInputView: UIView {
                 
                 contentsStackView.addArrangedSubViews(
                     
-                    // initial-state 뷰
+                    // 1. initial-state 뷰
                     initialStateContainerView.addSubViews(
                         recordingsContainerView,
                         initialAvatarVoiceRecordButton
                     ),
                     
-                    // randomText-state 뷰
+                    // 2. randomText-state 뷰
                     randomTextStateContainerView.addSubViews(
                         // 랜덤 샘플 텍스트 레이블
                         randomTextLabel,
@@ -469,7 +531,7 @@ final class AvatarVoiceInputView: UIView {
                         randomTextSelectButton
                     ),
                     
-                    // inputText-state 뷰
+                    // 3. inputText-state 뷰
                     inputTextStateContainerView.addSubViews(
                         textViewContainerView.addSubViews(
                             inputTextView
@@ -478,10 +540,28 @@ final class AvatarVoiceInputView: UIView {
                         inputTextSelectButton
                     ),
                     
-                    // inputVoice-state 뷰
+                    // 4. inputMethodChoice-state 뷰
+                    inputMethodSelectStateContainerView.addSubViews(
+                        // 음성 녹음 내용 레이블
+                        contentsTextLabel1,
+                        
+                        // 음성 녹음 버튼
+                        selectAudioRecordingButtonView.addSubViews(
+                            selectAudioRecordingButtonIconImageView,
+                            selectAudioRecordingButtonTitleLabel
+                        ),
+                        
+                        // 파일 업로드 버튼
+                        selectFileUploadButtonView.addSubViews(
+                            selectFileUploadButtonIconImageView,
+                            selectFileUploadButtonTitleLabel
+                        )
+                    ),
+                    
+                    // 5. inputVoice-state 뷰
                     inputVoiceStateContainerView.addSubViews(
                         // 음성 녹음 내용 레이블
-                        contentsTextLabel,
+                        contentsTextLabel2,
                         
                         // 녹음 시간 타이머 뷰
                         timerContainerView.addSubViews(
@@ -598,12 +678,53 @@ final class AvatarVoiceInputView: UIView {
             $0.height.equalTo(64)
         }
         
+        // inputMethodChoice-state 뷰
+        inputMethodSelectStateContainerView.snp.makeConstraints {
+            $0.height.equalTo(200)
+        }
+        
+        contentsTextLabel1.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.left.right.equalToSuperview().inset(20)
+            $0.height.equalTo(90)
+        }
+        
+        selectAudioRecordingButtonView.snp.makeConstraints {
+            $0.right.equalTo(inputMethodSelectStateContainerView.snp.centerX).offset(-8)
+            $0.left.bottom.equalToSuperview()
+            $0.height.equalTo(85)
+        }
+        
+        selectAudioRecordingButtonTitleLabel.snp.makeConstraints {
+            $0.right.bottom.equalToSuperview().inset(18)
+        }
+        
+        selectAudioRecordingButtonIconImageView.snp.makeConstraints {
+            $0.left.top.equalToSuperview().inset(15)
+            $0.size.equalTo(25)
+        }
+        
+        selectFileUploadButtonView.snp.makeConstraints {
+            $0.left.equalTo(inputMethodSelectStateContainerView.snp.centerX).offset(8)
+            $0.right.bottom.equalToSuperview()
+            $0.height.equalTo(85)
+        }
+        
+        selectFileUploadButtonTitleLabel.snp.makeConstraints {
+            $0.right.bottom.equalToSuperview().inset(18)
+        }
+        
+        selectFileUploadButtonIconImageView.snp.makeConstraints {
+            $0.left.top.equalToSuperview().inset(15)
+            $0.size.equalTo(25)
+        }
+        
         // inputVoice-state 뷰
         inputVoiceStateContainerView.snp.makeConstraints {
             $0.height.equalTo(200)
         }
         
-        contentsTextLabel.snp.makeConstraints {
+        contentsTextLabel2.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(90)
@@ -722,6 +843,20 @@ final class AvatarVoiceInputView: UIView {
             })
             .disposed(by: disposeBag)
         
+        selectAudioRecordingButtonView.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                delegate?.selectAudioRecordingButtonDidTap()
+            }
+            .disposed(by: disposeBag)
+        
+        selectFileUploadButtonView.rx.tap
+            .bind { [weak self] in
+                guard let self else { return }
+                delegate?.selectFileUploadButtonDidTap()
+            }
+            .disposed(by: disposeBag)
+        
         recordingButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
@@ -743,12 +878,18 @@ final class AvatarVoiceInputView: UIView {
     }
     
     private func setContentLabel(with text: String) {
-        contentsTextLabel.attributedText = .makeAttributedString(text: text,
-                                                                 color: .black,
-                                                                 font: .content(size: 18, weight: .medium),
-                                                                 textAlignment: .center,
-                                                                 lineBreakMode: .byWordWrapping,
-                                                                 lineBreakStrategy: .hangulWordPriority)
+        contentsTextLabel1.attributedText = .makeAttributedString(text: text,
+                                                                  color: .black,
+                                                                  font: .content(size: 18, weight: .medium),
+                                                                  textAlignment: .center,
+                                                                  lineBreakMode: .byWordWrapping,
+                                                                  lineBreakStrategy: .hangulWordPriority)
+        contentsTextLabel2.attributedText = .makeAttributedString(text: text,
+                                                                  color: .black,
+                                                                  font: .content(size: 18, weight: .medium),
+                                                                  textAlignment: .center,
+                                                                  lineBreakMode: .byWordWrapping,
+                                                                  lineBreakStrategy: .hangulWordPriority)
     }
     
     private func setTextCountLabel(with count: Int) {
@@ -774,6 +915,10 @@ final class AvatarVoiceInputView: UIView {
         inputVoiceStateContainerView.isHidden = !shouldShow
     }
     
+    private func showInputMethodSelectStateContainerView(_ shouldShow: Bool) {
+        inputMethodSelectStateContainerView.isHidden = !shouldShow
+    }
+    
     public func setViewState(_ state: AvatarVoiceInputViewState) {
         viewState = state
     }
@@ -789,6 +934,10 @@ final class AvatarVoiceInputView: UIView {
                                                                textAlignment: .center,
                                                                lineBreakMode: .byWordWrapping,
                                                                lineBreakStrategy: .hangulWordPriority)
+    }
+    
+    public func getRecordingContents() -> String {
+        return recordingContents
     }
     
     public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape, animated: Bool) {
