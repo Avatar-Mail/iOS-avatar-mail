@@ -111,6 +111,8 @@ class AvatarSettingController: UIViewController, View {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
@@ -122,6 +124,15 @@ class AvatarSettingController: UIViewController, View {
         saveAvatarButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
                                                             UIColor(hex: 0x4C5BDF)],
                                                  isHorizontal: true)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // 페이지 이동 전 현재 실행 중인 오디오 파일 종료
+        if let reactor, reactor.currentState.isPlaying == true {
+            reactor.action.onNext(.stopPlaying)
+        }
     }
     
     
@@ -281,6 +292,7 @@ class AvatarSettingController: UIViewController, View {
             }.disposed(by: disposeBag)
         
         reactor.state.map(\.isPlaying)
+            .skip(1)
             .distinctUntilChanged()
             .bind { [weak self] isPlaying in
                 guard let self else { return }
@@ -294,11 +306,12 @@ class AvatarSettingController: UIViewController, View {
             }.disposed(by: disposeBag)
         
         reactor.state.map(\.recordings)
+            .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .bind { [weak self] recordings in
                 guard let self else { return }
                 avatarVoiceInputView.setData(recordings: recordings)
-                avatarVoiceInputView.setViewState(.initial)
+                avatarVoiceInputView.setViewState(.initial) // FIXME: 녹음 실패 / 다운 실패 시 initial-state view로 돌아가지 않는 이슈 수정 필요
             }.disposed(by: disposeBag)
         
         
