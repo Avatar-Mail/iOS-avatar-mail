@@ -277,8 +277,6 @@ class AvatarSettingController: UIViewController, View {
                 } else {
                     avatarVoiceInputView.stopTimer()
                     avatarVoiceInputView.setRecordingButtonInnerShape(as: .circle, animated: false)
-                    avatarVoiceInputView.setViewState(.initial)
-                    
                 }
             }.disposed(by: disposeBag)
         
@@ -300,6 +298,7 @@ class AvatarSettingController: UIViewController, View {
             .bind { [weak self] recordings in
                 guard let self else { return }
                 avatarVoiceInputView.setData(recordings: recordings)
+                avatarVoiceInputView.setViewState(.initial)
             }.disposed(by: disposeBag)
         
         
@@ -529,35 +528,14 @@ extension AvatarSettingController: UIDocumentPickerDelegate {
         guard let selectedFileURL = urls.first else {
             return
         }
+
+        guard avatarVoiceInputView.getRecordingContents().isNotEmpty else {
+            reactor?.action.onNext(.showToast(text: "음성 파일과 매칭되는 문장(contents)이 설정되지 않았습니다."))
+            return
+        }
+        
         // 주어진 URL 경로에 있는 음성 파일을 로컬에 저장
-        downloadAndSaveFile(from: selectedFileURL)
-    }
-    
-    func downloadAndSaveFile(from url: URL) {
-        // TODO: AudioRecording 저장 로직 구현 필요
-//
-//        let fileName = url.lastPathComponent
-//
-//        let downloadTask = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-//            guard let self = self else { return }
-//            if let error = error {
-//                print("Failed to download file: \(error)")
-//                return
-//            }
-//            
-//            guard let data = data else {
-//                print("No data found at URL")
-//                return
-//            }
-//            
-//            do {
-//                try self.storageManager.save(data: data, fileName: fileName, type: .audio)
-//                print("File saved successfully")
-//            } catch {
-//                print("Failed to save file: \(error)")
-//            }
-//        }
-//        
-//        downloadTask.resume()
+        reactor?.action.onNext(.downloadAudioFile(url: selectedFileURL,
+                                                  contents: avatarVoiceInputView.getRecordingContents()))
     }
 }

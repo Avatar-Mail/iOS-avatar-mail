@@ -936,6 +936,10 @@ final class AvatarVoiceInputView: UIView {
                                                                lineBreakStrategy: .hangulWordPriority)
     }
     
+    public func getRecordingContents() -> String {
+        return recordingContents
+    }
+    
     public func setRecordingButtonInnerShape(as shape: RecordingButtonInnerShape, animated: Bool) {
         let cornerRadius: CGFloat
         let newSize: CGSize

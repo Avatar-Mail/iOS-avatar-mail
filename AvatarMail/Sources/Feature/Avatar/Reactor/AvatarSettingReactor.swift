@@ -21,10 +21,12 @@ class AvatarSettingReactor: Reactor {
         case avatarCharacteristicDidChange(characteristic: String?)
         case avatarParlanceDidChange(parlance: String?)
         case saveAvatar
+        case downloadAudioFile(url: URL, contents: String)
         case startRecording(recordingContents: String?)
         case stopRecording
         case startPlaying(recording: AudioRecording)
         case stopPlaying
+        case showToast(text: String)
         // Navigation
         case closeAvatarSettingController
     }
@@ -152,7 +154,10 @@ class AvatarSettingReactor: Reactor {
             return loadSampleTexts()
         case .changeSampleText:
             return changeSelectedSampleText(sampleTexts: currentState.sampleTexts)
-            
+        case let .downloadAudioFile(url, contents):
+            return downloadAudioFile(url: url, avatarName: currentState.name, contents: contents)
+        case let .showToast(text):
+            return Observable.just(Mutation.setToastMessage(text: text))
         // Navigation
         case .closeAvatarSettingController:
             coordinator.closeAvatarSettingController()
@@ -362,6 +367,130 @@ class AvatarSettingReactor: Reactor {
             )
         }
     }
+
+//    private func downloadAudioFile(url: URL, avatarName: String, contents: String) -> Observable<Mutation> {
+//        
+//        return Observable<AudioRecording>.create { [weak self] observer in
+//
+//            let downloadTask = URLSession.shared.dataTask(with: url) { data, response, error in
+//                guard let self else {
+//                    observer.onCompleted()
+//                    return
+//                }
+//                
+//                if let error {
+//                    print("[download] 오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error)")
+//                    observer.onError(error)
+//                    return
+//                }
+//                
+//                guard let data else {
+//                    print("[download] 주어진 URL에서 데이터를 찾는데 실패했습니다.")
+//                    observer.onError(NSError(domain: "DownloadError", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data found at URL"]))
+//                    return
+//                }
+//                
+//                do {
+//                    // AudioRecording 인스턴스 생성
+//                    // 파일 ID
+//                    let fileID = UUID().uuidString
+//                    // 파일 이름
+//                    let fileName: String = "\(avatarName)_\(fileID).m4a"
+//                    
+//                    // 파일 생성 날짜
+//                    let currentDate = Date()
+//                    
+//                    try self.storageManager.save(data: data, fileName: fileName, type: .audio)
+//                    print("[download] 오디오 파일을 다운로드하는 데 성공했습니다.")
+//                    
+//                    observer.onNext(AudioRecording(id: fileID,
+//                                                   fileName: fileName,
+//                                                   contents: contents,
+//                                                   createdDate: Date(),
+//                                                   duration: 0.0))
+//                    observer.onCompleted()
+//                } catch {
+//                    print("[download] 오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error)")
+//                    observer.onError(error)
+//                }
+//            }
+//            
+//            downloadTask.resume()
+//            
+//            return Disposables.create {
+//                downloadTask.cancel()
+//            }
+//        }.flatMap { audioRecording in
+//            return Observable.of(
+//                Mutation.addRecording(recording: audioRecording),
+//                Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 성공했습니다.")
+//            )
+//        }.catch { error in
+//            return Observable.of(Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 실패했습니다. - error : \(error)"))
+//        }
+//    }
+    
+    private func downloadAudioFile(url: URL, avatarName: String, contents: String) -> Observable<Mutation> {
+        return Observable<AudioRecording>.create { [weak self] observer in
+            guard let self = self else {
+                observer.onCompleted()
+                return Disposables.create()
+            }
+
+            // iCloud 파일에 접근하기 위한 권한 확보
+            let fileCoordinator = NSFileCoordinator()
+            var error: NSError? = nil
+
+            fileCoordinator.coordinate(readingItemAt: url, options: [], error: &error) { (newURL) in
+                if newURL.startAccessingSecurityScopedResource() {
+                    defer {
+                        newURL.stopAccessingSecurityScopedResource()
+                    }
+
+                    do {
+                        let data = try Data(contentsOf: newURL)
+                        let fileID = UUID().uuidString
+                        let fileName = "\(avatarName)_\(fileID).m4a"
+                        let currentDate = Date()
+
+                        try self.storageManager.save(data: data, fileName: fileName, type: .audio)
+                        print("[download] 오디오 파일을 다운로드하는 데 성공했습니다.")
+
+                        observer.onNext(AudioRecording(id: fileID,
+                                                       fileName: fileName,
+                                                       contents: contents,
+                                                       createdDate: currentDate,
+                                                       duration: 0.0))
+                        observer.onCompleted()
+                    } catch {
+                        print("[download] 오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error)")
+                        observer.onError(error)
+                    }
+                } else {
+                    print("[download] 파일에 접근할 권한이 없습니다.")
+                    observer.onError(NSError(domain: "AccessError", code: -1, userInfo: [NSLocalizedDescriptionKey: "파일에 접근할 권한이 없습니다."]))
+                }
+            }
+
+            if let error = error {
+                print("[download] 파일 접근 중 오류 발생 - error: \(error)")
+                observer.onError(error)
+            }
+
+            return Disposables.create()
+        }
+        .flatMap { audioRecording in
+            Observable.of(
+                Mutation.addRecording(recording: audioRecording),
+                Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 성공했습니다.")
+            )
+        }
+        .catch { error in
+            Observable.of(Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error.localizedDescription)"))
+        }
+    }
+
+
 }
 
 
