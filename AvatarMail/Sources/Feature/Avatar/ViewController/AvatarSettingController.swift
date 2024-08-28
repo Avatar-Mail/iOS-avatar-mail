@@ -14,6 +14,8 @@ import RxCocoa
 import RxOptional
 import ReactorKit
 import Toast
+import MobileCoreServices
+import UniformTypeIdentifiers
 
 
 class AvatarSettingController: UIViewController, View {
@@ -109,6 +111,8 @@ class AvatarSettingController: UIViewController, View {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         tabBarController?.hideTabBar(isHidden: true, animated: true)
     }
     
@@ -120,6 +124,15 @@ class AvatarSettingController: UIViewController, View {
         saveAvatarButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE),
                                                             UIColor(hex: 0x4C5BDF)],
                                                  isHorizontal: true)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // 페이지 이동 전 현재 실행 중인 오디오 파일 종료
+        if let reactor, reactor.currentState.isPlaying == true {
+            reactor.action.onNext(.stopPlaying)
+        }
     }
     
     
@@ -275,12 +288,11 @@ class AvatarSettingController: UIViewController, View {
                 } else {
                     avatarVoiceInputView.stopTimer()
                     avatarVoiceInputView.setRecordingButtonInnerShape(as: .circle, animated: false)
-                    avatarVoiceInputView.setViewState(.initial)
-                    
                 }
             }.disposed(by: disposeBag)
         
         reactor.state.map(\.isPlaying)
+            .skip(1)
             .distinctUntilChanged()
             .bind { [weak self] isPlaying in
                 guard let self else { return }
@@ -294,10 +306,12 @@ class AvatarSettingController: UIViewController, View {
             }.disposed(by: disposeBag)
         
         reactor.state.map(\.recordings)
+            .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .bind { [weak self] recordings in
                 guard let self else { return }
                 avatarVoiceInputView.setData(recordings: recordings)
+                avatarVoiceInputView.setViewState(.initial) // FIXME: 녹음 실패 / 다운 실패 시 initial-state view로 돌아가지 않는 이슈 수정 필요
             }.disposed(by: disposeBag)
         
         
@@ -387,7 +401,7 @@ extension AvatarSettingController: AvatarParlanceInputViewDelegate {
 
 // MARK: AvatarVoiceInputViewDelegate
 extension AvatarSettingController: AvatarVoiceInputViewDelegate {
-    
+
     func backButtonDidTap() {
         let viewState = avatarVoiceInputView.getViewState()
         avatarVoiceInputView.clearInputText()
@@ -398,8 +412,10 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
             avatarVoiceInputView.setViewState(.initial)
         case .inputText:
             avatarVoiceInputView.setViewState(.randomText)
-        case .inputVoice: ()
+        case .inputMethodChoice:
             avatarVoiceInputView.setViewState(.randomText)
+        case .inputVoice: ()
+            avatarVoiceInputView.setViewState(.inputMethodChoice)
         }
     }
     
@@ -417,11 +433,19 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func randomTextSelectButtonDidTap() {
-        avatarVoiceInputView.setViewState(.inputVoice)
+        avatarVoiceInputView.setViewState(.inputMethodChoice)
     }
     
     func inputTextSelectButtonDidTap() {
+        avatarVoiceInputView.setViewState(.inputMethodChoice)
+    }
+    
+    func selectAudioRecordingButtonDidTap() {
         avatarVoiceInputView.setViewState(.inputVoice)
+    }
+    
+    func selectFileUploadButtonDidTap() {
+        selectAudioFile()
     }
     
     func recordingButtonDidTap(with recordingContents: String) {
@@ -497,4 +521,34 @@ extension AvatarSettingController: TopNavigationDelegate {
     func topNavigationRightSideSecondaryIconDidTap() {}
     
     func topNavigationRightSideTextButtonDidTap() {}
+}
+
+
+//MARK: UIDocumentPickerDelegate (음성 파일 선택)
+extension AvatarSettingController: UIDocumentPickerDelegate {
+    
+    // 오디오 파일 선택 메서드 (파일 선택 모달을 띄워줌)
+    func selectAudioFile() {
+        // iOS 14.0 이상에서는 UTTypeAudio 또는 UTType.audio 사용
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.audio])
+        documentPicker.delegate = self
+        documentPicker.modalPresentationStyle = .formSheet
+        present(documentPicker, animated: true, completion: nil)
+    }
+
+    // 파일 선택 후 호출되는 메서드
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let selectedFileURL = urls.first else {
+            return
+        }
+
+        guard avatarVoiceInputView.getRecordingContents().isNotEmpty else {
+            reactor?.action.onNext(.showToast(text: "음성 파일과 매칭되는 문장(contents)이 설정되지 않았습니다."))
+            return
+        }
+        
+        // 주어진 URL 경로에 있는 음성 파일을 로컬에 저장
+        reactor?.action.onNext(.downloadAudioFile(url: selectedFileURL,
+                                                  contents: avatarVoiceInputView.getRecordingContents()))
+    }
 }
