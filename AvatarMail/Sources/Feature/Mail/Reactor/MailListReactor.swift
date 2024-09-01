@@ -160,14 +160,8 @@ class MailListReactor: Reactor {
             }
             // 검색 문자열 포함되지 않으면 패스
             if searchText.isNotEmpty {
-                if isSentFromUser != nil {
-                    if !mail.recipientName.contains(searchText) {
-                        return false
-                    }
-                } else {
-                    if !(mail.senderName.contains(searchText) || mail.recipientName.contains(searchText)) {
-                        return false
-                    }
+                if !(mail.senderName.contains(searchText) || mail.recipientName.contains(searchText)) {
+                    return false
                 }
             }
             
