@@ -157,6 +157,24 @@ class MailListController: UIViewController, View {
                                                                        UIColor(hex: 0x403DD2)])
     }
     
+    override func viewDidDisappear(_ animated: Bool) {
+        // 검색바 내 검색어 제거
+        filterAvatarSearchBar.setSearchText(text: "")
+        // 검색바 UI 초기화 및 키보드 숨김
+        filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
+                                          iconSize: CGSize(width: 16, height: 16),
+                                          iconColor: UIColor(hex:0x7B7B7B),
+                                          configuration: nil)
+        filterAvatarSearchBar.setBackgroundColor(colors: [UIColor(hex:0xF1F1F1)])
+        filterAvatarSearchBar.setBorder(width: 0, colors: [])
+        
+        filterAvatarSearchBar.showKeyboard(false)
+        // 필터 초기화
+        reactor?.action.onNext(.clearFilter)
+        // 필터 UI 숨김 처리
+        showFilterMainContainerView(false)
+    }
+    
     private func setDelegates() {
         topNavigation.delegate = self
         filterAvatarSearchBar.delegate = self
@@ -273,14 +291,14 @@ class MailListController: UIViewController, View {
 
         view.bringSubviewToFront(topContainerView)
     }
+    
 
     func bind(reactor: MailListReactor) {
         filterExtendButton.rx.tap
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self = self else { return }
-                filterMainContainerView.isHidden = false
-                filterButtonContainerView.isHidden = true
+                showFilterMainContainerView(true)
             })
             .disposed(by: disposeBag)
         
@@ -288,8 +306,7 @@ class MailListController: UIViewController, View {
             .asDriver()
             .drive(onNext: { [weak self] in
                 guard let self = self else { return }
-                filterMainContainerView.isHidden = true
-                filterButtonContainerView.isHidden = false
+                showFilterMainContainerView(false)
                 
                 filterAvatarSearchBar.setLeftIcon(iconName: "magnifyingglass",
                                                   iconSize: CGSize(width: 16, height: 16),
@@ -355,6 +372,12 @@ class MailListController: UIViewController, View {
                 }
             }
             .disposed(by: disposeBag)
+    }
+    
+    
+    private func showFilterMainContainerView(_ shouldShow: Bool) {
+        filterMainContainerView.isHidden = !shouldShow
+        filterButtonContainerView.isHidden = shouldShow
     }
 }
 

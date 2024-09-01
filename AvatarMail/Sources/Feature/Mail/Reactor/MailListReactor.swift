@@ -18,6 +18,7 @@ class MailListReactor: Reactor {
         case sentMailCheckboxDidTap
         case receivedMailCheckboxDidTap
         case searchTextDidChange(String)
+        case clearFilter
     }
     
     enum Mutation {
@@ -93,10 +94,15 @@ class MailListReactor: Reactor {
                 )
             }
         case .searchTextDidChange(let searchText):
-            
             return Observable.of(
                 Mutation.setSearchText(searchText: searchText),
                 getFilteredMailMutation(isSentFromUser: currentState.isSentFromUser, searchText: searchText)
+            )
+        case .clearFilter:
+            return Observable.of(
+                Mutation.setFiltedMail(filteredMails: currentState.mails),
+                Mutation.setIsSentFromUser(isSentFromUser: nil),
+                Mutation.setSearchText(searchText: "")
             )
         // Navigation
         case .closeMailListController:
@@ -167,7 +173,6 @@ class MailListReactor: Reactor {
             
             return true
         }
-        
         
         return Mutation.setFiltedMail(filteredMails: filteredMails)
     }
