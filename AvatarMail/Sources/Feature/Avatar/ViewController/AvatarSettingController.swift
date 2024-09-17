@@ -484,7 +484,25 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func deleteButtonDidTap(with recording: AudioRecording) {
-        reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
+        GlobalDialog.shared.show(title: "파일을 삭제하시겠습니까?",
+                                 description: "아바타 저장 이후 해당 파일이 삭제됩니다.",
+                                 buttonInfos: .init(title: "취소", 
+                                                    titleColor: UIColor(hex: 0x575757),
+                                                    backgroundColor: UIColor(hex: 0x949494),
+                                                    borderColor: nil,
+                                                    buttonHandler: {
+                                                        GlobalDialog.shared.hide()
+                                                    }),
+                                              .init(title: "확인",
+                                                    titleColor: .white,
+                                                    backgroundColor: UIColor(hex: 0x4C5BDF),
+                                                    borderColor: nil,
+                                                    buttonHandler: { [weak self] in
+                                                        guard let self else { return }
+                                                        reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
+                                                        GlobalDialog.shared.hide()
+                                                    })
+        )
     }
 }
 
