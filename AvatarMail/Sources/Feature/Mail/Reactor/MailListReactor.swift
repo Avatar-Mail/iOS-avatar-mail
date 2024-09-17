@@ -18,6 +18,7 @@ class MailListReactor: Reactor {
         case sentMailCheckboxDidTap
         case receivedMailCheckboxDidTap
         case searchTextDidChange(String)
+        case clearFilter
     }
     
     enum Mutation {
@@ -93,10 +94,15 @@ class MailListReactor: Reactor {
                 )
             }
         case .searchTextDidChange(let searchText):
-            
             return Observable.of(
                 Mutation.setSearchText(searchText: searchText),
                 getFilteredMailMutation(isSentFromUser: currentState.isSentFromUser, searchText: searchText)
+            )
+        case .clearFilter:
+            return Observable.of(
+                Mutation.setFiltedMail(filteredMails: currentState.mails),
+                Mutation.setIsSentFromUser(isSentFromUser: nil),
+                Mutation.setSearchText(searchText: "")
             )
         // Navigation
         case .closeMailListController:
@@ -160,20 +166,13 @@ class MailListReactor: Reactor {
             }
             // 검색 문자열 포함되지 않으면 패스
             if searchText.isNotEmpty {
-                if isSentFromUser != nil {
-                    if !mail.recipientName.contains(searchText) {
-                        return false
-                    }
-                } else {
-                    if !(mail.senderName.contains(searchText) || mail.recipientName.contains(searchText)) {
-                        return false
-                    }
+                if !(mail.senderName.contains(searchText) || mail.recipientName.contains(searchText)) {
+                    return false
                 }
             }
             
             return true
         }
-        
         
         return Mutation.setFiltedMail(filteredMails: filteredMails)
     }

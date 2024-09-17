@@ -14,6 +14,7 @@ import RxCocoa
 
 protocol AudioRecordingCellDelegate: AnyObject {
     func playingButtonDidTap(with recording: AudioRecording)
+    func deleteButtonDidTap(with recording: AudioRecording)
 }
 
 final class AudioRecordingCell: UICollectionViewCell {
@@ -46,7 +47,7 @@ final class AudioRecordingCell: UICollectionViewCell {
         $0.textColor = UIColor(hex:0xA4A4A4)
     }
     
-    private let removeButton = UIButton().then {
+    private let deleteButton = UIButton().then {
         let imageConfiguration = UIImage.SymbolConfiguration(pointSize: 18,
                                                              weight: .regular,
                                                              scale: .default)
@@ -90,7 +91,7 @@ final class AudioRecordingCell: UICollectionViewCell {
                 recordingTitleLabel,
                 recordedDateLabel,
                 
-                removeButton,
+                deleteButton,
                 
                 playingButtonInnerShape,
                 playingButton
@@ -113,7 +114,7 @@ final class AudioRecordingCell: UICollectionViewCell {
             $0.trailing.equalTo(playingButton.snp.leading).offset(-10)
         }
         
-        removeButton.snp.makeConstraints {
+        deleteButton.snp.makeConstraints {
             $0.bottom.equalToSuperview().offset(-12)
             $0.leading.equalToSuperview().offset(20)
             $0.size.equalTo(18)
@@ -192,6 +193,12 @@ final class AudioRecordingCell: UICollectionViewCell {
                 delegate?.playingButtonDidTap(with: recording)
             }
             .disposed(by: disposeBag)
+        
+        deleteButton.rx.tap
+            .bind { [weak self] in
+                guard let self, let recording else { return }
+                delegate?.deleteButtonDidTap(with: recording)
+            }
     }
     
     

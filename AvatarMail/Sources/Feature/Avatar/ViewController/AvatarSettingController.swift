@@ -135,6 +135,25 @@ class AvatarSettingController: UIViewController, View {
         }
     }
     
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        guard let reactor else { return }
+        
+        // 아바타가 저장된 경우
+        if reactor.currentState.hasAvatarSaved == true {
+            // 임시 삭제 파일들을 실제로 파일 시스템에서 삭제
+            reactor.action.onNext(.removeAllTempDeletedAudioFiles)
+        }
+        // 아바타가 저장되지 않은 경우
+        else {
+            // 임시 저장 파일들을 파일 시스템에서 삭제
+            // ㄴ 음성 녹음이 끝난 직후 바로 파일 시스템에 추가되기 때문에, 실제로 아바타가 저장되지 않은 경우에는
+            //    녹음된 파일들을 제거해야 한다.
+            reactor.action.onNext(.removeAllTempSavedAudioFiles)
+        }
+    }
+    
     
     private func setDelegates() {
         topNavigation.delegate = self
@@ -462,6 +481,28 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
         } else {
             reactor?.action.onNext(.stopPlaying)
         }
+    }
+    
+    func deleteButtonDidTap(with recording: AudioRecording) {
+        GlobalDialog.shared.show(title: "파일을 삭제하시겠습니까?",
+                                 description: "아바타 저장 이후 해당 파일이 삭제됩니다.",
+                                 buttonInfos: .init(title: "취소", 
+                                                    titleColor: UIColor(hex: 0x575757),
+                                                    backgroundColor: UIColor(hex: 0xDBDBDB),
+                                                    borderColor: nil,
+                                                    buttonHandler: {
+                                                        GlobalDialog.shared.hide()
+                                                    }),
+                                              .init(title: "확인",
+                                                    titleColor: .white,
+                                                    backgroundColor: UIColor(hex: 0x336FF2),
+                                                    borderColor: nil,
+                                                    buttonHandler: { [weak self] in
+                                                        guard let self else { return }
+                                                        reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
+                                                        GlobalDialog.shared.hide()
+                                                    })
+        )
     }
 }
 
