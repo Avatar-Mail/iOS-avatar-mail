@@ -135,6 +135,25 @@ class AvatarSettingController: UIViewController, View {
         }
     }
     
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        guard let reactor else { return }
+        
+        // 아바타가 저장된 경우
+        if reactor.currentState.hasAvatarSaved == true {
+            // 임시 삭제 파일들을 실제로 파일 시스템에서 삭제
+            reactor.action.onNext(.removeAllTempDeletedAudioFiles)
+        }
+        // 아바타가 저장되지 않은 경우
+        else {
+            // 임시 저장 파일들을 파일 시스템에서 삭제
+            // ㄴ 음성 녹음이 끝난 직후 바로 파일 시스템에 추가되기 때문에, 실제로 아바타가 저장되지 않은 경우에는
+            //    녹음된 파일들을 제거해야 한다.
+            reactor.action.onNext(.removeAllTempSavedAudioFiles)
+        }
+    }
+    
     
     private func setDelegates() {
         topNavigation.delegate = self
@@ -465,7 +484,7 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func deleteButtonDidTap(with recording: AudioRecording) {
-        // MARK: 삭제 메서드 구현 필요
+        reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
     }
 }
 

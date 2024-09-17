@@ -27,6 +27,9 @@ class AvatarSettingReactor: Reactor {
         case startPlaying(recording: AudioRecording)
         case stopPlaying
         case showToast(text: String)
+        case addToTempDeletedAudioFilesAndHide(fileName: String)
+        case removeAllTempDeletedAudioFiles
+        case removeAllTempSavedAudioFiles
         // Navigation
         case closeAvatarSettingController
     }
@@ -43,7 +46,10 @@ class AvatarSettingReactor: Reactor {
         case setIsRecording(isRecording: Bool)
         case setIsPlaying(isPlaying: Bool)
         case addRecording(recording: AudioRecording)
+        case removeRecording(fileName: String)
         case setAvatarHasSaved(hasSaved: Bool)
+        case addTempSavedAudioFile(fileName: String)
+        case addTempDeletedAudioFile(fileName: String)
         case setToastMessage(text: String)
     }
     
@@ -64,6 +70,9 @@ class AvatarSettingReactor: Reactor {
         var isPlaying: Bool                 // 재생 중인지 여부
         
         var hasAvatarSaved: Bool            // 아바타 저장 여부
+        
+        var tempSavedAudioFiles:   [String] // 임시 저장 오디오 파일 (아바타가 저장되지 않으면 파일 시스템에서 제거)
+        var tempDeletedAudioFiles: [String] // 임시 삭제 오디오 파일 (기존 음성 파일 삭제 후, 아바타 저장 시 파일 시스템에서 제거)
         
         @Pulse var toastMessage: String?
     }
@@ -110,7 +119,9 @@ class AvatarSettingReactor: Reactor {
                                   recordings: avatar?.recordings ?? [],
                                   isRecording: false,
                                   isPlaying: false,
-                                  hasAvatarSaved: false)
+                                  hasAvatarSaved: false,
+                                  tempSavedAudioFiles: [],
+                                  tempDeletedAudioFiles: [])
         
         self.audioPlayingManager.delegate = self
     }
@@ -156,6 +167,15 @@ class AvatarSettingReactor: Reactor {
             return changeSelectedSampleText(sampleTexts: currentState.sampleTexts)
         case let .downloadAudioFile(url, contents):
             return downloadAudioFile(url: url, avatarName: currentState.name, contents: contents)
+        case let .addToTempDeletedAudioFilesAndHide(fileName):
+            return Observable.of(
+                Mutation.addTempDeletedAudioFile(fileName: fileName),
+                Mutation.removeRecording(fileName: fileName)
+            )
+        case .removeAllTempDeletedAudioFiles:
+            return removeAllTempDeletedAudioFiles(audioFileNames: currentState.tempDeletedAudioFiles)
+        case .removeAllTempSavedAudioFiles:
+            return removeAllTempSavedAudioFiles(audioFileNames: currentState.tempSavedAudioFiles)
         case let .showToast(text):
             return Observable.just(Mutation.setToastMessage(text: text))
         // Navigation
@@ -191,10 +211,16 @@ class AvatarSettingReactor: Reactor {
             newState.isRecording = isRecording
         case let .addRecording(recording: recording):
             newState.recordings = state.recordings + [recording]
+        case let .removeRecording(fileName: fileName):
+            newState.recordings = state.recordings.filter { $0.fileName != fileName }
         case let .setIsPlaying(isPlaying: isPlaying):
             newState.isPlaying = isPlaying
         case let .setAvatarHasSaved(hasSaved: hasSaved):
             newState.hasAvatarSaved = hasSaved
+        case let .addTempSavedAudioFile(fileName: fileName):
+            newState.tempSavedAudioFiles = state.tempSavedAudioFiles + [fileName]
+        case let .addTempDeletedAudioFile(fileName: fileName):
+            newState.tempDeletedAudioFiles = state.tempDeletedAudioFiles + [fileName]
         case let .setToastMessage(text: text):
             newState.toastMessage = text
         }
@@ -315,6 +341,7 @@ class AvatarSettingReactor: Reactor {
                 return Observable.of(
                     .setIsRecording(isRecording: false),
                     .addRecording(recording: recording),
+                    .addTempSavedAudioFile(fileName: recording.fileName),
                     .setToastMessage(text: "정상적으로 녹음을 완료했습니다.")
                 )
             case .failure(_):
@@ -368,68 +395,6 @@ class AvatarSettingReactor: Reactor {
         }
     }
 
-//    private func downloadAudioFile(url: URL, avatarName: String, contents: String) -> Observable<Mutation> {
-//        
-//        return Observable<AudioRecording>.create { [weak self] observer in
-//
-//            let downloadTask = URLSession.shared.dataTask(with: url) { data, response, error in
-//                guard let self else {
-//                    observer.onCompleted()
-//                    return
-//                }
-//                
-//                if let error {
-//                    print("[download] 오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error)")
-//                    observer.onError(error)
-//                    return
-//                }
-//                
-//                guard let data else {
-//                    print("[download] 주어진 URL에서 데이터를 찾는데 실패했습니다.")
-//                    observer.onError(NSError(domain: "DownloadError", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data found at URL"]))
-//                    return
-//                }
-//                
-//                do {
-//                    // AudioRecording 인스턴스 생성
-//                    // 파일 ID
-//                    let fileID = UUID().uuidString
-//                    // 파일 이름
-//                    let fileName: String = "\(avatarName)_\(fileID).m4a"
-//                    
-//                    // 파일 생성 날짜
-//                    let currentDate = Date()
-//                    
-//                    try self.storageManager.save(data: data, fileName: fileName, type: .audio)
-//                    print("[download] 오디오 파일을 다운로드하는 데 성공했습니다.")
-//                    
-//                    observer.onNext(AudioRecording(id: fileID,
-//                                                   fileName: fileName,
-//                                                   contents: contents,
-//                                                   createdDate: Date(),
-//                                                   duration: 0.0))
-//                    observer.onCompleted()
-//                } catch {
-//                    print("[download] 오디오 파일을 다운로드하는 데 실패했습니다. - error: \(error)")
-//                    observer.onError(error)
-//                }
-//            }
-//            
-//            downloadTask.resume()
-//            
-//            return Disposables.create {
-//                downloadTask.cancel()
-//            }
-//        }.flatMap { audioRecording in
-//            return Observable.of(
-//                Mutation.addRecording(recording: audioRecording),
-//                Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 성공했습니다.")
-//            )
-//        }.catch { error in
-//            return Observable.of(Mutation.setToastMessage(text: "오디오 파일을 다운로드하는 데 실패했습니다. - error : \(error)"))
-//        }
-//    }
-    
     private func downloadAudioFile(url: URL, avatarName: String, contents: String) -> Observable<Mutation> {
         return Observable<AudioRecording>.create { [weak self] observer in
             guard let self = self else {
@@ -490,7 +455,35 @@ class AvatarSettingReactor: Reactor {
         }
     }
 
-
+    private func removeAllTempDeletedAudioFiles(audioFileNames: [String]) -> Observable<Mutation> {
+        for fileName in audioFileNames {
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                guard let self else { return }
+                
+                do {
+                    try storageManager.delete(fileName: fileName, type: .audio)
+                } catch {
+                    return  // 예외 처리 필요
+                }
+            }
+        }
+        return .empty()
+    }
+    
+    private func removeAllTempSavedAudioFiles(audioFileNames: [String]) -> Observable<Mutation> {
+        for fileName in audioFileNames {
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                guard let self else { return }
+                
+                do {
+                    try storageManager.delete(fileName: fileName, type: .audio)
+                } catch {
+                    return  // 예외 처리 필요
+                }
+            }
+        }
+        return .empty()
+    }
 }
 
 
