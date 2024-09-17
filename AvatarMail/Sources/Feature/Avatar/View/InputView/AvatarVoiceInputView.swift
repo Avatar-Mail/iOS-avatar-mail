@@ -23,6 +23,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func selectFileUploadButtonDidTap()
     func recordingButtonDidTap(with recordingContents: String)
     func playingButtonDidTap(with recording: AudioRecording)
+    func deleteButtonDidTap(with recording: AudioRecording)
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -992,6 +993,10 @@ extension AvatarVoiceInputView: CustomTimerDelegate {
 extension AvatarVoiceInputView: AudioRecordingCellDelegate {
     func playingButtonDidTap(with recording: AudioRecording) {
         delegate?.playingButtonDidTap(with: recording)
+    }
+    
+    func deleteButtonDidTap(with recording: AudioRecording) {
+        delegate?.deleteButtonDidTap(with: recording)
     }
 }
 

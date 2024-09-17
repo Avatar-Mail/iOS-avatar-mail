@@ -149,15 +149,6 @@ class MailListController: UIViewController, View {
         super.viewWillAppear(animated)
         reactor?.action.onNext(.getAllMails)
         
-        tabBarController?.hideTabBar(isHidden: true, animated: true)
-    }
-
-    override func viewDidLayoutSubviews() {
-        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
-                                                                       UIColor(hex: 0x403DD2)])
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
         // 검색바 내 검색어 제거
         filterAvatarSearchBar.setSearchText(text: "")
         // 검색바 UI 초기화 및 키보드 숨김
@@ -169,6 +160,17 @@ class MailListController: UIViewController, View {
         filterAvatarSearchBar.setBorder(width: 0, colors: [])
         
         filterAvatarSearchBar.showKeyboard(false)
+        view.endEditing(true)
+        
+        tabBarController?.hideTabBar(isHidden: true, animated: true)
+    }
+
+    override func viewDidLayoutSubviews() {
+        topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
+                                                                       UIColor(hex: 0x403DD2)])
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
         // 필터 초기화
         reactor?.action.onNext(.clearFilter)
         // 필터 UI 숨김 처리

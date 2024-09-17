@@ -463,6 +463,10 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
             reactor?.action.onNext(.stopPlaying)
         }
     }
+    
+    func deleteButtonDidTap(with recording: AudioRecording) {
+        // MARK: 삭제 메서드 구현 필요
+    }
 }
 
 
