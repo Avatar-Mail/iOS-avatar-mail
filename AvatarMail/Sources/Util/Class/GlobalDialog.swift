@@ -38,7 +38,7 @@ public class GlobalDialog {
         guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else { return }
         
         backgroundView = UIView().then {
-            $0.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         }
         
         containerView = UIView().then {
@@ -69,16 +69,18 @@ public class GlobalDialog {
             
             let titleLabel = UILabel().then {
                 $0.numberOfLines = 0
+                $0.isHidden = true
             }
             
             let descriptionLabel = UILabel().then {
                 $0.numberOfLines = 0
+                $0.isHidden = true
             }
             
             let buttonStackView = UIStackView().then {
                 $0.axis = .horizontal
                 $0.distribution = .fillEqually
-                $0.spacing = 15
+                $0.spacing = 12
             }
             
             containerView.addSubViews(
@@ -90,27 +92,28 @@ public class GlobalDialog {
             )
             
             stackView.snp.makeConstraints {
-                $0.edges.equalToSuperview().inset(16)
-            }
-            
-            descriptionLabel.snp.makeConstraints {
-                $0.height.greaterThanOrEqualTo(72)
+                $0.verticalEdges.equalToSuperview().inset(16)
+                $0.horizontalEdges.equalToSuperview().inset(20)
             }
             
             if let title {
                 titleLabel.isHidden = false
-                titleLabel.attributedText = .makeAttributedString(text: title, color: .black, font: .content(size: 22, weight: .semibold))
+                titleLabel.attributedText = .makeAttributedString(text: title, color: .black, font: .content(size: 20, weight: .semibold))
                 
                 stackView.snp.remakeConstraints {
                     $0.top.equalToSuperview().inset(24)
-                    $0.horizontalEdges.equalToSuperview().inset(16)
+                    $0.horizontalEdges.equalToSuperview().inset(20)
                     $0.bottom.equalToSuperview().inset(16)
                 }
             }
             
             if let description {
                 descriptionLabel.isHidden = false
-                descriptionLabel.attributedText = .makeAttributedString(text: description, color: .darkGray, font: .content(size: 16, weight: .regular))
+                descriptionLabel.attributedText = .makeAttributedString(text: description, color: .lightGray, font: .content(size: 16, weight: .regular))
+                
+                descriptionLabel.snp.makeConstraints {
+                    $0.height.greaterThanOrEqualTo(54)
+                }
             }
             
             for buttonInfo in buttonInfos {
