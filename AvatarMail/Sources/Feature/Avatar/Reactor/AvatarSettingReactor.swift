@@ -415,7 +415,7 @@ class AvatarSettingReactor: Reactor {
                     do {
                         let data = try Data(contentsOf: newURL)
                         let fileID = UUID().uuidString
-                        let fileName = "\(avatarName)_\(fileID).m4a"
+                        let fileName = "\(contents).m4a"
                         let currentDate = Date()
 
                         try self.storageManager.save(data: data, fileName: fileName, type: .audio)
