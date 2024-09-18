@@ -5,10 +5,9 @@ import SnapKit
 import RxSwift
 import RxCocoa
 import ReactorKit
-import AVFoundation
 
 class SettingHomeController: UIViewController, View {
-    
+
     var disposeBag = DisposeBag()
     
     private let topNavigation = TopNavigation().then {
@@ -18,24 +17,25 @@ class SettingHomeController: UIViewController, View {
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
-
+    
     private let collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 16
-        layout.minimumInteritemSpacing = 0
-        layout.itemSize = CGSize(width: UIScreen.main.bounds.width, height: 60)
-        layout.sectionInset = UIEdgeInsets(top: 16 + 54, left: 0, bottom: 16, right: 0)
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.register(SettingHomeCollectionViewCell.self, forCellWithReuseIdentifier: SettingHomeCollectionViewCell.identifier)
-        collectionView.backgroundColor = .white
+        var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
+        listConfig.showsSeparators = true // divider 설정
+        listConfig.backgroundColor = .white
+        listConfig.separatorConfiguration = .init(listAppearance: .plain)
+
+        let collectionViewLayout = UICollectionViewCompositionalLayout.list(using: listConfig)
+        
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout).then {
+            $0.backgroundColor = .white
+            $0.register(SettingHomeCollectionViewCell.self, forCellWithReuseIdentifier: SettingHomeCollectionViewCell.identifier)
+        }
+        
         return collectionView
     }()
     
-    init(
-        reactor: SettingHomeReactor
-    ) {
+    init(reactor: SettingHomeReactor) {
         super.init(nibName: nil, bundle: nil)
-        
         self.reactor = reactor
     }
     
@@ -45,7 +45,6 @@ class SettingHomeController: UIViewController, View {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         makeUI()
     }
     
@@ -71,7 +70,7 @@ class SettingHomeController: UIViewController, View {
         
         // collectionView
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(topNavigation.snp.bottom).inset(10)
+            $0.top.equalTo(topNavigation.snp.bottom).offset(10)
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
@@ -105,3 +104,4 @@ extension SettingHomeController: SettingHomeCollectionViewCellDelegate {
         }
     }
 }
+

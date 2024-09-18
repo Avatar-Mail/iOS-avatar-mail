@@ -61,6 +61,8 @@ final class SettingHomeCollectionViewCell: UICollectionViewCell {
     
     
     private func makeUI() {
+        contentView.backgroundColor = .white
+        
         contentView.addSubViews(
             containerView.addSubViews(
                 titleLabel,
@@ -73,6 +75,7 @@ final class SettingHomeCollectionViewCell: UICollectionViewCell {
         
         containerView.snp.makeConstraints {
             $0.edges.equalToSuperview()
+            $0.height.equalTo(64)
         }
         
         titleLabel.snp.makeConstraints {
@@ -87,6 +90,8 @@ final class SettingHomeCollectionViewCell: UICollectionViewCell {
         }
         
         arrowIcon.image = UIImage(systemName: "chevron.right")
+        arrowIcon.contentMode = .scaleAspectFit
+        arrowIcon.tintColor = .lightGray
         arrowIcon.snp.makeConstraints {
             $0.size.equalTo(20)
         }
@@ -104,10 +109,10 @@ final class SettingHomeCollectionViewCell: UICollectionViewCell {
                                                           font: .content(size: 18, weight: .medium))
         
         if let subTitle {
-            subTitleLabel.attributedText = .makeAttributedString(text: title,
+            subTitleLabel.attributedText = .makeAttributedString(text: subTitle,
                                                                  color: .black,
                                                                  font: .content(size: 18, weight: .medium))
-            arrowIcon.isHidden = false
+            subTitleLabel.isHidden = false
         }
         
         if showArrowIcon {
