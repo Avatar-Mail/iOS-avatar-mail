@@ -24,6 +24,7 @@ let project = Project(
                 with: [
                     "UILaunchStoryboardName": "LaunchScreen.storyboard",
                     "APIKey": "$(OPEN_API_KEY)",
+                    "AppVersion": "$(APP_VERSION)",
                     "BaseURL": "BASE_SERVER_URL",
                     "NSMicrophoneUsageDescription": "This app requires access to the microphone to record audio.",
                     // FIXME: 배포할 땐 false로 바꾸자 (localhost HTTP load 허용)

@@ -22,27 +22,24 @@ class SettingHomeReactor: Reactor {
         var settingHomeItems: [SettingHomeItem]
     }
     
-    let initialState = State(
-        settingHomeItems: [
-            SettingHomeItem(id: .appVersion,
-                            title: "앱 버전",
-                            subTitle: "1.0.0",
-                            showArrowIcon: false),
-            SettingHomeItem(id: .debugMode,
-                            title: "개발자 모드",
-                            subTitle: nil,
-                            showArrowIcon: true)
-        ]
-    )
-    
+    var initialState: State
     
     // MARK: - Initialization
     var coordinator: SettingHomeCoordinatorProtocol
     
     init(
-        coordinator: SettingHomeCoordinatorProtocol
+        coordinator: SettingHomeCoordinatorProtocol,
+        appVersion: String
     ) {
         self.coordinator = coordinator
+        self.initialState = State(settingHomeItems: [SettingHomeItem(id: .appVersion,
+                                                                     title: "앱 버전",
+                                                                     subTitle: appVersion,
+                                                                     showArrowIcon: false),
+                                                     SettingHomeItem(id: .debugMode,
+                                                                     title: "개발자 모드",
+                                                                     subTitle: nil,
+                                                                     showArrowIcon: true)])
     }
     
     

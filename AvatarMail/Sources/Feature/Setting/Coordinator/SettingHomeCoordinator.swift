@@ -24,7 +24,11 @@ class SettingHomeCoordinator: SettingHomeCoordinatorProtocol {
     
     
     func start() {
-        let settingHomeReactor = SettingHomeReactor(coordinator: self)
+        
+        let appVersion = Bundle.main.infoDictionary?["AppVersion"] as? String ?? "None"
+            
+        let settingHomeReactor = SettingHomeReactor(coordinator: self,
+                                                    appVersion: appVersion)
         let settingHomeController = SettingHomeController(reactor: settingHomeReactor)
         navigationController?.pushViewController(settingHomeController, animated: true)
     }
