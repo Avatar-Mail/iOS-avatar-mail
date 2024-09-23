@@ -8,7 +8,9 @@
 import Foundation
 import UIKit
 
-protocol SettingHomeCoordinatorProtocol: Coordinator {}
+protocol SettingHomeCoordinatorProtocol: Coordinator {
+    func presentEndPointSettingModal()
+}
 
 class SettingHomeCoordinator: SettingHomeCoordinatorProtocol {
 
@@ -22,8 +24,17 @@ class SettingHomeCoordinator: SettingHomeCoordinatorProtocol {
     
     
     func start() {
-        let settingHomeController = SettingHomeController()
+        
+        let appVersion = Bundle.main.infoDictionary?["AppVersion"] as? String ?? "None"
+            
+        let settingHomeReactor = SettingHomeReactor(coordinator: self,
+                                                    appVersion: appVersion)
+        let settingHomeController = SettingHomeController(reactor: settingHomeReactor)
         navigationController?.pushViewController(settingHomeController, animated: true)
+    }
+    
+    func presentEndPointSettingModal() {
+        
     }
 }
 
