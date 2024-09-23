@@ -1,3 +1,10 @@
+//
+//  DeprecatedSettingHomeController.swift
+//  AvatarMail
+//
+//  Created by 최지석 on 9/18/24.
+//
+
 import Foundation
 import UIKit
 import Then
@@ -7,7 +14,8 @@ import RxCocoa
 import ReactorKit
 import AVFoundation
 
-class SettingHomeController: UIViewController {
+
+class DeprecatedSettingHomeController: UIViewController {
     
     var disposeBag = DisposeBag()
     
@@ -447,7 +455,7 @@ class SettingHomeController: UIViewController {
                 
 //                if let recording = self.currentRecording {
 //                    let result = self.playingManager.startPlaying(url: recording.fileURL)
-//                    
+//
 //                    switch result {
 //                    case .success:
 //                        print("Playing Start")
@@ -581,7 +589,7 @@ class SettingHomeController: UIViewController {
         playServerSentFileButton.rx.tap
             .bind { [weak self] in
                 guard let self else { return }
-//                
+//
 //                if let sampleText = mailContents, let fileURL = currentRecording?.fileURL {
 //                    uploadTextAndAudioFileToServer(text: sampleText, fileURL: fileURL, to: URL(string: "http://127.0.0.1:5000/upload")!)
 //                } else {
@@ -592,7 +600,7 @@ class SettingHomeController: UIViewController {
     }
 }
 
-extension SettingHomeController {
+extension DeprecatedSettingHomeController {
     func createBody(with parameters: [String: String]?, filePathKey: String, paths: [URL], boundary: String) -> Data {
         
         var body = Data()
@@ -664,7 +672,7 @@ extension SettingHomeController {
 }
 
 
-extension SettingHomeController: CustomTimerDelegate {
+extension DeprecatedSettingHomeController: CustomTimerDelegate {
     func timerUpdated(timerIdentifier: String, elapsedTime: Double) {
         switch timerIdentifier {
         case "RecordingTimer":
