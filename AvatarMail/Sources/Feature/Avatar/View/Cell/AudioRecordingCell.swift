@@ -199,6 +199,7 @@ final class AudioRecordingCell: UICollectionViewCell {
                 guard let self, let recording else { return }
                 delegate?.deleteButtonDidTap(with: recording)
             }
+            .disposed(by: disposeBag)
     }
     
     
