@@ -980,6 +980,10 @@ final class AvatarVoiceInputView: UIView {
     public func stopTimer() {
         timer.stopTimer()
     }
+    
+    public func setPlayingButtonInnerShape(as shape: PlayingButtonInnerShape) {
+        // TODO: 재생 버튼 애니메이션 구현
+    }
 }
 
 
