@@ -74,12 +74,18 @@ class RepliedMailCell: UICollectionViewCell {
     public func setData(mail: Mail) {
         self.mail = mail
         
-        recipientLabel.text = mail.recipientName
+        recipientLabel.attributedText = .makeAttributedString(text: mail.recipientName,
+                                                              color: UIColor(hex:0x5A5A5A),
+                                                              font: .letter(size: 14, weight: .medium))
         
         let dateString = CustomFormatter.shared.getMailDateString(from: mail.date)
-        dateLabel.text = dateString
+        dateLabel.attributedText = .makeAttributedString(text: dateString,
+                                                         color: UIColor(hex:0x8F8F8F), 
+                                                         font: .content(size: 12, weight: .regular))
         
-        senderLabel.text = mail.senderName
+        senderLabel.attributedText = .makeAttributedString(text: mail.senderName,
+                                                           color: UIColor(hex:0x5A5A5A),
+                                                           font: .letter(size: 14, weight: .medium))
     }
     
     
@@ -117,9 +123,9 @@ class RepliedMailCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        recipientLabel.text = nil
-        dateLabel.text = nil
-        senderLabel.text = nil
+        recipientLabel.attributedText = nil
+        dateLabel.attributedText = nil
+        senderLabel.attributedText = nil
         
         mail = nil
     }
