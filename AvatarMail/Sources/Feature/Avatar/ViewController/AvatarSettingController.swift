@@ -504,6 +504,13 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                     })
         )
     }
+    
+    func scrollViewWillStartDragging() {
+        // 스크롤 시 음성 재생 종료하도록 구현
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
+            reactor?.action.onNext(.stopPlaying)
+        }
+    }
 }
 
 

@@ -24,6 +24,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func recordingButtonDidTap(with recordingContents: String)
     func playingButtonDidTap(with recording: AudioRecording)
     func deleteButtonDidTap(with recording: AudioRecording)
+    func scrollViewWillStartDragging()
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -980,6 +981,10 @@ final class AvatarVoiceInputView: UIView {
     public func stopTimer() {
         timer.stopTimer()
     }
+    
+    public func setPlayingButtonInnerShape(as shape: PlayingButtonInnerShape) {
+        // TODO: 재생 버튼 애니메이션 구현
+    }
 }
 
 
@@ -1018,6 +1023,10 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
 
 
 extension AvatarVoiceInputView: UICollectionViewDelegateFlowLayout {
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        delegate?.scrollViewWillStartDragging()
+    }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, 
                                    withVelocity velocity: CGPoint,

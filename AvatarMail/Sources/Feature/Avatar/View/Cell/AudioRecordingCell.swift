@@ -25,11 +25,6 @@ final class AudioRecordingCell: UICollectionViewCell {
     
     var disposeBag = DisposeBag()
     
-    enum PlayingButtonInnerShape {
-        case triangle
-        case rectangle
-    }
-    
     private let containerView = UIView().then {
         $0.applyCornerRadius(10)
         $0.applyBorder(width: 2, color: UIColor(hex:0xAAAAAA))
@@ -199,6 +194,7 @@ final class AudioRecordingCell: UICollectionViewCell {
                 guard let self, let recording else { return }
                 delegate?.deleteButtonDidTap(with: recording)
             }
+            .disposed(by: disposeBag)
     }
     
     

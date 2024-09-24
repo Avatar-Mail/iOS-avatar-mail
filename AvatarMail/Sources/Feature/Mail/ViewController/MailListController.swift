@@ -336,6 +336,7 @@ class MailListController: UIViewController, View {
                     mailCollectionView.isHidden = true
                 }
             }
+            .disposed(by: disposeBag)
 
 
         reactor.state.map { $0.filteredMails }
