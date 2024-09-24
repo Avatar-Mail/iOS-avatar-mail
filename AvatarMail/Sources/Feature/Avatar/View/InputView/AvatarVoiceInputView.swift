@@ -24,6 +24,7 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func recordingButtonDidTap(with recordingContents: String)
     func playingButtonDidTap(with recording: AudioRecording)
     func deleteButtonDidTap(with recording: AudioRecording)
+    func scrollViewWillStartDragging()
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -1022,6 +1023,10 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
 
 
 extension AvatarVoiceInputView: UICollectionViewDelegateFlowLayout {
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        delegate?.scrollViewWillStartDragging()
+    }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, 
                                    withVelocity velocity: CGPoint,
