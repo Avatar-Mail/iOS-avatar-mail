@@ -481,6 +481,8 @@ class MailWritingController: UIViewController, View {
                 senderNameInputTextfield.setPlaceholderText(placeholderText: "보내는 사람의 이름을 입력하세요.",
                                                             color: UIColor(hex: 0x7B7B7B),
                                                             font: .content(size: 14, weight: .regular))
+                showSenderInputTextfield(true)
+                
                 reactor.action.onNext(.initializeSenderStates)
                 
                 view.endEditing(true)
