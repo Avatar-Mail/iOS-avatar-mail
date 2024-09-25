@@ -26,6 +26,7 @@ class AvatarSettingReactor: Reactor {
         case stopRecording
         case startPlaying(recording: AudioRecording)
         case stopPlaying
+        case setPlayingCellIndexPath(indexPath: IndexPath?)
         case showToast(text: String)
         case addToTempDeletedAudioFilesAndHide(fileName: String)
         case removeAllTempDeletedAudioFiles
@@ -45,6 +46,7 @@ class AvatarSettingReactor: Reactor {
         case setAvatarParlance(parlance: String?)
         case setIsRecording(isRecording: Bool)
         case setIsPlaying(isPlaying: Bool)
+        case setPlayingCellIndexPath(indexPath: IndexPath?)
         case addRecording(recording: AudioRecording)
         case removeRecording(fileName: String)
         case setAvatarHasSaved(hasSaved: Bool)
@@ -68,6 +70,7 @@ class AvatarSettingReactor: Reactor {
         
         var isRecording: Bool               // 녹음 중인지 여부
         var isPlaying: Bool                 // 재생 중인지 여부
+        var playingCellIndexPath: IndexPath?   // 재생 중인 파일 indexPath row (재생 중인 파일이 없으면 nil)
         
         var hasAvatarSaved: Bool            // 아바타 저장 여부
         
@@ -151,6 +154,8 @@ class AvatarSettingReactor: Reactor {
             return startPlaying(recording: recording)
         case .stopPlaying:
             return stopPlaying()
+        case let .setPlayingCellIndexPath(indexPath: indexPath):
+            return Observable.just(Mutation.setPlayingCellIndexPath(indexPath: indexPath))
         case .saveAvatar:
             let avatar = AvatarInfo(id: UUID().uuidString,
                                     name: currentState.name,
@@ -215,6 +220,8 @@ class AvatarSettingReactor: Reactor {
             newState.recordings = state.recordings.filter { $0.fileName != fileName }
         case let .setIsPlaying(isPlaying: isPlaying):
             newState.isPlaying = isPlaying
+        case let .setPlayingCellIndexPath(indexPath: indexPath):
+            newState.playingCellIndexPath = indexPath
         case let .setAvatarHasSaved(hasSaved: hasSaved):
             newState.hasAvatarSaved = hasSaved
         case let .addTempSavedAudioFile(fileName: fileName):

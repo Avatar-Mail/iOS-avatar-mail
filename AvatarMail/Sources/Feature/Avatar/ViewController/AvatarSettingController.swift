@@ -475,11 +475,20 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
         }
     }
     
-    func playingButtonDidTap(with recording: AudioRecording) {
+    func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath) {
         if let isPlaying = reactor?.currentState.isPlaying, isPlaying == false {
+            // 현재 재생 중인 셀 indexPath 설정
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: indexPath))
             reactor?.action.onNext(.startPlaying(recording: recording))
+            
+            // AudioRecordingCell 내 재생 버튼 사각형 모양으로 변경
+            avatarVoiceInputView.setPlayingButtonInnerShape(as: .rectangle, at: indexPath)
         } else {
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
             reactor?.action.onNext(.stopPlaying)
+            
+            // AudioRecordingCell 내 재생 버튼 삼각형 모양으로 변경
+            avatarVoiceInputView.setPlayingButtonInnerShape(as: .triangle, at: indexPath)
         }
     }
     
@@ -500,6 +509,8 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                     buttonHandler: { [weak self] in
                                                         guard let self else { return }
                                                         reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
+                                                        reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+                        
                                                         GlobalDialog.shared.hide()
                                                     })
         )
