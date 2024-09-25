@@ -47,6 +47,7 @@ class AvatarSettingReactor: Reactor {
         case setIsRecording(isRecording: Bool)
         case setIsPlaying(isPlaying: Bool)
         case setPlayingCellIndexPath(indexPath: IndexPath?)
+        case setStoppedPlayingCellIndexPath(indexPath: IndexPath?)
         case addRecording(recording: AudioRecording)
         case removeRecording(fileName: String)
         case setAvatarHasSaved(hasSaved: Bool)
@@ -70,13 +71,14 @@ class AvatarSettingReactor: Reactor {
         
         var isRecording: Bool               // 녹음 중인지 여부
         var isPlaying: Bool                 // 재생 중인지 여부
-        var playingCellIndexPath: IndexPath?   // 재생 중인 파일 indexPath row (재생 중인 파일이 없으면 nil)
         
         var hasAvatarSaved: Bool            // 아바타 저장 여부
         
         var tempSavedAudioFiles:   [String] // 임시 저장 오디오 파일 (아바타가 저장되지 않으면 파일 시스템에서 제거)
         var tempDeletedAudioFiles: [String] // 임시 삭제 오디오 파일 (기존 음성 파일 삭제 후, 아바타 저장 시 파일 시스템에서 제거)
         
+        @Pulse var playingCellIndexPath: IndexPath?         // 재생 중인 파일 indexPath (재생 중인 파일이 없으면 nil)
+        @Pulse var stoppedPlayingCellIndexPath: IndexPath?  // 재생이 끝난 파일 indexPath (재생이 끝난 파일이 없으면 nil)
         @Pulse var toastMessage: String?
     }
     
@@ -155,7 +157,10 @@ class AvatarSettingReactor: Reactor {
         case .stopPlaying:
             return stopPlaying()
         case let .setPlayingCellIndexPath(indexPath: indexPath):
-            return Observable.just(Mutation.setPlayingCellIndexPath(indexPath: indexPath))
+            return Observable.of(
+                Mutation.setPlayingCellIndexPath(indexPath: indexPath),
+                Mutation.setStoppedPlayingCellIndexPath(indexPath: currentState.playingCellIndexPath)
+            )
         case .saveAvatar:
             let avatar = AvatarInfo(id: UUID().uuidString,
                                     name: currentState.name,
@@ -222,6 +227,8 @@ class AvatarSettingReactor: Reactor {
             newState.isPlaying = isPlaying
         case let .setPlayingCellIndexPath(indexPath: indexPath):
             newState.playingCellIndexPath = indexPath
+        case let .setStoppedPlayingCellIndexPath(indexPath: indexPath):
+            newState.stoppedPlayingCellIndexPath = indexPath
         case let .setAvatarHasSaved(hasSaved: hasSaved):
             newState.hasAvatarSaved = hasSaved
         case let .addTempSavedAudioFile(fileName: fileName):
@@ -499,5 +506,6 @@ extension AvatarSettingReactor: AudioPlayingManagerDelegate {
     func didFinishPlaying(with fileURL: String?) {
         print("fileURL finished")
         self.action.onNext(.stopPlaying)
+        self.action.onNext(.setPlayingCellIndexPath(indexPath: currentState.playingCellIndexPath))
     }
 }

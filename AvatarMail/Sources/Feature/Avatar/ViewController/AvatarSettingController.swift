@@ -282,6 +282,24 @@ class AvatarSettingController: UIViewController, View {
                 }
             }.disposed(by: disposeBag)
         
+        reactor.pulse(\.$playingCellIndexPath)
+            .observe(on: MainScheduler.instance)
+            .filterNil()
+            .bind { [weak self] indexPath in
+                guard let self else { return }
+                // AudioRecordingCell 내 음성 재생 버튼 아이콘을 사각형 모양으로 변경 (재생 시작)
+                avatarVoiceInputView.setPlayingButtonInnerShape(as: .rectangle, at: indexPath)
+            }.disposed(by: disposeBag)
+        
+        reactor.pulse(\.$stoppedPlayingCellIndexPath)
+            .observe(on: MainScheduler.instance)
+            .filterNil()
+            .bind { [weak self] indexPath in
+                guard let self else { return }
+                // AudioRecordingCell 내 음성 재생 버튼 아이콘을 삼각형 모양으로 변경 (재생 종료)
+                avatarVoiceInputView.setPlayingButtonInnerShape(as: .triangle, at: indexPath)
+            }.disposed(by: disposeBag)
+        
         reactor.pulse(\.$toastMessage)
             .observe(on: MainScheduler.instance)
             .filterNil()
@@ -477,18 +495,29 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     
     func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath) {
         if let isPlaying = reactor?.currentState.isPlaying, isPlaying == false {
+            reactor?.action.onNext(.startPlaying(recording: recording))
             // 현재 재생 중인 셀 indexPath 설정
             reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: indexPath))
-            reactor?.action.onNext(.startPlaying(recording: recording))
-            
-            // AudioRecordingCell 내 재생 버튼 사각형 모양으로 변경
-            avatarVoiceInputView.setPlayingButtonInnerShape(as: .rectangle, at: indexPath)
         } else {
-            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
-            reactor?.action.onNext(.stopPlaying)
+            guard let currentPlayingCellIndexPath = reactor?.currentState.playingCellIndexPath else {
+                print("indexPath가 주어지지 않았습니다.")
+                return
+            }
             
-            // AudioRecordingCell 내 재생 버튼 삼각형 모양으로 변경
-            avatarVoiceInputView.setPlayingButtonInnerShape(as: .triangle, at: indexPath)
+            // 현재 재생 중인 셀의 음성 재생 버튼을 클릭한 경우
+            if currentPlayingCellIndexPath == indexPath {
+                reactor?.action.onNext(.stopPlaying)
+                reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+            }
+            // 현재 재생 중이 아닌 다른 셀의 음성 재생 버튼을 클릭한 경우
+            else {
+                // 현재 재생 중인 음성 파일 종료
+                reactor?.action.onNext(.stopPlaying)
+                
+                // 새로운 셀의 음성 파일 재생
+                reactor?.action.onNext(.startPlaying(recording: recording))
+                reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: indexPath))
+            }
         }
     }
     
@@ -514,13 +543,6 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                         GlobalDialog.shared.hide()
                                                     })
         )
-    }
-    
-    func scrollViewWillStartDragging() {
-        // 스크롤 시 음성 재생 종료하도록 구현
-        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
-            reactor?.action.onNext(.stopPlaying)
-        }
     }
 }
 
