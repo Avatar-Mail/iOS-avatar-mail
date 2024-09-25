@@ -77,6 +77,11 @@ final class AudioRecordingCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        
+        recordingTitleLabel.text = nil
+        recordedDateLabel.text = nil
+        
+        setPlayingButtonInnerShape(as: .triangle)
     }
     
     
