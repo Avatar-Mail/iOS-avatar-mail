@@ -55,7 +55,11 @@ let project = Project(
                         "remote-notification",
                         "processing"
                     ],
-                    "FirebaseAppDelegateProxyEnabled": false
+                    "FirebaseAppDelegateProxyEnabled": false,
+                    // 화면 가로 모드 방지
+                    "UISupportedInterfaceOrientations": [
+                        "UIInterfaceOrientationPortrait"
+                    ]
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],
