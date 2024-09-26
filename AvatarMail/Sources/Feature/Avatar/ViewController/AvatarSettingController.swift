@@ -282,6 +282,28 @@ class AvatarSettingController: UIViewController, View {
                 }
             }.disposed(by: disposeBag)
         
+        reactor.pulse(\.$playingCellIndexPath)
+            .observe(on: MainScheduler.instance)
+            .filterNil()
+            .bind { [weak self] indexPath in
+                guard let self else { return }
+                // AudioRecordingCell 내 음성 재생 버튼 아이콘을 사각형 모양으로 변경 (재생 시작)
+                avatarVoiceInputView.setPlayingButtonInnerShape(as: .rectangle, at: indexPath)
+                // 현재 재생 중인 셀의 indexPath 설정
+                avatarVoiceInputView.setPlayingCellIndexPath(as: indexPath)
+            }.disposed(by: disposeBag)
+        
+        reactor.pulse(\.$stoppedPlayingCellIndexPath)
+            .observe(on: MainScheduler.instance)
+            .filterNil()
+            .bind { [weak self] indexPath in
+                guard let self else { return }
+                // AudioRecordingCell 내 음성 재생 버튼 아이콘을 삼각형 모양으로 변경 (재생 종료)
+                avatarVoiceInputView.setPlayingButtonInnerShape(as: .triangle, at: indexPath)
+                
+                // 다른 셀이 아직 재생 중일 수도 있으므로,실제로 재생 종료 되었을 때 playingCellIndexPath를 nil로 설정
+            }.disposed(by: disposeBag)
+        
         reactor.pulse(\.$toastMessage)
             .observe(on: MainScheduler.instance)
             .filterNil()
@@ -320,7 +342,8 @@ class AvatarSettingController: UIViewController, View {
                     print("Start Playing")
                 } else {
                     print("End Playing")
-                    
+                    // 재생이 종료될 때 재생 playingCellIndexPath를 nil로 설정
+                    avatarVoiceInputView.setPlayingCellIndexPath(as: nil)
                 }
             }.disposed(by: disposeBag)
         
@@ -475,15 +498,41 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
         }
     }
     
-    func playingButtonDidTap(with recording: AudioRecording) {
+    func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath) {
         if let isPlaying = reactor?.currentState.isPlaying, isPlaying == false {
             reactor?.action.onNext(.startPlaying(recording: recording))
+            // 현재 재생 중인 셀 indexPath 설정
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: indexPath))
         } else {
-            reactor?.action.onNext(.stopPlaying)
+            guard let currentPlayingCellIndexPath = reactor?.currentState.playingCellIndexPath else {
+                print("indexPath가 주어지지 않았습니다.")
+                return
+            }
+            
+            // 현재 재생 중인 셀의 음성 재생 버튼을 클릭한 경우
+            if currentPlayingCellIndexPath == indexPath {
+                reactor?.action.onNext(.stopPlaying)
+                reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+            }
+            // 현재 재생 중이 아닌 다른 셀의 음성 재생 버튼을 클릭한 경우
+            else {
+                // 현재 재생 중인 음성 파일 종료
+                reactor?.action.onNext(.stopPlaying)
+                
+                // 새로운 셀의 음성 파일 재생
+                reactor?.action.onNext(.startPlaying(recording: recording))
+                reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: indexPath))
+            }
         }
     }
     
     func deleteButtonDidTap(with recording: AudioRecording) {
+        // 현재 재생 중인 셀이 존재하는 경우, 재생 종료
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
+            reactor?.action.onNext(.stopPlaying)
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+        }
+        
         GlobalDialog.shared.show(title: "파일을 삭제하시겠습니까?",
                                  description: "아바타 저장 이후 해당 파일이 삭제됩니다.",
                                  buttonInfos: .init(title: "취소", 
@@ -500,16 +549,10 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                     buttonHandler: { [weak self] in
                                                         guard let self else { return }
                                                         reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
+                        
                                                         GlobalDialog.shared.hide()
                                                     })
         )
-    }
-    
-    func scrollViewWillStartDragging() {
-        // 스크롤 시 음성 재생 종료하도록 구현
-        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
-            reactor?.action.onNext(.stopPlaying)
-        }
     }
 }
 

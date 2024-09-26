@@ -13,7 +13,7 @@ import RxCocoa
 
 
 protocol AudioRecordingCellDelegate: AnyObject {
-    func playingButtonDidTap(with recording: AudioRecording)
+    func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath)
     func deleteButtonDidTap(with recording: AudioRecording)
 }
 
@@ -62,7 +62,7 @@ final class AudioRecordingCell: UICollectionViewCell {
     }
     
     private var recording: AudioRecording?
-    
+    private var indexPath: IndexPath?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -77,6 +77,11 @@ final class AudioRecordingCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        
+        recordingTitleLabel.text = nil
+        recordedDateLabel.text = nil
+        
+        setPlayingButtonInnerShape(as: .triangle)
     }
     
     
@@ -184,8 +189,8 @@ final class AudioRecordingCell: UICollectionViewCell {
     private func bindUI() {
         playingButton.rx.tap
             .bind { [weak self] in
-                guard let self, let recording else { return }
-                delegate?.playingButtonDidTap(with: recording)
+                guard let self, let recording, let indexPath else { return }
+                delegate?.playingButtonDidTap(with: recording, at: indexPath)
             }
             .disposed(by: disposeBag)
         
@@ -198,8 +203,10 @@ final class AudioRecordingCell: UICollectionViewCell {
     }
     
     
-    public func setData(recording: AudioRecording) {
+    public func setData(recording: AudioRecording,
+                        indexPath: IndexPath) {
         self.recording = recording
+        self.indexPath = indexPath
         
         recordingTitleLabel.text = recording.fileName
         recordedDateLabel.text = CustomFormatter.shared.getMailDateString(from: recording.createdDate)

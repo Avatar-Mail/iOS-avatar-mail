@@ -22,9 +22,8 @@ protocol AvatarVoiceInputViewDelegate: AnyObject {
     func selectAudioRecordingButtonDidTap()
     func selectFileUploadButtonDidTap()
     func recordingButtonDidTap(with recordingContents: String)
-    func playingButtonDidTap(with recording: AudioRecording)
+    func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath)
     func deleteButtonDidTap(with recording: AudioRecording)
-    func scrollViewWillStartDragging()
 }
 
 final class AvatarVoiceInputView: UIView {
@@ -394,6 +393,7 @@ final class AvatarVoiceInputView: UIView {
     
     private let recordingTime = BehaviorSubject<Double>(value: 0.0)
     
+    private var playingCellIndexPath: IndexPath? = nil
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -982,8 +982,15 @@ final class AvatarVoiceInputView: UIView {
         timer.stopTimer()
     }
     
-    public func setPlayingButtonInnerShape(as shape: PlayingButtonInnerShape) {
-        // TODO: 재생 버튼 애니메이션 구현
+    public func setPlayingButtonInnerShape(as shape: PlayingButtonInnerShape, at indexPath: IndexPath) {
+        if let cell = recordingsCollectionView.cellForItem(at: indexPath) as? AudioRecordingCell {
+            cell.setPlayingButtonInnerShape(as: shape)
+        }
+    }
+    
+    public func setPlayingCellIndexPath(as indexPath: IndexPath?) {
+        print("PlayingCellIndexPath: \(indexPath)")
+        self.playingCellIndexPath = indexPath
     }
 }
 
@@ -996,8 +1003,8 @@ extension AvatarVoiceInputView: CustomTimerDelegate {
 
 
 extension AvatarVoiceInputView: AudioRecordingCellDelegate {
-    func playingButtonDidTap(with recording: AudioRecording) {
-        delegate?.playingButtonDidTap(with: recording)
+    func playingButtonDidTap(with recording: AudioRecording, at indexPath: IndexPath) {
+        delegate?.playingButtonDidTap(with: recording, at: indexPath)
     }
     
     func deleteButtonDidTap(with recording: AudioRecording) {
@@ -1015,7 +1022,15 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioRecordingCell.identifier, for: indexPath) as? AudioRecordingCell else {
             return UICollectionViewCell()
         }
-        cell.setData(recording: recordingList[indexPath.row])
+        // 셀 내 데이터 설정
+        cell.setData(recording: recordingList[indexPath.row], indexPath: indexPath)
+        
+        // 현재 셀이 재생 중이면, 해당 셀의 재생 버튼 내 아아콘을 사각형으로 만들어주어야 함
+        print("Current Cell - \(indexPath) / Playing Cell - \(playingCellIndexPath)")
+        let isCurrentCellPlaying: Bool = indexPath == playingCellIndexPath
+        cell.setPlayingButtonInnerShape(as: isCurrentCellPlaying ? .rectangle : .triangle)
+        
+        // 셀 델리게이트 설정
         cell.delegate = self
         return cell
     }
@@ -1023,10 +1038,6 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
 
 
 extension AvatarVoiceInputView: UICollectionViewDelegateFlowLayout {
-    
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        delegate?.scrollViewWillStartDragging()
-    }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, 
                                    withVelocity velocity: CGPoint,
