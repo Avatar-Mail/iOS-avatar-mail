@@ -504,8 +504,8 @@ class AvatarSettingReactor: Reactor {
 
 extension AvatarSettingReactor: AudioPlayingManagerDelegate {
     func didFinishPlaying(with fileURL: String?) {
-        print("fileURL finished")
+        print("End playing")
         self.action.onNext(.stopPlaying)
-        self.action.onNext(.setPlayingCellIndexPath(indexPath: currentState.playingCellIndexPath))
+        self.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
     }
 }

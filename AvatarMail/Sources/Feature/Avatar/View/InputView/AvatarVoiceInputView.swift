@@ -393,6 +393,7 @@ final class AvatarVoiceInputView: UIView {
     
     private let recordingTime = BehaviorSubject<Double>(value: 0.0)
     
+    private var playingCellIndexPath: IndexPath? = nil
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -986,6 +987,11 @@ final class AvatarVoiceInputView: UIView {
             cell.setPlayingButtonInnerShape(as: shape)
         }
     }
+    
+    public func setPlayingCellIndexPath(as indexPath: IndexPath?) {
+        print("PlayingCellIndexPath: \(indexPath)")
+        self.playingCellIndexPath = indexPath
+    }
 }
 
 
@@ -1016,7 +1022,15 @@ extension AvatarVoiceInputView: UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioRecordingCell.identifier, for: indexPath) as? AudioRecordingCell else {
             return UICollectionViewCell()
         }
+        // 셀 내 데이터 설정
         cell.setData(recording: recordingList[indexPath.row], indexPath: indexPath)
+        
+        // 현재 셀이 재생 중이면, 해당 셀의 재생 버튼 내 아아콘을 사각형으로 만들어주어야 함
+        print("Current Cell - \(indexPath) / Playing Cell - \(playingCellIndexPath)")
+        let isCurrentCellPlaying: Bool = indexPath == playingCellIndexPath
+        cell.setPlayingButtonInnerShape(as: isCurrentCellPlaying ? .rectangle : .triangle)
+        
+        // 셀 델리게이트 설정
         cell.delegate = self
         return cell
     }

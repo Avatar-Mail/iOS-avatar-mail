@@ -289,6 +289,8 @@ class AvatarSettingController: UIViewController, View {
                 guard let self else { return }
                 // AudioRecordingCell 내 음성 재생 버튼 아이콘을 사각형 모양으로 변경 (재생 시작)
                 avatarVoiceInputView.setPlayingButtonInnerShape(as: .rectangle, at: indexPath)
+                // 현재 재생 중인 셀의 indexPath 설정
+                avatarVoiceInputView.setPlayingCellIndexPath(as: indexPath)
             }.disposed(by: disposeBag)
         
         reactor.pulse(\.$stoppedPlayingCellIndexPath)
@@ -298,6 +300,8 @@ class AvatarSettingController: UIViewController, View {
                 guard let self else { return }
                 // AudioRecordingCell 내 음성 재생 버튼 아이콘을 삼각형 모양으로 변경 (재생 종료)
                 avatarVoiceInputView.setPlayingButtonInnerShape(as: .triangle, at: indexPath)
+                
+                // 다른 셀이 아직 재생 중일 수도 있으므로,실제로 재생 종료 되었을 때 playingCellIndexPath를 nil로 설정
             }.disposed(by: disposeBag)
         
         reactor.pulse(\.$toastMessage)
@@ -338,7 +342,8 @@ class AvatarSettingController: UIViewController, View {
                     print("Start Playing")
                 } else {
                     print("End Playing")
-                    
+                    // 재생이 종료될 때 재생 playingCellIndexPath를 nil로 설정
+                    avatarVoiceInputView.setPlayingCellIndexPath(as: nil)
                 }
             }.disposed(by: disposeBag)
         
