@@ -527,6 +527,12 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     }
     
     func deleteButtonDidTap(with recording: AudioRecording) {
+        // 현재 재생 중인 셀이 존재하는 경우, 재생 종료
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
+            reactor?.action.onNext(.stopPlaying)
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+        }
+        
         GlobalDialog.shared.show(title: "파일을 삭제하시겠습니까?",
                                  description: "아바타 저장 이후 해당 파일이 삭제됩니다.",
                                  buttonInfos: .init(title: "취소", 
@@ -543,7 +549,6 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                     buttonHandler: { [weak self] in
                                                         guard let self else { return }
                                                         reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
-                                                        reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
                         
                                                         GlobalDialog.shared.hide()
                                                     })
