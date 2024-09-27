@@ -218,10 +218,11 @@ class RepliedMailReactor: Reactor {
                 }
             }
             .catch { error in
-                let networkError = RefactoredNetworkServiceError(error: error)
-                return Observable.of(
-                    Mutation.setToastMessage(text: networkError.message ?? "서버에 편지를 보내는 과정에서 문제가 발생했습니다.")
-                )
+//                let networkError = RefactoredNetworkServiceError(error: error)
+//                return Observable.of(
+//                    Mutation.setToastMessage(text: networkError.message ?? "서버에 편지를 보내는 과정에서 문제가 발생했습니다.")
+//                )
+                return .empty()  // 서버에서 해당 편지를 보낸 아바타의 음성 파일 존재 여부를 반환하지 않기 때문에, 에러 토스트 별도 노출 X
             }
     }
 }
