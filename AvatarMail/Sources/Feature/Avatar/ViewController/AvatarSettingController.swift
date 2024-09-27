@@ -464,6 +464,12 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     func initialAvatarVoiceRecordButtonDidTap() {
         reactor?.action.onNext(.changeSampleText)
         avatarVoiceInputView.setViewState(.randomText)
+        
+        // '목소리 녹음하기' 버튼을 클릭했을 때 현재 재생 중인 셀이 존재하는 경우, 재생 종료
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
+            reactor?.action.onNext(.stopPlaying)
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+        }
     }
     
     func changeSampleTextButtonDidTap() {
