@@ -51,9 +51,7 @@ let project = Project(
                         "Pretendard-Thin.otf"
                     ],
                     "UIBackgroundModes": [
-                        "fetch",
-                        "remote-notification",
-                        "processing"
+                        "remote-notification"
                     ],
                     "FirebaseAppDelegateProxyEnabled": false,
                     // 화면 가로 모드 방지
