@@ -551,8 +551,7 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                         reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
                         
                                                         GlobalDialog.shared.hide()
-                                                    })
-        )
+                                                    }))
     }
 }
 

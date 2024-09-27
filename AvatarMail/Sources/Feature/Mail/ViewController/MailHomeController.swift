@@ -89,6 +89,8 @@ class MailHomeController: UIViewController, View {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
+        view.bringSubviewToFront(topNavigation)
     }
     
     
