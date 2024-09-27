@@ -16,7 +16,7 @@ let project = Project(
     targets: [
         .target(
             name: "AvatarMail",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .app,
             bundleId: "com.AvatarMail",
             deploymentTargets: .iOS("16.0"),
