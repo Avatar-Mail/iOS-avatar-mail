@@ -115,7 +115,7 @@ public class GlobalDialog {
                     $0.height.greaterThanOrEqualTo(54)
                 }
                 
-                stackView.setCustomSpacing(4, after: descriptionLabel)
+                stackView.setCustomSpacing(14, after: descriptionLabel)
             }
             
             for buttonInfo in buttonInfos {

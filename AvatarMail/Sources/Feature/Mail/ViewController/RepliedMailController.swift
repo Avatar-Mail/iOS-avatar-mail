@@ -292,7 +292,7 @@ class RepliedMailController: UIViewController, View {
                 guard let self else { return }
                 
                 GlobalDialog.shared.show(title: "편지를 삭제하시겠습니까?",
-                                         description: "한 번 삭제하면 다시 확인하실 수 없습니다.",
+                                         description: "삭제한 편지는 다시 확인하실 수 없습니다.",
                                          buttonInfos: .init(title: "취소",
                                                             titleColor: UIColor(hex: 0x2B2B2B),
                                                             backgroundColor: UIColor(hex: 0xEDEDED),
