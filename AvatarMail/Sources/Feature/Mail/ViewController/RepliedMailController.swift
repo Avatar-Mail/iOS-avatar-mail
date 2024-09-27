@@ -291,7 +291,26 @@ class RepliedMailController: UIViewController, View {
             .drive(onNext: { [weak self] in
                 guard let self else { return }
                 
-                reactor.action.onNext(.deleteMail)
+                GlobalDialog.shared.show(title: "편지를 삭제하시겠습니까?",
+                                         description: "삭제한 편지는 다시 확인하실 수 없습니다.",
+                                         buttonInfos: .init(title: "취소",
+                                                            titleColor: UIColor(hex: 0x2B2B2B),
+                                                            backgroundColor: UIColor(hex: 0xEDEDED),
+                                                            borderColor: nil,
+                                                            buttonHandler: {
+                                                                GlobalDialog.shared.hide()
+                                                            }),
+                                                      .init(title: "확인",
+                                                            titleColor: .white,
+                                                            backgroundColor: UIColor(hex: 0x336FF2),
+                                                            borderColor: nil,
+                                                            buttonHandler: { [weak self] in
+                                                                guard let self else { return }
+                                                                // 편지 삭제
+                                                                reactor.action.onNext(.deleteMail)
+                                                                
+                                                                GlobalDialog.shared.hide()
+                                                            }))
             })
             .disposed(by: disposeBag)
         

@@ -16,7 +16,7 @@ let project = Project(
     targets: [
         .target(
             name: "AvatarMail",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .app,
             bundleId: "com.AvatarMail",
             deploymentTargets: .iOS("16.0"),
@@ -55,7 +55,11 @@ let project = Project(
                         "remote-notification",
                         "processing"
                     ],
-                    "FirebaseAppDelegateProxyEnabled": false
+                    "FirebaseAppDelegateProxyEnabled": false,
+                    // 화면 가로 모드 방지
+                    "UISupportedInterfaceOrientations": [
+                        "UIInterfaceOrientationPortrait"
+                    ]
                 ]
             ),
             sources: ["AvatarMail/Sources/**"],

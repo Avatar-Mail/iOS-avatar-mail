@@ -69,13 +69,13 @@ class MailListController: UIViewController, View {
     
     let sentMailCheckbox = CustomCheckbox(selectedIcon: "checkbox_checked",
                                           unSelectedIcon: "checkbox_un_checked").then {
-        $0.setTitle(with: "보낸 메일")
+        $0.setTitle(with: "보낸 편지")
         $0.setIsChecked(false)
     }
     
     let receivedMailCheckbox = CustomCheckbox(selectedIcon: "checkbox_checked",
                                             unSelectedIcon: "checkbox_un_checked").then {
-        $0.setTitle(with: "받은 메일")
+        $0.setTitle(with: "받은 편지")
         $0.setIsChecked(false)
     }
     

@@ -464,6 +464,12 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
     func initialAvatarVoiceRecordButtonDidTap() {
         reactor?.action.onNext(.changeSampleText)
         avatarVoiceInputView.setViewState(.randomText)
+        
+        // '목소리 녹음하기' 버튼을 클릭했을 때 현재 재생 중인 셀이 존재하는 경우, 재생 종료
+        if let isPlaying = reactor?.currentState.isPlaying, isPlaying == true {
+            reactor?.action.onNext(.stopPlaying)
+            reactor?.action.onNext(.setPlayingCellIndexPath(indexPath: nil))
+        }
     }
     
     func changeSampleTextButtonDidTap() {
@@ -536,8 +542,8 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
         GlobalDialog.shared.show(title: "파일을 삭제하시겠습니까?",
                                  description: "아바타 저장 이후 해당 파일이 삭제됩니다.",
                                  buttonInfos: .init(title: "취소", 
-                                                    titleColor: UIColor(hex: 0x575757),
-                                                    backgroundColor: UIColor(hex: 0xDBDBDB),
+                                                    titleColor: UIColor(hex: 0x2B2B2B),
+                                                    backgroundColor: UIColor(hex: 0xEDEDED),
                                                     borderColor: nil,
                                                     buttonHandler: {
                                                         GlobalDialog.shared.hide()
@@ -551,8 +557,7 @@ extension AvatarSettingController: AvatarVoiceInputViewDelegate {
                                                         reactor?.action.onNext(.addToTempDeletedAudioFilesAndHide(fileName: recording.fileName))
                         
                                                         GlobalDialog.shared.hide()
-                                                    })
-        )
+                                                    }))
     }
 }
 

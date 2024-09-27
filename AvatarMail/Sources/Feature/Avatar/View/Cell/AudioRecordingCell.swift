@@ -208,7 +208,7 @@ final class AudioRecordingCell: UICollectionViewCell {
         self.recording = recording
         self.indexPath = indexPath
         
-        recordingTitleLabel.text = recording.fileName
+        recordingTitleLabel.text = recording.contents
         recordedDateLabel.text = CustomFormatter.shared.getMailDateString(from: recording.createdDate)
     }
 }
