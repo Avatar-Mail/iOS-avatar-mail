@@ -30,7 +30,7 @@ final class FilterPlaceholderView: UIView {
     }
     
     private let placeholderLabel = UILabel().then {
-        $0.attributedText = .makeAttributedString(text: "메일함이 텅 비었습니다.",
+        $0.attributedText = .makeAttributedString(text: "편지함이 텅 비었습니다.",
                                                   color: UIColor(hex:0x787878),
                                                   font: .content(size: 18, weight: .regular),
                                                   lineBreakMode: .byTruncatingTail)
@@ -41,7 +41,7 @@ final class FilterPlaceholderView: UIView {
         var config = UIButton.Configuration.plain()
         
         // AttributedString을 사용하여 타이틀 설정
-        var title = AttributedString("새로운 메일 작성하기")
+        var title = AttributedString("새로운 편지 작성하기")
         title.font = UIFont.content(size: 16, weight: .regular)
         title.foregroundColor = UIColor(hex: 0xB6B6B6)
         config.attributedTitle = title

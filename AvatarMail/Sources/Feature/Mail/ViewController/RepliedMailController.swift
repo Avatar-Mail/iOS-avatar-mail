@@ -306,7 +306,7 @@ class RepliedMailController: UIViewController, View {
                                                             borderColor: nil,
                                                             buttonHandler: { [weak self] in
                                                                 guard let self else { return }
-                                                                // 메일 삭제
+                                                                // 편지 삭제
                                                                 reactor.action.onNext(.deleteMail)
                                                                 
                                                                 GlobalDialog.shared.hide()

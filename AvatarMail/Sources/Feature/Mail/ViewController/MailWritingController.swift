@@ -469,7 +469,7 @@ class MailWritingController: UIViewController, View {
                 showRecipientSearchBar(true)
                 reactor.action.onNext(.initializeRecipientStates)
                 
-                // 메일 컨텐츠 영역 초기화
+                // 편지 컨텐츠 영역 초기화
                 inputTextView.setInputText(text: "")
                 inputTextView.showInputTextView(false)
                 reactor.action.onNext(.initializeLetterContentStates)

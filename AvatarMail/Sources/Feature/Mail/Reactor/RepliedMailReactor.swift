@@ -167,7 +167,7 @@ class RepliedMailReactor: Reactor {
         return database.removeMail(mailObject)
             .flatMap {
                 return Observable.of(
-                    Mutation.setToastMessage(text: "메일이 성공적으로 삭제되었습니다."),
+                    Mutation.setToastMessage(text: "편지가 성공적으로 삭제되었습니다."),
                     Mutation.setIsMailDeleted(isDeleted: true)
                 )
             }
