@@ -111,7 +111,6 @@ class AvatarSettingReactor: Reactor {
         self.audioPlayingManager = audioPlayingManager
         self.ttsAdapter = ttsAdapter
         self.storageManager = storageManager
-
         self.initialState = State(sampleTexts: [],
                                   selectedSampleText: "샘플 텍스트가 없습니다.",
                                   id: avatar?.id ?? UUID().uuidString,
@@ -429,7 +428,7 @@ class AvatarSettingReactor: Reactor {
                     do {
                         let data = try Data(contentsOf: newURL)
                         let fileID = UUID().uuidString
-                        let fileName = "\(contents).m4a"
+                        let fileName = "\(fileID).m4a"
                         let currentDate = Date()
 
                         try self.storageManager.save(data: data, fileName: fileName, type: .audio)

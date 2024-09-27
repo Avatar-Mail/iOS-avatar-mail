@@ -114,6 +114,8 @@ public class GlobalDialog {
                 descriptionLabel.snp.makeConstraints {
                     $0.height.greaterThanOrEqualTo(54)
                 }
+                
+                stackView.setCustomSpacing(4, after: descriptionLabel)
             }
             
             for buttonInfo in buttonInfos {

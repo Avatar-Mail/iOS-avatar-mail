@@ -41,7 +41,7 @@ final class AudioRecordingManager: NSObject {
         // 파일 ID
         let fileID = UUID().uuidString
         // 파일 이름
-        let fileName: String = "\(contents).m4a"
+        let fileName: String = "\(fileID).m4a"
         
         let fileURL = storageManager.getFileURL(fileName: fileName, type: .audio)
         
