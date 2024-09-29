@@ -90,28 +90,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func setupPushNotification(with application: UIApplication) {
         
         UNUserNotificationCenter.current().delegate = self
-        
         Messaging.messaging().delegate = self
         
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-        UNUserNotificationCenter.current().requestAuthorization(
-            options: authOptions,
-            completionHandler: { granted, error in
-                if let error = error {
-                    print("Failed to request authorization for notifications: \(error.localizedDescription)")
-                    return
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: { granted, error in
+                    if let error = error {
+                        print("Failed to request authorization for notifications: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard granted else {
+                        print("User denied notification permissions")
+                        return
+                    }
+                    
+                    DispatchQueue.main.async {
+                        application.registerForRemoteNotifications()
+                    }
                 }
-                
-                guard granted else {
-                    print("User denied notification permissions")
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    application.registerForRemoteNotifications()
-                }
-            }
-        )
+            )
+        }
     }
 }
 
