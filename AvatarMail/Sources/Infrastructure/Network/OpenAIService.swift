@@ -231,7 +231,7 @@ final class OpenAIService: OpenAIServiceProtocol {
                           <Item>(1) Include only the recipient's name in the letter; do not include your own name, '\(mail.recipientName)'.</Item>
                           <Item>(2) Write the reply in the same language as the original <INPUT_MAIL>.</Item>
                           <Item>(3) Ensure the content flows naturally and is coherent.</Item>
-                          <Item>(4) Tailor your writing style to match the tone and parlance of the <CHARACTERISTICS>.</Item>
+                          <Item>(4) Tailor your writing style to match the tone of the <Parlance> in the <CHARACTERISTICS>, but DO NOT reflect the specific content or themes from it in your reply.</Item>
                           <Item>(5) Be considerate of the context provided in <INPUT_MAIL> to craft a meaningful and relevant reply.</Item>
                           <Item>(6) Do not add any tags or markup to the content of the letter itself.</Item>
                           <Item>(7) Do not use '\(mail.senderName)' in the greeting or closing of the letter; write only the main content without specific address to the recipient's name.</Item>
