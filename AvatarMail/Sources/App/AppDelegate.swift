@@ -140,10 +140,24 @@ extension AppDelegate: MessagingDelegate {
                     },
                     onError: { error in
                         print("FCMS 토큰 전송 실패 - Error: \(error.localizedDescription)")
-                        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            exit(0)
-                        }
+                        
+                        GlobalDialog.shared.show(title: "연결 실패",
+                                                 description: "서버에 연결할 수 없습니다. 네트워크 연결 상태를 확인하시고 다시 접속을 시도해주세요.",
+                                                 buttonInfos:
+                                                    .init(title: "확인",
+                                                          titleColor: .white,
+                                                          backgroundColor: UIColor(hex: 0x336FF2),
+                                                          borderColor: nil,
+                                                          buttonHandler: { [weak self] in
+                                                              guard let self else { return }
+                                                              
+                                                              GlobalDialog.shared.hide()
+                            
+                                                              UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                                                              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                                  exit(0)
+                                                              }
+                                                          }))
                     }
                 ).disposed(by: self.disposeBag)
         }
