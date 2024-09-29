@@ -148,9 +148,7 @@ extension AppDelegate: MessagingDelegate {
                                                           titleColor: .white,
                                                           backgroundColor: UIColor(hex: 0x336FF2),
                                                           borderColor: nil,
-                                                          buttonHandler: { [weak self] in
-                                                              guard let self else { return }
-                                                              
+                                                          buttonHandler: {
                                                               GlobalDialog.shared.hide()
                             
                                                               UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
