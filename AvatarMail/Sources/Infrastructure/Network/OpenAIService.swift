@@ -13,6 +13,7 @@ import RxSwift
 protocol OpenAIServiceProtocol {
     func sendMail(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse>
     func sendMail2(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse>
+    func sendMail3(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse>
 }
 
 final class OpenAIService: OpenAIServiceProtocol {
@@ -203,6 +204,81 @@ final class OpenAIService: OpenAIServiceProtocol {
         }
     }
     
+    
+    public func sendMail3(mail: Mail, avatarInfo: AvatarInfo) -> Observable<OpenAIResponse> {
+        let prompt: [ChatQuery.ChatCompletionMessageParam] = [
+            .init(role: .system,
+                  content: """
+                  <Instructions>
+
+                      Your name is { \(mail.recipientName) }.
+                      You should write a reply to a letter sent by "{\(mail.senderName)}", provided as <INPUT_MAIL>.
+
+                      Your reply letter should reflect the described <CHARACTERISTICS> such as age group, personality, parlance, and relationship.
+                      If any characteristic is 'NONE', infer the missing traits based on the available information.
+                      <CHARACTERISTICS>
+                          <AgeGroup>{ \(avatarInfo.ageGroup ?? "NONE") }</AgeGroup>
+                          <Personality>{ \(avatarInfo.characteristic ?? "NONE") }</Personality>
+                          <Parlance>{ \(avatarInfo.parlance ?? "NONE") }</Parlance>
+                          <Relationship>
+                              <You>{ \(avatarInfo.relationship.avatar ?? "NONE") }</You>
+                              <Recipient>{ \(avatarInfo.relationship.user ?? "NONE") }</Recipient>
+                          </Relationship>
+                      </CHARACTERISTICS>
+
+                      Please adhere to the following conditions while writing your reply:
+                      <CONDITION>
+                          <Item>(1) Include only the recipient's name in the letter; do not include your own name, '\(mail.recipientName)'.</Item>
+                          <Item>(2) Write the reply in the same language as the original <INPUT_MAIL>.</Item>
+                          <Item>(3) Ensure the content flows naturally and is coherent.</Item>
+                          <Item>(4) Tailor your writing style to match the tone of the <Parlance> in the <CHARACTERISTICS>, but DO NOT reflect the specific content or themes from it in your reply.</Item>
+                          <Item>(5) Be considerate of the context provided in <INPUT_MAIL> to craft a meaningful and relevant reply.</Item>
+                          <Item>(6) Do not add any tags or markup to the content of the letter itself.</Item>
+                          <Item>(7) Do not use '\(mail.senderName)' in the greeting or closing of the letter; write only the main content without specific address to the recipient's name.</Item>
+                          <Item>(8) Avoid using any expressions like 'to ~' or 'from ~' at the beginning or end of the letter.</Item>
+                      </CONDITION>
+
+                      Write a reply letter based on the above information.
+                  
+                  </Instructions>
+                  """)!,
+            .init(role: .user,
+                  content: """
+                    <INPUT_MAIL>
+                    \(mail.content)
+                    </INPUT_MAIL>
+                  """)!,
+        ]
+        
+        let query = ChatQuery(
+            messages: prompt,
+            model: .gpt4_o,
+            maxTokens: 500
+        )
+
+        guard let openAI else {
+            fatalError("API client has not yet been setup.")
+        }
+        
+        return Observable.create { observer -> Disposable in
+            openAI.chats(query: query) { [weak self] result in
+                guard let self else { return }
+                
+                switch result {
+                case .success(let result):
+                    let content = result.choices.first?.message.content?.string ?? ""
+                    let response = OpenAIResponse(content: content)
+                    
+                    observer.onNext(response)
+                    observer.onCompleted()
+                case .failure(let error):
+                    observer.onError(error)
+                }
+            }
+            
+            return Disposables.create()
+        }
+    }
 }
 
 
