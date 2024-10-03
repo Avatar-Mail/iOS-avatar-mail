@@ -113,7 +113,9 @@ class MailListController: UIViewController, View {
         $0.tintColor = .gray
     }
     
-    private let filterPlaceholderView = FilterPlaceholderView()
+    private let filterPlaceholderView = FilterPlaceholderView().then {
+        $0.isHidden = true
+    }
 
     private let mailCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -132,6 +134,7 @@ class MailListController: UIViewController, View {
     init(reactor: MailListReactor) {
         super.init(nibName: nil, bundle: nil)
         self.reactor = reactor
+        
     }
 
     required init?(coder: NSCoder) {
@@ -146,6 +149,8 @@ class MailListController: UIViewController, View {
         
         // 음성 파일 이름 리스트 받아옴 (존재하는 음성 파일만 리스트에 노출)
         reactor?.action.onNext(.getAllAudioFileNames)
+        
+        GlobalIndicator.shared.show("load_files", backgroundAlpha: 0.0)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -330,6 +335,10 @@ class MailListController: UIViewController, View {
                 guard let self else { return }
                 
                 reactor.action.onNext(.getAllMails)
+                
+                GlobalIndicator.shared.hide(withAnimation: false)
+                
+                filterPlaceholderView.isHidden = false
             }
             .disposed(by: disposeBag)
         

@@ -11,13 +11,15 @@ public class GlobalIndicator {
     
     private init() {}
     
-    public func show(_ lottieImageName: String, with description: String? = nil) {
+    public func show(_ lottieImageName: String, 
+                     with description: String? = nil,
+                     backgroundAlpha: Double = 0.3) {
         guard backgroundView == nil && animationView == nil else { return }
         
         guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else { return }
         
         backgroundView = UIView().then {
-            $0.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            $0.backgroundColor = UIColor.black.withAlphaComponent(backgroundAlpha)
         }
         
         animationView = LottieAnimationView(name: lottieImageName).then {
@@ -65,9 +67,9 @@ public class GlobalIndicator {
         }
     }
     
-    public func hide() {
+    public func hide(withAnimation: Bool) {
         DispatchQueue.main.async {
-            UIView.animate(withDuration: 0.3, animations: {
+            UIView.animate(withDuration: withAnimation ? 0.3 : 0.0, animations: {
                 self.backgroundView?.alpha = 0
             }, completion: { _ in
                 self.animationView?.stop()
