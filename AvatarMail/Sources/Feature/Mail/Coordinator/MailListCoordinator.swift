@@ -25,7 +25,8 @@ class MailListCoordinator: MailListCoordinatorProtocol {
     
     public func start() {
         let mailListReactor = MailListReactor(coordinator: self,
-                                              database: AppContainer.shared.getRealmDatabase())
+                                              database: AppContainer.shared.getRealmDatabase(),
+                                              ttsAdapter: AppContainer.shared.getTTSAdapter())
         let mailWritingController = MailListController(reactor: mailListReactor)
         navigationController?.pushViewController(mailWritingController, animated: true)
     }

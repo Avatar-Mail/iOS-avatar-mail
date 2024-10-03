@@ -19,6 +19,7 @@ class MailListReactor: Reactor {
         case receivedMailCheckboxDidTap
         case searchTextDidChange(String)
         case clearFilter
+        case getAllAudioFileNames
     }
     
     enum Mutation {
@@ -27,9 +28,11 @@ class MailListReactor: Reactor {
         case setIsSentFromUser(isSentFromUser: Bool?)
         case setSearchText(searchText: String)
         case setToastMessage(text: String)
+        case setAudioFileNames(audioFileNames: [String])
     }
     
     struct State {
+        var existingAudioFileNames: [String]?  // 파일 이름 리스트 (해당 리스트에 존재하는 파일만 리스트에)
         var mails: [Mail]
         var filteredMails: [Mail]
         
@@ -40,6 +43,8 @@ class MailListReactor: Reactor {
     }
     
     let initialState = State(
+        existingAudioFileNames: nil,
+        
         mails: [],
         filteredMails: [],
         
@@ -53,13 +58,16 @@ class MailListReactor: Reactor {
     // MARK: - Initialization
     var coordinator: MailListCoordinatorProtocol
     var database: RealmDatabaseProtocol
+    var ttsAdapter: TTSAdapterProtocol
     
     init(
         coordinator: MailListCoordinatorProtocol,
-        database: RealmDatabaseProtocol
+        database: RealmDatabaseProtocol,
+        ttsAdapter: TTSAdapterProtocol
     ) {
         self.coordinator = coordinator
         self.database = database
+        self.ttsAdapter = ttsAdapter
     }
     
     
@@ -104,6 +112,8 @@ class MailListReactor: Reactor {
                 Mutation.setIsSentFromUser(isSentFromUser: nil),
                 Mutation.setSearchText(searchText: "")
             )
+        case .getAllAudioFileNames:
+            return getAllAudioFileNames()
         // Navigation
         case .closeMailListController:
             coordinator.closeMailListController()
@@ -131,6 +141,8 @@ class MailListReactor: Reactor {
             newState.isSentFromUser = isSentFromUser
         case let .setSearchText(searchText: searchText):
             newState.searchText = searchText
+        case let .setAudioFileNames(audioFileNames: audioFileNames):
+            newState.existingAudioFileNames = audioFileNames
         case let .setToastMessage(text: text):
             newState.toastMessage = text
         }
@@ -143,10 +155,30 @@ class MailListReactor: Reactor {
             .flatMap { mailObjects in
                 // 날짜 최신순 정렬
                 let mails = mailObjects.map { $0.toEntity() }.sorted(by: { $0.date > $1.date })
+                var filteredMails: [Mail] = []
+                let existingAudioFileNames = self.currentState.existingAudioFileNames
+                
+                print("mails: \(mails.map { $0.id })")
+                print("exists: \(existingAudioFileNames)")
+                
+                if let existingAudioFileNames {
+                    for mail in mails {
+                        if mail.isSentFromUser == false && !existingAudioFileNames.contains(mail.id) {
+                            // 아바타가 보낸 메일 중에서 existingAudioFileNames에 id가 포함되지 않은 메일은 스킵
+                            continue
+                        }
+                        
+                        filteredMails.append(mail)
+                    }
+                } else {
+                    filteredMails = mails.filter { $0.isSentFromUser == true }
+                }
+                
+                print("filtered: \(filteredMails.map { $0.id })")
                 
                 return Observable.of(
-                    Mutation.setMails(mails: mails),
-                    Mutation.setFiltedMail(filteredMails: mails)
+                    Mutation.setMails(mails: filteredMails),
+                    Mutation.setFiltedMail(filteredMails: filteredMails)
                 )
             }
             .catch { error in
@@ -176,6 +208,32 @@ class MailListReactor: Reactor {
         
         return Mutation.setFiltedMail(filteredMails: filteredMails)
     }
+    
+    func getAllAudioFileNames() -> Observable<Mutation> {
+        return ttsAdapter.getNarrationAudioFileNames()
+            .flatMap { response -> Observable<Mutation> in
+                
+                guard let data = response.data else {
+                    return Observable.just(Mutation.setAudioFileNames(audioFileNames: []))
+                }
+                
+                // data가 [String] 타입으로 내려오기 때문에, 별도로 파싱 X
+                let fileNames = data
+                
+                if fileNames.isNotEmpty {
+                    return Observable.just(Mutation.setAudioFileNames(audioFileNames: fileNames))
+                } else {
+                    return Observable.just(Mutation.setAudioFileNames(audioFileNames: []))
+                }
+            }
+            .catch { error in
+                return Observable.of(
+                    Mutation.setToastMessage(text: "편지 음성 파일 목록을 불러오는 데 실패했습니다."),
+                    Mutation.setAudioFileNames(audioFileNames: [])
+                )
+            }
+    }
+
 }
 
 

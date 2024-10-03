@@ -11,6 +11,7 @@ public enum TTSRequestPath: RequestPathProtocol {
     case saveAvatar
     case sendMail
     case getMail(mailID: String)
+    case getAudioFileNames
     
     public var rawValue: String {
         switch self {
@@ -20,6 +21,8 @@ public enum TTSRequestPath: RequestPathProtocol {
             return "/api/tts"
         case .getMail(let mailID):
             return "/api/tts/\(mailID)"
+        case .getAudioFileNames:
+            return "/api/tts/mail-list"
         }
     }
 }

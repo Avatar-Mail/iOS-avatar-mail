@@ -143,12 +143,13 @@ class MailListController: UIViewController, View {
         
         makeUI()
         setDelegates()
+        
+        // 음성 파일 이름 리스트 받아옴 (존재하는 음성 파일만 리스트에 노출)
+        reactor?.action.onNext(.getAllAudioFileNames)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        reactor?.action.onNext(.getAllMails)
-        
         // 검색바 내 검색어 제거
         filterAvatarSearchBar.setSearchText(text: "")
         // 검색바 UI 초기화 및 키보드 숨김
@@ -319,6 +320,17 @@ class MailListController: UIViewController, View {
                 
                 filterAvatarSearchBar.showKeyboard(false)
             })
+            .disposed(by: disposeBag)
+        
+        reactor.state.map { $0.existingAudioFileNames }
+            .observe(on: MainScheduler.asyncInstance)
+            .distinctUntilChanged()
+            .filterNil()
+            .bind { [weak self] mails in
+                guard let self else { return }
+                
+                reactor.action.onNext(.getAllMails)
+            }
             .disposed(by: disposeBag)
         
         reactor.state.map { $0.mails }

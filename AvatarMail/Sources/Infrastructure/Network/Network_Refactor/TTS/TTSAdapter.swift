@@ -12,6 +12,7 @@ public protocol TTSAdapterProtocol {
     func saveAvatar(avatarID: String, audioURLs: [URL]) -> Observable<ResponseData<EmptyData>>
     func sendMail(mailID: String, avatarID: String, content: String) -> Observable<ResponseData<EmptyData>>
     func getNarrationAudioFile(mailID: String) -> Observable<ResponseData<Data>>
+    func getNarrationAudioFileNames() -> Observable<ResponseData<[String]>>
 }
 
 public final class TTSAdapter: TTSAdapterProtocol {
@@ -84,5 +85,20 @@ public final class TTSAdapter: TTSAdapterProtocol {
         let request = TTSRequest(requestData: requestData)
         
         return networkService.multipartDownload(request)
+    }
+    
+    public func getNarrationAudioFileNames() -> Observable<ResponseData<[String]>> {
+        let path: TTSRequestPath = .getAudioFileNames
+        
+        let requestData = RequestData(path: path,
+                                      method: .get,
+                                      parameters: [:],
+                                      queryItems: nil,
+                                      additionalHeaders: nil,
+                                      uploadFiles: nil)
+        
+        let request = TTSRequest(requestData: requestData)
+        
+        return networkService.request(request)
     }
 }
