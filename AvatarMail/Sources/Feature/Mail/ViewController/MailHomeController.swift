@@ -106,7 +106,6 @@ class MailHomeController: UIViewController, View {
             $0.top.equalTo(topNavigation.snp.bottom).offset(2)
             $0.right.equalToSuperview().inset(10)
         }
-        view.bringSubviewToFront(topNavigationBottomView)
         
         // collection-view
         contentsCollectionView.snp.makeConstraints {
@@ -116,6 +115,7 @@ class MailHomeController: UIViewController, View {
         }
         
         view.bringSubviewToFront(topNavigation)
+        view.bringSubviewToFront(topNavigationBottomView)
     }
     
     

@@ -125,7 +125,6 @@ class AvatarHomeController: UIViewController, View {
             $0.top.equalTo(topNavigation.snp.bottom).offset(2)
             $0.right.equalToSuperview().inset(10)
         }
-        view.bringSubviewToFront(topNavigationBottomView)
         
         // searchBar
         searchBar.snp.makeConstraints {
@@ -147,6 +146,8 @@ class AvatarHomeController: UIViewController, View {
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-(tabBarController?.tabBar.frame.height ?? 90))
         }
+        
+        view.bringSubviewToFront(topNavigationBottomView)
     }
     
     func bind(reactor: AvatarHomeReactor) {

@@ -93,7 +93,6 @@ class SettingHomeController: UIViewController, View {
             $0.top.equalTo(topNavigation.snp.bottom).offset(2)
             $0.right.equalToSuperview().inset(10)
         }
-        view.bringSubviewToFront(topNavigationBottomView)
         
         // collectionView
         collectionView.snp.makeConstraints {
@@ -101,6 +100,8 @@ class SettingHomeController: UIViewController, View {
             $0.horizontalEdges.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
+        view.bringSubviewToFront(topNavigationBottomView)
     }
     
     func bind(reactor: SettingHomeReactor) {
