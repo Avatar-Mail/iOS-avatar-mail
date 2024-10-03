@@ -154,6 +154,14 @@ class RepliedMailController: UIViewController, View {
                                             isHorizontal: true)
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        if let isNarrating = reactor?.currentState.isNarrating, isNarrating == true {
+            reactor?.action.onNext(.stopNarration)
+        }
+    }
+    
     private func makeUI() {
         view.backgroundColor = UIColor(hex: 0xEFEFEF)
         
