@@ -27,7 +27,6 @@ class AvatarSettingController: UIViewController, View {
     private let topNavigation = TopNavigation().then {
         $0.setLeftIcon(iconName: "arrow.left", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTitle(titleText: "아바타 설정하기", titleColor: .white, font: .content(size: 18, weight: .semibold))
-        $0.setRightSidePrimaryIcon(iconName: "bell.fill", iconColor: .white, iconSize: CGSize(width: 20, height: 20))
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }

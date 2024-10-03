@@ -18,6 +18,10 @@ public struct AppConst {
     let safeAreaInset: UIEdgeInsets? = (UIApplication.shared.connectedScenes.first
         .flatMap { ($0 as? UIWindowScene)?.windows.first }?
         .flatMap { $0.safeAreaInsets })
+    
     // 상단 탑 내비게이션
     let topNavigationHeight: CGFloat = 54
+    
+    // 미확인 신규 답장 편지 존재 여부
+    let isUncheckedReplyMailExists = "isUncheckedReplyMailExists"
 }

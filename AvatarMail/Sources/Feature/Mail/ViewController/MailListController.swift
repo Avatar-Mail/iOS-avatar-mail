@@ -113,7 +113,9 @@ class MailListController: UIViewController, View {
         $0.tintColor = .gray
     }
     
-    private let filterPlaceholderView = FilterPlaceholderView()
+    private let filterPlaceholderView = FilterPlaceholderView().then {
+        $0.isHidden = true
+    }
 
     private let mailCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -132,6 +134,7 @@ class MailListController: UIViewController, View {
     init(reactor: MailListReactor) {
         super.init(nibName: nil, bundle: nil)
         self.reactor = reactor
+        
     }
 
     required init?(coder: NSCoder) {
@@ -146,10 +149,18 @@ class MailListController: UIViewController, View {
         
         // 음성 파일 이름 리스트 받아옴 (존재하는 음성 파일만 리스트에 노출)
         reactor?.action.onNext(.getAllAudioFileNames)
+        
+        GlobalIndicator.shared.show("load_files", backgroundAlpha: 0.0)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        // 신규 편지 확인 Notification 이벤트 방출 (리스트 페이지만 진입하면 신규 편지 확인한 걸로 간주)
+        NotificationCenter.default.post(name: .replyMailChecked, object: nil)
+        // 미확인 신규 편지 존재 여부를 false로 변경 (-> TopNavigation에 red dot 노출)
+        UserDefaults.standard.set(false, forKey: AppConst.shared.isUncheckedReplyMailExists)
+        
         // 검색바 내 검색어 제거
         filterAvatarSearchBar.setSearchText(text: "")
         // 검색바 UI 초기화 및 키보드 숨김
@@ -330,6 +341,10 @@ class MailListController: UIViewController, View {
                 guard let self else { return }
                 
                 reactor.action.onNext(.getAllMails)
+                
+                GlobalIndicator.shared.hide(withAnimation: false)
+                
+                filterPlaceholderView.isHidden = false
             }
             .disposed(by: disposeBag)
         

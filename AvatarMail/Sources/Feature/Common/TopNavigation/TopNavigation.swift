@@ -54,7 +54,19 @@ public final class TopNavigation: UIView {
         $0.isHidden = true
     }
     
+    private let rightSidePrimaryIconButtonRedDot = UIView().then {
+        $0.backgroundColor = .systemRed
+        $0.applyCornerRadius(3)
+        $0.isHidden = true
+    }
+    
     private let rightSideSecondaryIconButton = UIButton().then {
+        $0.isHidden = true
+    }
+    
+    private let rightSideSecondaryIconButtonRedDot = UIView().then {
+        $0.backgroundColor = .systemRed
+        $0.applyCornerRadius(3)
         $0.isHidden = true
     }
     
@@ -96,7 +108,10 @@ public final class TopNavigation: UIView {
                     rightSidePrimaryIconButton,
                     rightSideSecondaryIconButton,
                     rightSideTextButton
-                )
+                ),
+                
+                rightSidePrimaryIconButtonRedDot,
+                rightSideSecondaryIconButtonRedDot
             )
         )
         
@@ -135,8 +150,20 @@ public final class TopNavigation: UIView {
             $0.size.equalTo(20)
         }
         
+        rightSidePrimaryIconButtonRedDot.snp.makeConstraints {
+            $0.size.equalTo(6)
+            $0.top.equalTo(rightSidePrimaryIconButton).inset(2)
+            $0.right.equalTo(rightSidePrimaryIconButton).inset(1)
+        }
+        
         rightSideSecondaryIconButton.snp.makeConstraints {
             $0.size.equalTo(20)
+        }
+        
+        rightSideSecondaryIconButtonRedDot.snp.makeConstraints {
+            $0.size.equalTo(6)
+            $0.top.equalTo(rightSideSecondaryIconButton).inset(2)
+            $0.right.equalTo(rightSideSecondaryIconButton).inset(1)
         }
     }
     
@@ -374,5 +401,19 @@ public final class TopNavigation: UIView {
     /// - Parameter isHidden: 그림자의 숨김 여부
     public func setTopNavigationShadow(isHidden: Bool) {
         self.layer.shadowOpacity = isHidden ? 0 : 1
+    }
+    
+    
+    /// Right Primary Icon의 Red Dot 숨김 여부 설정
+    /// - Parameter isHidden: Red Dot 숨김 여부
+    public func setTopNavigationRightSidePrimaryIconRedDot(isHidden: Bool) {
+        rightSidePrimaryIconButtonRedDot.isHidden = isHidden
+    }
+    
+    
+    /// Right Secondary Icon의 Red Dot 숨김 여부 설정
+    /// - Parameter isHidden: Red Dot 숨김 여부
+    public func setTopNavigationRightSideSecondaryIconRedDot(isHidden: Bool) {
+        rightSideSecondaryIconButtonRedDot.isHidden = isHidden
     }
 }

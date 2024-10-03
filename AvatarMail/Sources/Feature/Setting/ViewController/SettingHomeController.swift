@@ -18,6 +18,8 @@ class SettingHomeController: UIViewController, View {
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
     
+    private let topNavigationBottomView = TopNavigationBottomView()
+    
     private let collectionView: UICollectionView = {
         var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
         listConfig.showsSeparators = true // divider 설정
@@ -34,6 +36,7 @@ class SettingHomeController: UIViewController, View {
         return collectionView
     }()
     
+    
     init(reactor: SettingHomeReactor) {
         super.init(nibName: nil, bundle: nil)
         self.reactor = reactor
@@ -43,10 +46,26 @@ class SettingHomeController: UIViewController, View {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setNotifications()
+        setDelegates()
+        
         makeUI()
     }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        if let isUncheckedReplyMailExists = UserDefaults.standard.object(forKey: AppConst.shared.isUncheckedReplyMailExists) as? Bool, isUncheckedReplyMailExists == true {
+            // 미확인 편지가 존재하는 경우 Red dot 노출
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: false)
+        } else {
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: true)
+        }
+    }
+    
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -60,6 +79,7 @@ class SettingHomeController: UIViewController, View {
         
         view.addSubViews(
             topNavigation,
+            topNavigationBottomView,
             collectionView
         )
         
@@ -67,6 +87,13 @@ class SettingHomeController: UIViewController, View {
         topNavigation.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
         }
+        
+        // topNavigationBottomView
+        topNavigationBottomView.snp.makeConstraints {
+            $0.top.equalTo(topNavigation.snp.bottom).offset(2)
+            $0.right.equalToSuperview().inset(10)
+        }
+        view.bringSubviewToFront(topNavigationBottomView)
         
         // collectionView
         collectionView.snp.makeConstraints {
@@ -91,6 +118,40 @@ class SettingHomeController: UIViewController, View {
             }
             .disposed(by: disposeBag)
     }
+    
+    
+    private func setDelegates() {
+        topNavigation.delegate = self
+    }
+    
+    
+    private func setNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(replyMailReceived),
+                                               name: .replyMailReceived,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(replyMailChecked),
+                                               name: .replyMailChecked,
+                                               object: nil)
+    }
+    
+    
+    @objc private func replyMailReceived() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: false)
+            topNavigationBottomView.showTopNavigationBottomView(withText: "새로운 편지가 도착했어요!")
+        }
+    }
+    
+    
+    @objc private func replyMailChecked() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: true)
+        }
+    }
 }
 
 extension SettingHomeController: SettingHomeCollectionViewCellDelegate {
@@ -105,3 +166,25 @@ extension SettingHomeController: SettingHomeCollectionViewCellDelegate {
     }
 }
 
+
+extension SettingHomeController: TopNavigationDelegate {
+    func topNavigationLeftSideIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSidePrimaryIconDidTap() {
+        if let isUncheckedReplyMailExists = UserDefaults.standard.object(forKey: AppConst.shared.isUncheckedReplyMailExists) as? Bool, isUncheckedReplyMailExists == true {
+            topNavigationBottomView.showTopNavigationBottomView(withText: "아직 읽지 않은 편지가 있어요!\n편지함을 확인해보세요~!")
+        } else {
+            topNavigationBottomView.showTopNavigationBottomView(withText: "아직 도착한 편지가 없어요!")
+        }
+    }
+    
+    func topNavigationRightSideSecondaryIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSideTextButtonDidTap() {
+        
+    }
+}

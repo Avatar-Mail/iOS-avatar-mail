@@ -515,7 +515,7 @@ class MailWritingController: UIViewController, View {
             .compactMap { $0 }
             .bind { isMailSent in
                 
-                GlobalIndicator.shared.hide()
+                GlobalIndicator.shared.hide(withAnimation: true)
                 
                 if isMailSent {
                     reactor.action.onNext(.closeMailWritingController)

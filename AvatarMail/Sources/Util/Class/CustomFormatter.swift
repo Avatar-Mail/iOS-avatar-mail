@@ -20,7 +20,7 @@ final class CustomFormatter {
     /// Format: yyyy-MM-dd
     public func getMailDateString(from date: Date) -> String {
         dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: Date())
+        let dateString = dateFormatter.string(from: date)
         return dateString
     }
 }

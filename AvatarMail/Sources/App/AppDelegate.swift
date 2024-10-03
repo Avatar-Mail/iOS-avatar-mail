@@ -125,6 +125,14 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        print("Laon - PushNoti to Show")
+        
+        // 신규 편지 수신 Notification 이벤트 방출
+        NotificationCenter.default.post(name: .replyMailReceived, object: nil)
+        // 미확인 신규 편지 존재 여부를 true로 변경 (-> TopNavigation에 red dot 노출)
+        UserDefaults.standard.set(true, forKey: AppConst.shared.isUncheckedReplyMailExists)
+        
         completionHandler([.badge, .banner, .list, .sound])
     }
 }
