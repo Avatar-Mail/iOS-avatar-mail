@@ -150,7 +150,8 @@ class RepliedMailController: UIViewController, View {
     override func viewDidLayoutSubviews() {
         topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
                                                                        UIColor(hex: 0x403DD2)])
-        replyButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE), UIColor(hex: 0x4C5BDF)],
+        replyButton.applyGradientBackground(colors: [UIColor(hex: 0x538EFE), 
+                                                     UIColor(hex: 0x4C5BDF)],
                                             isHorizontal: true)
     }
     
