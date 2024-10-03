@@ -14,7 +14,13 @@ public class GlobalIndicator {
     public func show(_ lottieImageName: String, 
                      with description: String? = nil,
                      backgroundAlpha: Double = 0.3) {
+        
         guard backgroundView == nil && animationView == nil else { return }
+        
+        // 초기화
+        animationView = nil
+        backgroundView = nil
+        descriptionLabel = nil
         
         guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else { return }
         
