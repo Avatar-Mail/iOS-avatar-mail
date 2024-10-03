@@ -27,6 +27,8 @@ class MailHomeController: UIViewController, View {
         $0.setTopNavigationBackgroundColor(color: UIColor(hex: 0x4961E6))
         $0.setTopNavigationShadow(shadowHeight: 2)
     }
+    
+    private let topNavigationBottomView = TopNavigationBottomView()
 
     private lazy var  contentsCollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout()).then {
@@ -42,6 +44,7 @@ class MailHomeController: UIViewController, View {
         MailHomeSection.checkMailbox
     ]
     
+    
     init(
         reactor: MailHomeReactor
     ) {
@@ -54,27 +57,42 @@ class MailHomeController: UIViewController, View {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setNotifications()
+        setDelegates()
         
         makeUI()
         setupCollectionView()
     }
     
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        if let isUncheckedReplyMailExists = UserDefaults.standard.object(forKey: AppConst.shared.isUncheckedReplyMailExists) as? Bool, isUncheckedReplyMailExists == true {
+            // 미확인 편지가 존재하는 경우 Red dot 노출
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: false)
+        } else {
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: true)
+        }
+        
         tabBarController?.hideTabBar(isHidden: false, animated: true)
     }
+    
     
     override func viewDidLayoutSubviews() {
         topNavigation.setTopNavigationBackgroundGradientColor(colors: [UIColor(hex: 0x538EFE),
                                                                        UIColor(hex: 0x403DD2)])
     }
     
+    
     private func makeUI() {
         view.addSubViews(
             topNavigation,
+            topNavigationBottomView,
             contentsCollectionView
         )
     
@@ -82,6 +100,13 @@ class MailHomeController: UIViewController, View {
         topNavigation.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
         }
+        
+        // topNavigationBottomView
+        topNavigationBottomView.snp.makeConstraints {
+            $0.top.equalTo(topNavigation.snp.bottom).offset(2)
+            $0.right.equalToSuperview().inset(10)
+        }
+        view.bringSubviewToFront(topNavigationBottomView)
         
         // collection-view
         contentsCollectionView.snp.makeConstraints {
@@ -100,6 +125,40 @@ class MailHomeController: UIViewController, View {
     private func setupCollectionView() {
         self.contentsCollectionView.dataSource = self
         // self.contentsCollectionView.delegate = self
+    }
+    
+    
+    private func setDelegates() {
+        topNavigation.delegate = self
+    }
+    
+    
+    private func setNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(replyMailReceived),
+                                               name: .replyMailReceived,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(replyMailChecked),
+                                               name: .replyMailChecked,
+                                               object: nil)
+    }
+    
+    
+    @objc private func replyMailReceived() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: false)
+            topNavigationBottomView.showTopNavigationBottomView(withText: "새로운 편지가 도착했어요!")
+        }
+    }
+    
+    
+    @objc private func replyMailChecked() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            topNavigation.setTopNavigationRightSidePrimaryIconRedDot(isHidden: true)
+        }
     }
 }
 
@@ -222,5 +281,28 @@ extension MailHomeController: WriteMailCellDelegate {
 extension MailHomeController: CheckMailboxCellDelegate {
     func checkMailboxButtonDidTap() {
         reactor?.action.onNext(.showMailListController)
+    }
+}
+
+
+extension MailHomeController: TopNavigationDelegate {
+    func topNavigationLeftSideIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSidePrimaryIconDidTap() {
+        if let isUncheckedReplyMailExists = UserDefaults.standard.object(forKey: AppConst.shared.isUncheckedReplyMailExists) as? Bool, isUncheckedReplyMailExists == true {
+            topNavigationBottomView.showTopNavigationBottomView(withText: "아직 읽지 않은 편지가 있어요!\n편지함을 확인해보세요~!")
+        } else {
+            topNavigationBottomView.showTopNavigationBottomView(withText: "아직 도착한 편지가 없어요!")
+        }
+    }
+    
+    func topNavigationRightSideSecondaryIconDidTap() {
+        
+    }
+    
+    func topNavigationRightSideTextButtonDidTap() {
+        
     }
 }

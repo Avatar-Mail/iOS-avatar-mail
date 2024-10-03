@@ -155,6 +155,12 @@ class MailListController: UIViewController, View {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        // 신규 편지 확인 Notification 이벤트 방출 (리스트 페이지만 진입하면 신규 편지 확인한 걸로 간주)
+        NotificationCenter.default.post(name: .replyMailChecked, object: nil)
+        // 미확인 신규 편지 존재 여부를 false로 변경 (-> TopNavigation에 red dot 노출)
+        UserDefaults.standard.set(false, forKey: AppConst.shared.isUncheckedReplyMailExists)
+        
         // 검색바 내 검색어 제거
         filterAvatarSearchBar.setSearchText(text: "")
         // 검색바 UI 초기화 및 키보드 숨김
