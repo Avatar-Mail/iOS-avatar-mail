@@ -21,7 +21,7 @@ class AvatarInfoObject: Object {
     
     convenience init(avatar: AvatarInfo) {
         self.init()
-        
+        self.id = avatar.id
         self.name = avatar.name
         self.ageGroup = avatar.ageGroup
         self.avatarRole = avatar.relationship.avatar
